@@ -16,15 +16,22 @@ struct HistoryPresenter {
 
     private func card(for item: ClipboardItem, now: Date, isSelected: Bool) -> CardViewState {
         let kind = kindLabel(item.payload)
+        let preview = preview(for: item.payload)
+        let displayKind: String
+        if case .code = preview {
+            displayKind = "code"
+        } else {
+            displayKind = kind.lowercased()
+        }
         return CardViewState(
             id: item.id,
             sourceLabel: item.source?.name ?? item.source?.bundleID ?? kind,
             sourceBundleID: item.source?.bundleID,
-            kindLabel: kind.lowercased(),
+            kindLabel: displayKind,
             timeLabel: Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now),
             isPinned: item.isPinned,
             isSelected: isSelected,
-            preview: preview(for: item.payload)
+            preview: preview
         )
     }
 
@@ -34,6 +41,9 @@ struct HistoryPresenter {
             if let swatch = colorSwatch(in: value) {
                 return swatch
             }
+            if let tokens = CodeHighlighter.highlight(value) {
+                return .code(text: value, tokens: tokens)
+            }
             return .text(value)
         case .link(let url):
             return .link(url.absoluteString)
@@ -41,7 +51,11 @@ struct HistoryPresenter {
             return .image(data)
         case .fileReferences(let paths):
             let names = paths.map { ($0 as NSString).lastPathComponent }
-            return .files(names: Array(names.prefix(4)), overflow: max(0, names.count - 4))
+            return .files(
+                names: Array(names.prefix(4)),
+                overflow: max(0, names.count - 4),
+                thumbnailPath: paths.first
+            )
         }
     }
 

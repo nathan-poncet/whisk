@@ -53,10 +53,11 @@ struct CardViewState: Equatable, Identifiable {
 /// What a card shows, decided by the presenter. Image bytes stay opaque.
 enum CardPreview: Equatable {
     case text(String)
+    case code(text: String, tokens: [CodeToken])
     case color(code: String, rgb: RGB)
     case link(String)
     case image(Data)
-    case files(names: [String], overflow: Int)
+    case files(names: [String], overflow: Int, thumbnailPath: String?)
 }
 
 /// Framework-free color triple in the 0...1 range.
