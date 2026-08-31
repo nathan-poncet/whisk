@@ -1,5 +1,4 @@
 import SwiftUI
-import WhiskAdapters
 
 struct ItemCardView: View {
     let card: CardViewState

@@ -1,6 +1,5 @@
 import Combine
 import Foundation
-import WhiskAdapters
 
 /// Bridges the presenter's output to SwiftUI observation. Frameworks ring:
 /// nothing below the views knows this exists.

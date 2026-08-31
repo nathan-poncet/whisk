@@ -1,5 +1,4 @@
 import Foundation
-import WhiskKernel
 
 /// Maps kernel entities to display-ready view state. Pure: time comes in as
 /// a value, never read from the system.

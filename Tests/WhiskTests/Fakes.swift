@@ -1,5 +1,5 @@
 import Foundation
-import WhiskKernel
+@testable import Whisk
 
 /// Deterministic doubles for the kernel's ports, shared by every test
 /// target. Nothing here reads real time, the real pasteboard, or disk.

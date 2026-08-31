@@ -1,5 +1,4 @@
 import Foundation
-import WhiskKernel
 
 /// Translates UI and OS events into use case invocations and hands each
 /// result to the presenter. Owns the current history and search query;

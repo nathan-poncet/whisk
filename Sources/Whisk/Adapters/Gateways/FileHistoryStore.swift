@@ -1,5 +1,4 @@
 import Foundation
-import WhiskKernel
 
 /// Stores the history as a JSON index plus one blob file per image.
 /// Dates are pinned to whole milliseconds so a saved history loads back

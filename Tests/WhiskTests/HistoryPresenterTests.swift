@@ -1,8 +1,6 @@
 import Foundation
 import Testing
-import WhiskAdapters
-import WhiskKernel
-import WhiskTestKit
+@testable import Whisk
 
 @Suite struct HistoryPresenterBehaviour {
     let presenter = HistoryPresenter()

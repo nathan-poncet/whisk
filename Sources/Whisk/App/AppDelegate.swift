@@ -1,8 +1,5 @@
 import AppKit
 import Carbon.HIToolbox
-import HistoryStoreFile
-import PasteboardAppKit
-import WhiskAdapters
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?

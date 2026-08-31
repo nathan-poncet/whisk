@@ -8,10 +8,12 @@ Architecture rules: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The essentials
 - Prefix commits and issues with a **Gitmoji** (📝 docs, ✨ feat, ✅ tests, ♻️ refactor, 👷 ci, 🔒 security…).
 
 ## Design
-- The Dependency Rule is the SwiftPM target graph: `WhiskKernel` (entities, use cases, ports)
-  imports Foundation only; the interface-adapters ring is `WhiskAdapters` (controllers,
-  presenters) plus the gateways (`HistoryStoreFile`, `PasteboardAppKit`), all depending on
-  the kernel alone; the `Whisk` executable is frameworks & drivers plus composition root, a sink.
+- One simple app module; the rings are folders: `Entities/` and `UseCases/` (+ `Ports/`)
+  import Foundation only; `Adapters/{Controllers, Presenters, Gateways}` is the
+  interface-adapters ring (only `Gateways/` may import AppKit); `App/` is frameworks &
+  drivers plus the composition root.
+- The Dependency Rule is enforced by `scripts/check-dependency-rule.sh` — run it before
+  pushing; CI runs it on every push.
 - Views are dumb: they render the presenter's `HistoryViewState` verbatim; every display
   decision (labels, relative times, previews) belongs to the presenter.
 - Newtypes over primitives; make illegal states unrepresentable.
