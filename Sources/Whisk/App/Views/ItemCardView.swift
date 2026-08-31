@@ -1,12 +1,19 @@
 import SwiftUI
 
-struct ItemCardView: View {
+/// Equatable on the view state alone: the action closures never compare
+/// equal, and without this every card would rebuild (and visibly flash) on
+/// each selection move.
+struct ItemCardView: View, Equatable {
     let card: CardViewState
     let onSelect: () -> Void
     let onTogglePin: () -> Void
     let onDelete: () -> Void
 
     @State private var isHovering = false
+
+    static func == (lhs: ItemCardView, rhs: ItemCardView) -> Bool {
+        lhs.card == rhs.card
+    }
 
     private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
 

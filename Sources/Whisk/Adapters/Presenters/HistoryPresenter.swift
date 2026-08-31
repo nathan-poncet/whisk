@@ -28,7 +28,7 @@ struct HistoryPresenter {
             sourceLabel: item.source?.name ?? item.source?.bundleID ?? kind,
             sourceBundleID: item.source?.bundleID,
             kindLabel: displayKind,
-            timeLabel: Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now),
+            timeLabel: timeLabel(for: item.copiedAt, now: now),
             isPinned: item.isPinned,
             isSelected: isSelected,
             preview: preview
@@ -81,6 +81,13 @@ struct HistoryPresenter {
         case .image: return "Image"
         case .fileReferences: return "Files"
         }
+    }
+
+    /// Sub-minute labels would churn every second and force every card to
+    /// re-render on each refresh, so the first minute reads as "now".
+    private func timeLabel(for date: Date, now: Date) -> String {
+        guard now.timeIntervalSince(date) >= 60 else { return "now" }
+        return Self.relativeFormatter.localizedString(for: date, relativeTo: now)
     }
 
     private func countLabel(_ count: Int) -> String {
