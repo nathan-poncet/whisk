@@ -67,7 +67,7 @@ import Testing
         #expect(spy.last.cards.first?.id == wantedID)
     }
 
-    @Test func selecting_first_visible_reports_whether_anything_was_there() {
+    @Test func activating_the_selection_reports_whether_anything_was_there() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("only"))]
         let spy = StateSpy()
@@ -76,10 +76,70 @@ import Testing
         )
 
         controller.search("no match")
-        #expect(controller.selectFirstVisible() == false)
+        #expect(controller.activateSelected() == false)
 
         controller.search("")
-        #expect(controller.selectFirstVisible() == true)
+        #expect(controller.activateSelected() == true)
+    }
+
+    @Test func the_first_visible_card_is_selected_by_default() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("front")), anItem(.text("back"))]
+        let spy = StateSpy()
+        _ = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        #expect(spy.last.selectedID == spy.last.cards.first?.id)
+        #expect(spy.last.cards.map(\.isSelected) == [true, false])
+    }
+
+    @Test func stepping_the_selection_clamps_at_both_edges() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("a")), anItem(.text("b"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.moveSelection(.previous)
+        #expect(spy.last.cards.map(\.isSelected) == [true, false])
+
+        controller.moveSelection(.next)
+        #expect(spy.last.cards.map(\.isSelected) == [false, true])
+
+        controller.moveSelection(.next)
+        #expect(spy.last.cards.map(\.isSelected) == [false, true])
+    }
+
+    @Test func searching_resets_the_selection_to_the_first_match() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("alpha")), anItem(.text("beta")), anItem(.text("gamma"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        controller.moveSelection(.next)
+
+        controller.search("gamma")
+
+        #expect(spy.last.cards.map(\.isSelected) == [true])
+    }
+
+    @Test func activation_targets_the_stepped_selection_not_the_first_card() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("front")), anItem(.text("stepped to"))]
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.moveSelection(.next)
+        controller.activateSelected()
+
+        #expect(pasteboard.written == [.text("stepped to")])
+        #expect(spy.last.cards.first?.preview == .text("stepped to"))
     }
 
     @Test func a_storage_failure_keeps_the_presented_state_alive() {

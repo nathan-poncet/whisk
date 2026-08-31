@@ -23,11 +23,10 @@ struct ItemCardView: View {
             tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID).tint.opacity(0.32),
             interactive: true
         )
-        .overlay(
-            Self.shape.strokeBorder(.white.opacity(isHovering ? 0.30 : 0.10), lineWidth: 1)
-        )
-        .scaleEffect(isHovering ? 1.02 : 1)
+        .overlay(selectionRing)
+        .scaleEffect(isHovering || card.isSelected ? 1.02 : 1)
         .animation(.easeOut(duration: 0.16), value: isHovering)
+        .animation(.easeOut(duration: 0.16), value: card.isSelected)
         .contentShape(Self.shape)
         .onTapGesture(perform: onSelect)
         .onHover { hovering in
@@ -36,6 +35,14 @@ struct ItemCardView: View {
         .contextMenu {
             Button(card.isPinned ? "Unpin" : "Pin", action: onTogglePin)
             Button("Delete", role: .destructive, action: onDelete)
+        }
+    }
+
+    @ViewBuilder private var selectionRing: some View {
+        if card.isSelected {
+            Self.shape.strokeBorder(Color.accentColor.opacity(0.9), lineWidth: 2)
+        } else {
+            Self.shape.strokeBorder(.white.opacity(isHovering ? 0.30 : 0.10), lineWidth: 1)
         }
     }
 

@@ -36,13 +36,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             select: { [weak self] id in
                 clipboard.select(id)
                 self?.panelController?.hide()
-                PasteSimulator.pasteIfTrusted()
+                PasteSimulator.paste()
             },
-            selectFirst: { [weak self] in
-                guard clipboard.selectFirstVisible() else { return }
+            activateSelected: { [weak self] in
+                guard clipboard.activateSelected() else { return }
                 self?.panelController?.hide()
-                PasteSimulator.pasteIfTrusted()
+                PasteSimulator.paste()
             },
+            moveSelection: { clipboard.moveSelection($0) },
             togglePin: { clipboard.togglePin($0) },
             delete: { clipboard.delete($0) },
             panelWillShow: { clipboard.panelWillShow() }

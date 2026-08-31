@@ -1,14 +1,14 @@
 import Foundation
 
 /// A single captured pasteboard entry.
-public struct ClipboardItem: Equatable, Hashable, Identifiable {
-    public let id: UUID
-    public let payload: Payload
-    public let source: SourceApp?
-    public let copiedAt: Date
-    public let isPinned: Bool
+struct ClipboardItem: Equatable, Hashable, Identifiable {
+    let id: UUID
+    let payload: Payload
+    let source: SourceApp?
+    let copiedAt: Date
+    let isPinned: Bool
 
-    public init(id: UUID, payload: Payload, source: SourceApp?, copiedAt: Date, isPinned: Bool) {
+    init(id: UUID, payload: Payload, source: SourceApp?, copiedAt: Date, isPinned: Bool) {
         self.id = id
         self.payload = payload
         self.source = source

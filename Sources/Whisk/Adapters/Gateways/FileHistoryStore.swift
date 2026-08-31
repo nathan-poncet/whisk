@@ -3,17 +3,17 @@ import Foundation
 /// Stores the history as a JSON index plus one blob file per image.
 /// Dates are pinned to whole milliseconds so a saved history loads back
 /// byte-identical.
-public final class FileHistoryStore: HistoryStore {
+final class FileHistoryStore: HistoryStore {
     private let directory: URL
     private let fileManager: FileManager
 
-    public init(directory: URL, fileManager: FileManager = .default) {
+    init(directory: URL, fileManager: FileManager = .default) {
         self.directory = directory
         self.fileManager = fileManager
     }
 
     /// `~/Library/Application Support/Whisk`, created by the first save.
-    public static func defaultDirectory(fileManager: FileManager = .default) throws -> URL {
+    static func defaultDirectory(fileManager: FileManager = .default) throws -> URL {
         let base = try fileManager.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
@@ -23,7 +23,7 @@ public final class FileHistoryStore: HistoryStore {
         return base.appendingPathComponent("Whisk", isDirectory: true)
     }
 
-    public func load() throws -> [ClipboardItem] {
+    func load() throws -> [ClipboardItem] {
         guard fileManager.fileExists(atPath: indexFile.path) else { return [] }
         let data: Data
         do {
@@ -40,7 +40,7 @@ public final class FileHistoryStore: HistoryStore {
         return stored.compactMap(item)
     }
 
-    public func save(_ items: [ClipboardItem]) throws {
+    func save(_ items: [ClipboardItem]) throws {
         do {
             try fileManager.createDirectory(at: blobsDirectory, withIntermediateDirectories: true)
             let stored = try items.map(storedItem)

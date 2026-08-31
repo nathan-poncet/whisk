@@ -15,6 +15,27 @@ final class PanelController {
         panel.contentView = NSHostingView(
             rootView: HistoryPanelView(store: stateStore, actions: actions)
         )
+        panel.keyHandler = { [weak self] event in
+            self?.handle(event) ?? false
+        }
+    }
+
+    /// Arrows step the selection and Return pastes it, even while the
+    /// search field owns the caret.
+    private func handle(_ event: NSEvent) -> Bool {
+        switch event.specialKey {
+        case .some(.leftArrow), .some(.upArrow):
+            actions.moveSelection(.previous)
+            return true
+        case .some(.rightArrow), .some(.downArrow):
+            actions.moveSelection(.next)
+            return true
+        case .some(.carriageReturn), .some(.enter):
+            actions.activateSelected()
+            return true
+        default:
+            return false
+        }
     }
 
     func toggle() {
@@ -45,6 +66,8 @@ final class PanelController {
 }
 
 final class FloatingPanel: NSPanel {
+    var keyHandler: ((NSEvent) -> Bool)?
+
     init() {
         super.init(
             contentRect: .zero,
@@ -63,6 +86,15 @@ final class FloatingPanel: NSPanel {
     }
 
     override var canBecomeKey: Bool { true }
+
+    // Intercepted ahead of the responder chain: the field editor would
+    // otherwise swallow arrow keys for caret movement.
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .keyDown, keyHandler?(event) == true {
+            return
+        }
+        super.sendEvent(event)
+    }
 
     override func cancelOperation(_ sender: Any?) {
         orderOut(nil)
