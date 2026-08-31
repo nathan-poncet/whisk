@@ -47,6 +47,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             navigate: { clipboard.navigate($0) },
             toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
             toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
+            focusSourceChip: { clipboard.focusSourceChip($0) },
+            focusCategoryChip: { clipboard.focusCategoryChip($0) },
             togglePin: { clipboard.togglePin($0) },
             delete: { clipboard.delete($0) },
             panelWillShow: { clipboard.panelWillShow() }

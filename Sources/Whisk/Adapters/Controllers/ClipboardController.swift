@@ -133,6 +133,27 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         refresh()
     }
 
+    /// Moves the keyboard focus onto a specific app chip, e.g. the one
+    /// under the pointer — the mouse and the arrows share one focus.
+    func focusSourceChip(_ key: String) {
+        guard let index = distinctSources.firstIndex(where: { $0.filterKey == key }) else { return }
+        guard focusZone != .apps || focusedAppIndex != index else { return }
+        focusZone = .apps
+        focusedAppIndex = index
+        refresh()
+    }
+
+    /// Moves the keyboard focus onto a specific category chip.
+    func focusCategoryChip(_ rawCategory: String) {
+        guard let category = ContentCategory(rawValue: rawCategory),
+            let index = presentCategories.firstIndex(of: category)
+        else { return }
+        guard focusZone != .kinds || focusedKindIndex != index else { return }
+        focusZone = .kinds
+        focusedKindIndex = index
+        refresh()
+    }
+
     /// Up and down move between the chip rows and the rail; left and right
     /// move within whichever zone holds the focus.
     func navigate(_ direction: ArrowDirection) {

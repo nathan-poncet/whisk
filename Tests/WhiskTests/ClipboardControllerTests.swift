@@ -223,6 +223,28 @@ import Testing
         #expect(pasteboard.written == [.text("func run() { start() }")])
     }
 
+    @Test func hovering_a_chip_moves_the_shared_keyboard_focus() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Slack", bundle: "com.slack"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.focusSourceChip("com.slack")
+        #expect(spy.last.filters.apps.map(\.isFocused) == [false, true])
+
+        controller.navigate(.left)
+        #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
+
+        controller.focusCategoryChip("code")
+        #expect(spy.last.filters.kinds.map(\.isFocused) == [false, true])
+        #expect(spy.last.filters.apps.allSatisfy { !$0.isFocused })
+    }
+
     @Test func chip_toggles_filter_the_rail_and_toggle_back_off() {
         let store = InMemoryHistoryStore()
         store.stored = [
