@@ -2,18 +2,19 @@ import Foundation
 
 /// Maps kernel entities to display-ready view state. Pure: time comes in as
 /// a value, never read from the system.
-public struct HistoryPresenter {
-    public init() {}
+struct HistoryPresenter {
+    init() {}
 
-    public func present(items: [ClipboardItem], query: String, now: Date) -> HistoryViewState {
+    func present(items: [ClipboardItem], query: String, now: Date, selectedID: UUID? = nil) -> HistoryViewState {
         HistoryViewState(
-            cards: items.map { card(for: $0, now: now) },
+            cards: items.map { card(for: $0, now: now, isSelected: $0.id == selectedID) },
             countLabel: countLabel(items.count),
-            query: query
+            query: query,
+            selectedID: selectedID
         )
     }
 
-    private func card(for item: ClipboardItem, now: Date) -> CardViewState {
+    private func card(for item: ClipboardItem, now: Date, isSelected: Bool) -> CardViewState {
         let kind = kindLabel(item.payload)
         return CardViewState(
             id: item.id,
@@ -22,6 +23,7 @@ public struct HistoryPresenter {
             kindLabel: kind.lowercased(),
             timeLabel: Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now),
             isPinned: item.isPinned,
+            isSelected: isSelected,
             preview: preview(for: item.payload)
         )
     }

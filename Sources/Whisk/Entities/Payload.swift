@@ -2,7 +2,7 @@ import Foundation
 
 /// Content captured from the pasteboard. Image bytes are opaque to the
 /// kernel; the adapter that produced them owns their encoding.
-public enum Payload: Equatable, Hashable {
+enum Payload: Equatable, Hashable {
     case text(String)
     case link(URL)
     case image(Data)

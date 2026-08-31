@@ -34,9 +34,6 @@ struct HistoryPanelView: View {
             TextField("Search clipboard history", text: queryBinding)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
-                .onSubmit {
-                    actions.selectFirst()
-                }
             Spacer()
             Text(store.state.countLabel)
                 .font(.caption.monospacedDigit())
@@ -51,18 +48,27 @@ struct HistoryPanelView: View {
         if store.state.cards.isEmpty {
             emptyState
         } else {
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 14) {
-                    ForEach(store.state.cards) { card in
-                        ItemCardView(
-                            card: card,
-                            onSelect: { actions.select(card.id) },
-                            onTogglePin: { actions.togglePin(card.id) },
-                            onDelete: { actions.delete(card.id) }
-                        )
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 14) {
+                        ForEach(store.state.cards) { card in
+                            ItemCardView(
+                                card: card,
+                                onSelect: { actions.select(card.id) },
+                                onTogglePin: { actions.togglePin(card.id) },
+                                onDelete: { actions.delete(card.id) }
+                            )
+                            .id(card.id)
+                        }
+                    }
+                    .padding(4)
+                }
+                .onChange(of: store.state.selectedID) { _, selectedID in
+                    guard let selectedID else { return }
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        proxy.scrollTo(selectedID, anchor: .center)
                     }
                 }
-                .padding(4)
             }
         }
     }

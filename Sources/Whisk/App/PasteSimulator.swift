@@ -2,15 +2,27 @@ import ApplicationServices
 import Carbon.HIToolbox
 import Foundation
 
-/// Sends ⌘V to the frontmost application when Accessibility access is
-/// granted; without it, a selection still lands on the pasteboard for a
-/// manual paste.
+/// Sends ⌘V to the frontmost application. The first attempt without
+/// Accessibility access shows the system prompt once; until access is
+/// granted, a selection still lands on the pasteboard for a manual paste.
 enum PasteSimulator {
-    static func pasteIfTrusted() {
-        guard AXIsProcessTrusted() else { return }
+    private static var didPromptForAccess = false
+
+    static func paste() {
+        guard trusted() else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             postCommandV()
         }
+    }
+
+    private static func trusted() -> Bool {
+        if AXIsProcessTrusted() {
+            return true
+        }
+        guard !didPromptForAccess else { return false }
+        didPromptForAccess = true
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        return AXIsProcessTrustedWithOptions(options)
     }
 
     private static func postCommandV() {

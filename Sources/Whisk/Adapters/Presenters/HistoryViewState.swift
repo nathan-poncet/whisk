@@ -2,37 +2,41 @@ import Foundation
 
 /// Display-ready state for the history panel. Views render this verbatim;
 /// all formatting decisions were made by the presenter.
-public struct HistoryViewState: Equatable {
-    public let cards: [CardViewState]
-    public let countLabel: String
-    public let query: String
+struct HistoryViewState: Equatable {
+    let cards: [CardViewState]
+    let countLabel: String
+    let query: String
+    let selectedID: UUID?
 
-    public init(cards: [CardViewState], countLabel: String, query: String) {
+    init(cards: [CardViewState], countLabel: String, query: String, selectedID: UUID?) {
         self.cards = cards
         self.countLabel = countLabel
         self.query = query
+        self.selectedID = selectedID
     }
 
-    public static let empty = HistoryViewState(cards: [], countLabel: "0 items", query: "")
+    static let empty = HistoryViewState(cards: [], countLabel: "0 items", query: "", selectedID: nil)
 }
 
 /// One rendered clipboard entry.
-public struct CardViewState: Equatable, Identifiable {
-    public let id: UUID
-    public let sourceLabel: String
-    public let sourceBundleID: String?
-    public let kindLabel: String
-    public let timeLabel: String
-    public let isPinned: Bool
-    public let preview: CardPreview
+struct CardViewState: Equatable, Identifiable {
+    let id: UUID
+    let sourceLabel: String
+    let sourceBundleID: String?
+    let kindLabel: String
+    let timeLabel: String
+    let isPinned: Bool
+    let isSelected: Bool
+    let preview: CardPreview
 
-    public init(
+    init(
         id: UUID,
         sourceLabel: String,
         sourceBundleID: String?,
         kindLabel: String,
         timeLabel: String,
         isPinned: Bool,
+        isSelected: Bool,
         preview: CardPreview
     ) {
         self.id = id
@@ -41,12 +45,13 @@ public struct CardViewState: Equatable, Identifiable {
         self.kindLabel = kindLabel
         self.timeLabel = timeLabel
         self.isPinned = isPinned
+        self.isSelected = isSelected
         self.preview = preview
     }
 }
 
 /// What a card shows, decided by the presenter. Image bytes stay opaque.
-public enum CardPreview: Equatable {
+enum CardPreview: Equatable {
     case text(String)
     case color(code: String, rgb: RGB)
     case link(String)
@@ -55,12 +60,12 @@ public enum CardPreview: Equatable {
 }
 
 /// Framework-free color triple in the 0...1 range.
-public struct RGB: Equatable {
-    public let red: Double
-    public let green: Double
-    public let blue: Double
+struct RGB: Equatable {
+    let red: Double
+    let green: Double
+    let blue: Double
 
-    public init(red: Double, green: Double, blue: Double) {
+    init(red: Double, green: Double, blue: Double) {
         self.red = red
         self.green = green
         self.blue = blue

@@ -1,12 +1,20 @@
 import Foundation
 
+/// One step of keyboard navigation through the visible cards.
+enum SelectionMove {
+    case previous
+    case next
+}
+
 /// Translates UI and OS events into use case invocations and hands each
-/// result to the presenter. Owns the current history and search query;
-/// generic over its gateways, like the use cases it drives. A storage
-/// failure is logged and the in-memory state keeps working.
-public final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistoryStore> {
+/// result to the presenter. Owns the current history, search query and
+/// keyboard selection; generic over its gateways, like the use cases it
+/// drives. A storage failure is logged and the in-memory state keeps
+/// working.
+final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistoryStore> {
     private var history: History
     private var query = ""
+    private var selectedID: UUID?
 
     private let capture: CaptureClipboardChange<Board, Time, Store>
     private let selectItem: SelectItem<Board, Time, Store>
@@ -18,7 +26,7 @@ public final class ClipboardController<Board: Pasteboard, Time: Clock, Store: Hi
     private let clock: Time
     private let present: (HistoryViewState) -> Void
 
-    public init(
+    init(
         pasteboard: Board,
         store: Store,
         clock: Time,
@@ -42,40 +50,61 @@ public final class ClipboardController<Board: Pasteboard, Time: Clock, Store: Hi
         refresh()
     }
 
-    public func pollTick() {
+    func pollTick() {
         mutate { try capture(into: $0) }
     }
 
-    public func search(_ newQuery: String) {
+    func search(_ newQuery: String) {
         query = newQuery
+        selectedID = nil
         refresh()
     }
 
-    public func select(_ id: UUID) {
+    func select(_ id: UUID) {
         mutate { try selectItem(id, in: $0) }
     }
 
+    /// Moves the keyboard selection through the visible cards, clamped at
+    /// both ends.
+    func moveSelection(_ step: SelectionMove) {
+        let items = visibleItems
+        guard !items.isEmpty else { return }
+        guard let current = selectedID,
+              let index = items.firstIndex(where: { $0.id == current })
+        else {
+            selectedID = items.first?.id
+            refresh()
+            return
+        }
+        let destination = step == .next ? min(index + 1, items.count - 1) : max(index - 1, 0)
+        selectedID = items[destination].id
+        refresh()
+    }
+
+    /// Puts the highlighted card back on the pasteboard; the first visible
+    /// card counts as highlighted until the selection is stepped.
     @discardableResult
-    public func selectFirstVisible() -> Bool {
-        guard let first = visibleItems.first else { return false }
-        select(first.id)
+    func activateSelected() -> Bool {
+        guard let id = selectedID ?? visibleItems.first?.id else { return false }
+        select(id)
         return true
     }
 
-    public func togglePin(_ id: UUID) {
+    func togglePin(_ id: UUID) {
         mutate { try togglePinItem(id, in: $0) }
     }
 
-    public func delete(_ id: UUID) {
+    func delete(_ id: UUID) {
         mutate { try deleteItem(id, in: $0) }
     }
 
-    public func clear() {
+    func clear() {
         mutate { try clearUnpinned($0) }
     }
 
-    public func panelWillShow() {
+    func panelWillShow() {
         query = ""
+        selectedID = nil
         refresh()
     }
 
@@ -95,6 +124,10 @@ public final class ClipboardController<Board: Pasteboard, Time: Clock, Store: Hi
     }
 
     private func refresh() {
-        present(presenter.present(items: visibleItems, query: query, now: clock.now()))
+        let items = visibleItems
+        if selectedID == nil || !items.contains(where: { $0.id == selectedID }) {
+            selectedID = items.first?.id
+        }
+        present(presenter.present(items: items, query: query, now: clock.now(), selectedID: selectedID))
     }
 }

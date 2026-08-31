@@ -3,7 +3,7 @@ import AppKit
 /// Reads and writes the system pasteboard. Change detection relies on
 /// `changeCount`; our own writes advance the counter and are skipped so a
 /// selection is not re-captured.
-public final class AppKitPasteboard: Whisk.Pasteboard {
+final class AppKitPasteboard: Whisk.Pasteboard {
     private static let concealedTypes: Set<String> = [
         "org.nspasteboard.ConcealedType",
         "org.nspasteboard.TransientType",
@@ -13,12 +13,12 @@ public final class AppKitPasteboard: Whisk.Pasteboard {
     private let board: NSPasteboard
     private var lastChangeCount: Int
 
-    public init(board: NSPasteboard = .general) {
+    init(board: NSPasteboard = .general) {
         self.board = board
         lastChangeCount = board.changeCount
     }
 
-    public func readIfChanged() -> PasteboardSnapshot? {
+    func readIfChanged() -> PasteboardSnapshot? {
         let count = board.changeCount
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count
@@ -30,7 +30,7 @@ public final class AppKitPasteboard: Whisk.Pasteboard {
         )
     }
 
-    public func write(_ payload: Payload) {
+    func write(_ payload: Payload) {
         board.clearContents()
         switch payload {
         case .text(let value):

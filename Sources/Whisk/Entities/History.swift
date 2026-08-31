@@ -2,11 +2,11 @@ import Foundation
 
 /// Ordered clipboard history, newest first. Pinned items are exempt from
 /// eviction and do not count toward capacity.
-public struct History: Equatable {
-    public private(set) var items: [ClipboardItem]
-    public let capacity: HistoryCapacity
+struct History: Equatable {
+    private(set) var items: [ClipboardItem]
+    let capacity: HistoryCapacity
 
-    public init(items: [ClipboardItem] = [], capacity: HistoryCapacity = .standard) {
+    init(items: [ClipboardItem] = [], capacity: HistoryCapacity = .standard) {
         self.items = items
         self.capacity = capacity
         evictOverflow()
@@ -14,7 +14,7 @@ public struct History: Equatable {
 
     /// Records a captured payload. A payload already present keeps its
     /// identity and pin, and moves to the front with a refreshed date.
-    public func recording(_ payload: Payload, from source: SourceApp?, at date: Date, id: UUID = UUID()) -> History {
+    func recording(_ payload: Payload, from source: SourceApp?, at date: Date, id: UUID = UUID()) -> History {
         var next = self
         if let index = next.items.firstIndex(where: { $0.payload == payload }) {
             let refreshed = next.items.remove(at: index).copied(at: date)
@@ -28,7 +28,7 @@ public struct History: Equatable {
     }
 
     /// Moves an item to the front with a refreshed date.
-    public func selecting(_ id: UUID, at date: Date) -> History {
+    func selecting(_ id: UUID, at date: Date) -> History {
         var next = self
         guard let index = next.items.firstIndex(where: { $0.id == id }) else { return self }
         let refreshed = next.items.remove(at: index).copied(at: date)
@@ -37,7 +37,7 @@ public struct History: Equatable {
     }
 
     /// Flips an item's pin. Unpinning may evict it if the history overflows.
-    public func togglingPin(_ id: UUID) -> History {
+    func togglingPin(_ id: UUID) -> History {
         var next = self
         guard let index = next.items.firstIndex(where: { $0.id == id }) else { return self }
         next.items[index] = next.items[index].pinToggled()
@@ -46,14 +46,14 @@ public struct History: Equatable {
     }
 
     /// Removes an item regardless of its pin.
-    public func deleting(_ id: UUID) -> History {
+    func deleting(_ id: UUID) -> History {
         var next = self
         next.items.removeAll { $0.id == id }
         return next
     }
 
     /// Removes every unpinned item.
-    public func clearingUnpinned() -> History {
+    func clearingUnpinned() -> History {
         var next = self
         next.items.removeAll { !$0.isPinned }
         return next

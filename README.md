@@ -52,10 +52,14 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
 
 - **Left-click** the menu bar icon (or `⇧⌘V`): toggle the panel.
 - **Right-click** the icon: menu (show, clear, quit).
-- **Click a card**: copy it back to the clipboard. If the app that launched
-  Whisk (e.g. your terminal) has Accessibility permission
-  (System Settings → Privacy & Security → Accessibility), the item is pasted
-  straight into the frontmost app.
+- **Arrow keys** (`←`/`↑` previous, `→`/`↓` next): step through the cards —
+  the panel scrolls to keep the selection in view.
+- **Return**: paste the selected card into the text field that had focus
+  before the panel opened. The panel never steals focus, so the caret is
+  exactly where you left it; the first use prompts for Accessibility
+  access (System Settings → Privacy & Security → Accessibility), and until
+  it is granted the card still lands on the clipboard for a manual `⌘V`.
+- **Click a card**: same as Return, for that card.
 - **Right-click a card**: pin or delete.
 - **Esc** or click outside: close the panel.
 

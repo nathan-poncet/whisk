@@ -21,7 +21,8 @@ final class HistoryViewStateStore: ObservableObject {
 struct PanelActions {
     let search: (String) -> Void
     let select: (UUID) -> Void
-    let selectFirst: () -> Void
+    let activateSelected: () -> Void
+    let moveSelection: (SelectionMove) -> Void
     let togglePin: (UUID) -> Void
     let delete: (UUID) -> Void
     let panelWillShow: () -> Void
