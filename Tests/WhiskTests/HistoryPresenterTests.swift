@@ -27,7 +27,68 @@ import Testing
         let state = presenter.present(items: [anItem(.fileReferences(paths))], query: "", now: now)
 
         let expectedNames = ["file-1.txt", "file-2.txt", "file-3.txt", "file-4.txt"]
-        #expect(state.cards.first?.preview == .files(names: expectedNames, overflow: 2))
+        #expect(state.cards.first?.preview == .files(
+            names: expectedNames,
+            overflow: 2,
+            thumbnailPath: "/tmp/deep/dir/file-1.txt"
+        ))
+    }
+
+    @Test func swift_like_text_presents_as_highlighted_code() throws {
+        let snippet = """
+        func greet(name: String) -> String {
+            // says hello
+            return "Hello there"
+        }
+        """
+        let state = presenter.present(items: [anItem(.text(snippet))], query: "", now: now)
+
+        guard case .code(let text, let tokens) = state.cards.first?.preview else {
+            Issue.record("expected a code preview")
+            return
+        }
+        #expect(text == snippet)
+        let kinds = Set(tokens.map(\.kind))
+        #expect(kinds.contains(.keyword))
+        #expect(kinds.contains(.comment))
+        #expect(kinds.contains(.string))
+        #expect(state.cards.first?.kindLabel == "code")
+    }
+
+    @Test func a_single_line_of_code_is_still_detected() {
+        let line = "let keyCode = KeyboardLayout.keyCode(for: 9)"
+        let state = presenter.present(items: [anItem(.text(line))], query: "", now: now)
+
+        guard case .code = state.cards.first?.preview else {
+            Issue.record("expected a code preview")
+            return
+        }
+    }
+
+    @Test func prose_stays_plain_text() {
+        let prose = "Let me know when you arrive (soon). We can grab coffee and talk about the plan."
+        let state = presenter.present(items: [anItem(.text(prose))], query: "", now: now)
+
+        #expect(state.cards.first?.preview == .text(prose))
+        #expect(state.cards.first?.kindLabel == "text")
+    }
+
+    @Test func keywords_inside_strings_and_comments_stay_claimed_by_them() {
+        let snippet = """
+        // let this comment mention func and class
+        let label = "if you return"
+        """
+        let tokens = CodeHighlighter.tokens(in: snippet)
+
+        let commentToken = tokens.first { $0.kind == .comment }
+        let stringToken = tokens.first { $0.kind == .string }
+        #expect(commentToken != nil)
+        #expect(stringToken != nil)
+        for keyword in tokens.filter({ $0.kind == .keyword }) {
+            let insideComment = commentToken.map { keyword.start >= $0.start && keyword.start < $0.start + $0.length } ?? false
+            let insideString = stringToken.map { keyword.start >= $0.start && keyword.start < $0.start + $0.length } ?? false
+            #expect(!insideComment && !insideString)
+        }
     }
 
     @Test func an_item_without_a_source_falls_back_to_its_kind() {

@@ -26,11 +26,17 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   selects the first match.
 - **Pins** — right-click a card to pin it; pinned items survive
   *Clear* and are never evicted.
-- **Rich previews** — images, links, file lists, and color swatches for
-  copied hex codes.
-- **Privacy** — everything stays on disk in
+- **Rich previews** — copied links show the page's title, favicon and lead
+  image; files show a QuickLook thumbnail; images render inline; hex codes
+  become color swatches.
+- **Syntax highlighting** — text that reads as code is detected and
+  highlighted (keywords, strings, comments, numbers), language-agnostic.
+- **Privacy** — history stays on disk in
   `~/Library/Application Support/Whisk`; password managers marking their
-  content as concealed (`org.nspasteboard.ConcealedType`) are never recorded.
+  content as concealed (`org.nspasteboard.ConcealedType`) are never
+  recorded. One exception to "nothing leaves your machine": link previews
+  fetch metadata from the copied URL over the network (cached, once per
+  link).
 
 ## Requirements
 
