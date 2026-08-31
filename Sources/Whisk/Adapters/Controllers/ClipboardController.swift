@@ -85,6 +85,14 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         refresh()
     }
 
+    /// Moves the keyboard selection onto a specific visible card, e.g. the
+    /// one under the pointer. Selects only — nothing is written back.
+    func highlight(_ id: UUID) {
+        guard id != selectedID, visibleItems.contains(where: { $0.id == id }) else { return }
+        selectedID = id
+        refresh()
+    }
+
     /// Puts the highlighted card back on the pasteboard; the first visible
     /// card counts as highlighted until the selection is stepped.
     @discardableResult

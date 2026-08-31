@@ -6,10 +6,9 @@ import SwiftUI
 struct ItemCardView: View, Equatable {
     let card: CardViewState
     let onSelect: () -> Void
+    let onHighlight: () -> Void
     let onTogglePin: () -> Void
     let onDelete: () -> Void
-
-    @State private var isHovering = false
 
     static func == (lhs: ItemCardView, rhs: ItemCardView) -> Bool {
         lhs.card == rhs.card
@@ -30,12 +29,16 @@ struct ItemCardView: View, Equatable {
             tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID).tint.opacity(0.32)
         )
         .overlay(selectionRing)
-        .animation(.easeOut(duration: 0.16), value: isHovering)
+        // The scale sits below contentShape, so the selected card's hit
+        // area grows with it — natural hysteresis for hover selection.
+        .scaleEffect(card.isSelected ? 1.04 : 1)
         .animation(.easeOut(duration: 0.16), value: card.isSelected)
         .contentShape(Self.shape)
         .onTapGesture(perform: onSelect)
         .onHover { hovering in
-            isHovering = hovering
+            if hovering {
+                onHighlight()
+            }
         }
         .contextMenu {
             Button(card.isPinned ? "Unpin" : "Pin", action: onTogglePin)
@@ -43,9 +46,6 @@ struct ItemCardView: View, Equatable {
         }
     }
 
-    // Selection never transforms the glass layer (no scale, no shadow):
-    // re-rasterizing glass mid-animation is what made the rail flash. The
-    // highlight lives in an overlay above it — a ring plus a blurred glow.
     @ViewBuilder private var selectionRing: some View {
         if card.isSelected {
             ZStack {
@@ -56,7 +56,7 @@ struct ItemCardView: View, Equatable {
                     .strokeBorder(Color.accentColor, lineWidth: 3)
             }
         } else {
-            Self.shape.strokeBorder(.white.opacity(isHovering ? 0.30 : 0.10), lineWidth: 1)
+            Self.shape.strokeBorder(.white.opacity(0.10), lineWidth: 1)
         }
     }
 

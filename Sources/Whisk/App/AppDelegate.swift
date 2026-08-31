@@ -38,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
+            highlight: { clipboard.highlight($0) },
             activateSelected: { [weak self] in
                 guard clipboard.activateSelected() else { return }
                 self?.panelController?.hide()

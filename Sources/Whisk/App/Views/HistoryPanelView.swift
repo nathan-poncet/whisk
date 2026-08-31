@@ -56,6 +56,7 @@ struct HistoryPanelView: View {
                             ItemCardView(
                                 card: card,
                                 onSelect: { actions.select(card.id) },
+                                onHighlight: { actions.highlight(card.id) },
                                 onTogglePin: { actions.togglePin(card.id) },
                                 onDelete: { actions.delete(card.id) }
                             )
