@@ -1,0 +1,26 @@
+# Working conventions for Claude
+
+Clipboard manager for macOS (Swift/SwiftUI, Clean Architecture, TDD).
+Architecture rules: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The essentials:
+
+## Language & history
+- Code, comments, and commit messages in **English**. French docs mirror under `docs/fr/`.
+- Prefix commits and issues with a **Gitmoji** (📝 docs, ✨ feat, ✅ tests, ♻️ refactor, 👷 ci, 🔒 security…).
+
+## Design
+- The Dependency Rule is the SwiftPM target graph: `PasteurKernel` imports Foundation only;
+  adapters (`HistoryStoreFile`, `PasteboardAppKit`) depend on the kernel alone;
+  the `Pasteur` executable is the composition root and a sink.
+- Newtypes over primitives; make illegal states unrepresentable.
+- Fail closed: no force-unwraps in production paths; a storage failure never kills the UX.
+
+## Comments
+- Prefer **self-documenting code**: precise names, small functions, strong types.
+- Add a comment **only** for a non-obvious *why* the code cannot express — never to restate *what* the code does.
+- Never reference planning artifacts (issue IDs, milestones) in code.
+
+## Tests
+- TDD: red first; test names state behaviour (`a_duplicate_copy_moves_the_existing_item_to_the_front`), never `testFoo1`.
+- Deterministic always: frozen clocks, scripted pasteboards, temp directories.
+- Port contract suites run against every adapter of that port.
+- `swift test` needs a full Xcode toolchain; CI runs it on every push.
