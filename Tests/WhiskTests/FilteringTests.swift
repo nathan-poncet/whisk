@@ -28,7 +28,7 @@ import Testing
     private func seededHistory() -> History {
         History()
             .recording(
-                .text("let x = compute(1)"), from: SourceApp(name: "Ghostty", bundleID: "dev.ghostty"), at: clock.now()
+                .text("let x = api.compute(1)"), from: SourceApp(name: "Ghostty", bundleID: "dev.ghostty"), at: clock.now()
             )
             .recording(.text("plain words"), from: SourceApp(name: "Slack", bundleID: "com.slack"), at: clock.now())
             .recording(.text("#FF6B35"), from: SourceApp(name: "Slack", bundleID: "com.slack"), at: clock.now())
@@ -56,7 +56,7 @@ import Testing
     @Test func filtering_by_category_keeps_only_that_kind() {
         let matches = filter(seededHistory(), filter: HistoryFilter(category: .code))
 
-        #expect(matches.map(\.payload) == [.text("let x = compute(1)")])
+        #expect(matches.map(\.payload) == [.text("let x = api.compute(1)")])
     }
 
     @Test func source_category_and_query_combine() {
