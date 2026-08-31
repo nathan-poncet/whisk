@@ -55,6 +55,10 @@ struct FilterBarViewState: Equatable {
         (apps + kinds).contains(where: \.isActive)
     }
 
+    var focusedChipID: String? {
+        (apps + kinds).first(where: \.isFocused)?.id
+    }
+
     static let empty = FilterBarViewState(apps: [], kinds: [])
 }
 
@@ -63,12 +67,14 @@ struct FilterChip: Equatable, Identifiable {
     let label: String
     let sourceBundleID: String?
     let isActive: Bool
+    let isFocused: Bool
 
-    init(id: String, label: String, sourceBundleID: String?, isActive: Bool) {
+    init(id: String, label: String, sourceBundleID: String?, isActive: Bool, isFocused: Bool) {
         self.id = id
         self.label = label
         self.sourceBundleID = sourceBundleID
         self.isActive = isActive
+        self.isFocused = isFocused
     }
 }
 

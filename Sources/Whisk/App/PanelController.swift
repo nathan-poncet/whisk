@@ -24,14 +24,20 @@ final class PanelController {
     /// search field owns the caret.
     private func handle(_ event: NSEvent) -> Bool {
         switch event.specialKey {
-        case .some(.leftArrow), .some(.upArrow):
-            actions.moveSelection(.previous)
+        case .some(.leftArrow):
+            actions.navigate(.left)
             return true
-        case .some(.rightArrow), .some(.downArrow):
-            actions.moveSelection(.next)
+        case .some(.rightArrow):
+            actions.navigate(.right)
+            return true
+        case .some(.upArrow):
+            actions.navigate(.up)
+            return true
+        case .some(.downArrow):
+            actions.navigate(.down)
             return true
         case .some(.carriageReturn), .some(.enter):
-            actions.activateSelected()
+            actions.activate()
             return true
         default:
             return false
@@ -49,7 +55,7 @@ final class PanelController {
     func show() {
         guard let screen = NSScreen.main else { return }
         let frame = screen.visibleFrame
-        let height: CGFloat = 380
+        let height: CGFloat = 412
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true

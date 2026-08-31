@@ -7,6 +7,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "Whisk",
+            resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
