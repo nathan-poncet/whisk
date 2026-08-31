@@ -13,19 +13,21 @@ struct HistoryPanelView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            header
-            content
+        GlassGroup {
+            VStack(alignment: .leading, spacing: 14) {
+                toolbar
+                content
+            }
         }
-        .padding(16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .onChange(of: store.focusRevision) {
             searchFocused = true
         }
     }
 
-    private var header: some View {
+    private var toolbar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
@@ -37,9 +39,12 @@ struct HistoryPanelView: View {
                 }
             Spacer()
             Text(store.state.countLabel)
-                .font(.caption)
+                .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
         }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 11)
+        .liquidGlass(in: Capsule())
     }
 
     @ViewBuilder private var content: some View {
@@ -47,7 +52,7 @@ struct HistoryPanelView: View {
             emptyState
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 12) {
+                LazyHStack(spacing: 14) {
                     ForEach(store.state.cards) { card in
                         ItemCardView(
                             card: card,
@@ -57,7 +62,7 @@ struct HistoryPanelView: View {
                         )
                     }
                 }
-                .padding(.bottom, 4)
+                .padding(4)
             }
         }
     }
@@ -65,11 +70,12 @@ struct HistoryPanelView: View {
     private var emptyState: some View {
         VStack(spacing: 8) {
             Image(systemName: "doc.on.clipboard")
-                .font(.largeTitle)
+                .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.secondary)
             Text(store.state.query.isEmpty ? "Copy something to get started" : "No matches")
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
     }
 }
