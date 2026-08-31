@@ -13,11 +13,9 @@ struct HistoryPanelView: View {
     }
 
     var body: some View {
-        GlassGroup {
-            VStack(alignment: .leading, spacing: 14) {
-                toolbar
-                content
-            }
+        VStack(alignment: .leading, spacing: 14) {
+            toolbar
+            content
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

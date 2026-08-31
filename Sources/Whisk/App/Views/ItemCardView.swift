@@ -27,15 +27,9 @@ struct ItemCardView: View, Equatable {
         .frame(width: 230)
         .liquidGlass(
             in: Self.shape,
-            tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID).tint.opacity(0.32),
-            interactive: true
+            tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID).tint.opacity(0.32)
         )
         .overlay(selectionRing)
-        .shadow(
-            color: card.isSelected ? Color.accentColor.opacity(0.55) : .clear,
-            radius: card.isSelected ? 14 : 0
-        )
-        .scaleEffect(card.isSelected ? 1.05 : (isHovering ? 1.02 : 1))
         .animation(.easeOut(duration: 0.16), value: isHovering)
         .animation(.easeOut(duration: 0.16), value: card.isSelected)
         .contentShape(Self.shape)
@@ -49,9 +43,18 @@ struct ItemCardView: View, Equatable {
         }
     }
 
+    // Selection never transforms the glass layer (no scale, no shadow):
+    // re-rasterizing glass mid-animation is what made the rail flash. The
+    // highlight lives in an overlay above it — a ring plus a blurred glow.
     @ViewBuilder private var selectionRing: some View {
         if card.isSelected {
-            Self.shape.strokeBorder(Color.accentColor, lineWidth: 3)
+            ZStack {
+                Self.shape
+                    .stroke(Color.accentColor.opacity(0.55), lineWidth: 7)
+                    .blur(radius: 7)
+                Self.shape
+                    .strokeBorder(Color.accentColor, lineWidth: 3)
+            }
         } else {
             Self.shape.strokeBorder(.white.opacity(isHovering ? 0.30 : 0.10), lineWidth: 1)
         }
@@ -105,7 +108,7 @@ struct ItemCardView: View, Equatable {
             LinkCardPreview(address: address)
                 .padding(.horizontal, 14)
         case .image(let data):
-            if let image = NSImage(data: data) {
+            if let image = Self.decodedImage(for: card.id, data: data) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -134,6 +137,20 @@ struct ItemCardView: View, Equatable {
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 12)
+    }
+
+    // Decoding image bytes on every body evaluation is visible as a flash;
+    // items are immutable, so the decoded image is cached per card.
+    private static let imageCache = NSCache<NSUUID, NSImage>()
+
+    private static func decodedImage(for id: UUID, data: Data) -> NSImage? {
+        let key = id as NSUUID
+        if let cached = imageCache.object(forKey: key) {
+            return cached
+        }
+        guard let image = NSImage(data: data) else { return nil }
+        imageCache.setObject(image, forKey: key)
+        return image
     }
 }
 
