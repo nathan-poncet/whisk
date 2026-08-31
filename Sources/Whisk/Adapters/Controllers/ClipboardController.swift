@@ -18,6 +18,8 @@ private let railLimit = 60
 final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistoryStore> {
     private var history: History
     private var query = ""
+    private var activeSourceKey: String?
+    private var activeCategory: ContentCategory?
     private var selectedID: UUID?
 
     private let capture: CaptureClipboardChange<Board, Time, Store>
@@ -25,7 +27,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let togglePinItem: TogglePin<Store>
     private let deleteItem: DeleteItem<Store>
     private let clearUnpinned: ClearHistory<Store>
-    private let searchHistory = SearchHistory()
+    private let filterHistory = FilterHistory()
     private let presenter: HistoryPresenter
     private let clock: Time
     private let present: (HistoryViewState) -> Void
@@ -60,6 +62,23 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     func search(_ newQuery: String) {
         query = newQuery
+        selectedID = nil
+        refresh()
+    }
+
+    /// Filters the rail to one source application; toggling the active
+    /// chip clears it.
+    func toggleSourceFilter(_ key: String) {
+        activeSourceKey = activeSourceKey == key ? nil : key
+        selectedID = nil
+        refresh()
+    }
+
+    /// Filters the rail to one content category; toggling the active chip
+    /// clears it.
+    func toggleCategoryFilter(_ rawCategory: String) {
+        guard let category = ContentCategory(rawValue: rawCategory) else { return }
+        activeCategory = activeCategory == category ? nil : category
         selectedID = nil
         refresh()
     }
@@ -116,12 +135,46 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     func panelWillShow() {
         query = ""
+        activeSourceKey = nil
+        activeCategory = nil
         selectedID = nil
         refresh()
     }
 
+    // One chip per application: deduplicated leniently (items recorded
+    // before bundle ids existed carry a name only), preferring the variant
+    // that has a bundle id so the chip gets an icon.
+    private var distinctSources: [SourceApp] {
+        var chips: [SourceApp] = []
+        for item in history.items {
+            guard let source = item.source else { continue }
+            if let index = chips.firstIndex(where: { $0.matches(source) }) {
+                if chips[index].bundleID == nil, source.bundleID != nil {
+                    chips[index] = source
+                }
+            } else {
+                chips.append(source)
+            }
+        }
+        return chips
+    }
+
+    private var presentCategories: [ContentCategory] {
+        let present = Set(history.items.map(\.payload.category))
+        return ContentCategory.allCases.filter(present.contains)
+    }
+
+    private func currentFilter(sources: [SourceApp]) -> HistoryFilter {
+        HistoryFilter(
+            query: query,
+            source: sources.first { $0.filterKey == activeSourceKey },
+            category: activeCategory
+        )
+    }
+
     private var visibleItems: [ClipboardItem] {
-        Array(searchHistory(history, query: query).prefix(railLimit))
+        let matches = filterHistory(history, filter: currentFilter(sources: distinctSources))
+        return Array(matches.prefix(railLimit))
     }
 
     private func mutate(_ transform: (History) throws -> History) {
@@ -136,7 +189,15 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private func refresh() {
-        let matches = searchHistory(history, query: query)
+        let sources = distinctSources
+        if let key = activeSourceKey, !sources.contains(where: { $0.filterKey == key }) {
+            activeSourceKey = nil
+        }
+        let categories = presentCategories
+        if let category = activeCategory, !categories.contains(category) {
+            activeCategory = nil
+        }
+        let matches = filterHistory(history, filter: currentFilter(sources: sources))
         let visible = Array(matches.prefix(railLimit))
         if selectedID == nil || !visible.contains(where: { $0.id == selectedID }) {
             selectedID = visible.first?.id
@@ -147,7 +208,13 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 query: query,
                 now: clock.now(),
                 selectedID: selectedID,
-                hiddenCount: matches.count - visible.count
+                hiddenCount: matches.count - visible.count,
+                filters: FilterContext(
+                    sources: sources,
+                    categories: categories,
+                    activeSourceKey: activeSourceKey,
+                    activeCategory: activeCategory
+                )
             )
         )
     }

@@ -13,7 +13,7 @@ rings may only import what their ring allows, arrows point inward only.
 ```
 Sources/Whisk/
 ├── Entities/               History · ClipboardItem · Payload · SourceApp · HistoryCapacity
-├── UseCases/               CaptureClipboardChange · SelectItem · SearchHistory ·
+├── UseCases/               CaptureClipboardChange · SelectItem · FilterHistory ·
 │   └── Ports/              TogglePin · DeleteItem · ClearHistory · LoadHistory
 │                           Pasteboard · HistoryStore · Clock        (Foundation only)
 ├── Adapters/

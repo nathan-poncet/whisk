@@ -45,6 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 PasteSimulator.paste()
             },
             moveSelection: { clipboard.moveSelection($0) },
+            toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
+            toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
             togglePin: { clipboard.togglePin($0) },
             delete: { clipboard.delete($0) },
             panelWillShow: { clipboard.panelWillShow() }

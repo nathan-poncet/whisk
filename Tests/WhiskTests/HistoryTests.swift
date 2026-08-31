@@ -91,20 +91,23 @@ import Testing
             .recording(.link(url), from: nil, at: clock.now())
             .recording(.fileReferences(["/tmp/Report.pdf"]), from: nil, at: clock.now())
             .recording(.image(Data([0x89])), from: nil, at: clock.now())
-        let search = SearchHistory()
+        let filter = FilterHistory()
 
-        #expect(search(history, query: "hello").map(\.payload) == [.text("Hello World")])
-        #expect(search(history, query: "example").map(\.payload) == [.link(url)])
-        #expect(search(history, query: "report").map(\.payload) == [.fileReferences(["/tmp/Report.pdf"])])
-        #expect(search(history, query: "zzz").isEmpty)
+        #expect(filter(history, filter: HistoryFilter(query: "hello")).map(\.payload) == [.text("Hello World")])
+        #expect(filter(history, filter: HistoryFilter(query: "example")).map(\.payload) == [.link(url)])
+        #expect(
+            filter(history, filter: HistoryFilter(query: "report")).map(\.payload) == [
+                .fileReferences(["/tmp/Report.pdf"])
+            ])
+        #expect(filter(history, filter: HistoryFilter(query: "zzz")).isEmpty)
     }
 
     @Test func an_empty_query_returns_everything() {
         let history = History()
             .recording(.text("a"), from: nil, at: clock.now())
             .recording(.text("b"), from: nil, at: clock.now())
-        let search = SearchHistory()
+        let filter = FilterHistory()
 
-        #expect(search(history, query: "  ").count == 2)
+        #expect(filter(history, filter: HistoryFilter(query: "  ")).count == 2)
     }
 }

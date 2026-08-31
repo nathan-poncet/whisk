@@ -24,6 +24,8 @@ struct PanelActions {
     let highlight: (UUID) -> Void
     let activateSelected: () -> Void
     let moveSelection: (SelectionMove) -> Void
+    let toggleSourceFilter: (String) -> Void
+    let toggleCategoryFilter: (String) -> Void
     let togglePin: (UUID) -> Void
     let delete: (UUID) -> Void
     let panelWillShow: () -> Void

@@ -24,6 +24,9 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   was copied from and takes its tint from that app's icon.
 - **Search** — type to filter text, links and file names instantly; `Return`
   selects the first match.
+- **Filters** — a chip bar narrows the rail by source application (one chip
+  per app, with its icon) and by content category (text, code, color, link,
+  image, files); chips combine with each other and with the search query.
 - **Pins** — right-click a card to pin it; pinned items survive
   *Clear* and are never evicted.
 - **Rich previews** — copied links show the page's title, favicon and lead
