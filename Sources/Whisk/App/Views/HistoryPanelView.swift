@@ -58,6 +58,7 @@ struct HistoryPanelView: View {
                                 onTogglePin: { actions.togglePin(card.id) },
                                 onDelete: { actions.delete(card.id) }
                             )
+                            .equatable()
                             .id(card.id)
                         }
                     }
@@ -65,8 +66,10 @@ struct HistoryPanelView: View {
                 }
                 .onChange(of: store.state.selectedID) { _, selectedID in
                     guard let selectedID else { return }
+                    // No anchor: scroll the minimum needed to reveal the
+                    // card instead of recentring on every key press.
                     withAnimation(.easeOut(duration: 0.15)) {
-                        proxy.scrollTo(selectedID, anchor: .center)
+                        proxy.scrollTo(selectedID)
                     }
                 }
             }

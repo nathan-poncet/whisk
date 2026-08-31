@@ -127,4 +127,17 @@ import Testing
 
         #expect(state.cards.allSatisfy { !$0.timeLabel.isEmpty })
     }
+
+    @Test func a_fresh_item_reads_now_so_selection_moves_do_not_churn_labels() {
+        let copied = Date(timeIntervalSince1970: 1_700_000_030)
+        let first = presenter.present(items: [anItem(.text("a"), at: copied)], query: "", now: now)
+        let second = presenter.present(
+            items: [anItem(.text("a"), at: copied)],
+            query: "",
+            now: now.addingTimeInterval(5)
+        )
+
+        #expect(first.cards.first?.timeLabel == "now")
+        #expect(first.cards.first?.timeLabel == second.cards.first?.timeLabel)
+    }
 }
