@@ -64,6 +64,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if CommandLine.arguments.contains("--show-panel") {
             panelController.show()
         }
+
+        // Exercised by the release pipeline against the packaged app: the
+        // full wiring above ran (SwiftUI evaluated the panel, resources
+        // resolved), so reaching this line is the pass signal.
+        if CommandLine.arguments.contains("--smoke-test") {
+            print("smoke test passed")
+            NSApp.terminate(nil)
+        }
     }
 
     /// ⇧⌘V wherever the current layout prints a V — Dvorak, AZERTY, … —

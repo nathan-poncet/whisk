@@ -27,6 +27,9 @@ jobs:
       - name: Build app bundle
         run: ./scripts/build-app.sh "${GITHUB_REF_NAME#v}" universal
 
+      - name: Smoke test the packaged app
+        run: ./dist/Whisk.app/Contents/MacOS/Whisk --smoke-test | grep -q "smoke test passed"
+
       - name: Zip app
         run: ditto -c -k --keepParent dist/Whisk.app "dist/Whisk-${GITHUB_REF_NAME}.zip"
 
