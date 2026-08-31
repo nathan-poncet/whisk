@@ -54,8 +54,10 @@ final class PanelController {
 
     func show() {
         guard let screen = NSScreen.main else { return }
-        let frame = screen.visibleFrame
-        let height: CGFloat = 412
+        // The full frame, not visibleFrame: the panel floats above the
+        // Dock, flush with the physical bottom edge of the screen.
+        let frame = screen.frame
+        let height: CGFloat = 444
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true
