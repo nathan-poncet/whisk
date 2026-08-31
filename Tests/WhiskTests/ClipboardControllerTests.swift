@@ -192,6 +192,37 @@ import Testing
         #expect(spy.last.hiddenCount == 0)
     }
 
+    @Test func arrows_move_the_focus_between_cards_kinds_and_apps() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Slack", bundle: "com.slack"),
+        ]
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: store, clock: FakeClock(), present: spy.record
+        )
+        #expect(spy.last.filters.focusedChipID == nil)
+
+        controller.navigate(.up)
+        #expect(spy.last.filters.kinds.map(\.isFocused) == [true, false])
+
+        controller.navigate(.right)
+        #expect(spy.last.filters.kinds.map(\.isFocused) == [false, true])
+        #expect(controller.activateFocused() == false)
+        #expect(spy.last.cards.map(\.kindLabel) == ["code"])
+
+        controller.navigate(.up)
+        #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
+
+        controller.navigate(.down)
+        controller.navigate(.down)
+        #expect(spy.last.filters.focusedChipID == nil)
+        #expect(controller.activateFocused() == true)
+        #expect(pasteboard.written == [.text("func run() { start() }")])
+    }
+
     @Test func chip_toggles_filter_the_rail_and_toggle_back_off() {
         let store = InMemoryHistoryStore()
         store.stored = [

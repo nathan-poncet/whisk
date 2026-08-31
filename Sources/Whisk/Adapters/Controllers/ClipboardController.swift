@@ -6,6 +6,22 @@ enum SelectionMove {
     case next
 }
 
+/// Which region of the panel the keyboard is steering.
+enum PanelZone {
+    case apps
+    case kinds
+    case cards
+}
+
+/// A key-arrow press, routed by the controller to a zone change (up/down)
+/// or a move within the focused zone (left/right).
+enum ArrowDirection {
+    case up
+    case down
+    case left
+    case right
+}
+
 /// The rail renders eagerly (lazy loading pops cards in during fast
 /// scrolls), so it is bounded; search reaches everything beyond it.
 private let railLimit = 60
@@ -21,6 +37,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var activeSourceKey: String?
     private var activeCategory: ContentCategory?
     private var selectedID: UUID?
+    private var focusZone: PanelZone = .cards
+    private var focusedAppIndex = 0
+    private var focusedKindIndex = 0
 
     private let capture: CaptureClipboardChange<Board, Time, Store>
     private let selectItem: SelectItem<Board, Time, Store>
@@ -107,9 +126,76 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// Moves the keyboard selection onto a specific visible card, e.g. the
     /// one under the pointer. Selects only — nothing is written back.
     func highlight(_ id: UUID) {
-        guard id != selectedID, visibleItems.contains(where: { $0.id == id }) else { return }
+        guard id != selectedID || focusZone != .cards else { return }
+        guard visibleItems.contains(where: { $0.id == id }) else { return }
         selectedID = id
+        focusZone = .cards
         refresh()
+    }
+
+    /// Up and down move between the chip rows and the rail; left and right
+    /// move within whichever zone holds the focus.
+    func navigate(_ direction: ArrowDirection) {
+        switch direction {
+        case .left, .right:
+            navigateHorizontally(direction == .right ? 1 : -1)
+        case .up:
+            switch focusZone {
+            case .cards:
+                focusZone = presentCategories.isEmpty ? (distinctSources.isEmpty ? .cards : .apps) : .kinds
+            case .kinds:
+                if !distinctSources.isEmpty {
+                    focusZone = .apps
+                }
+            case .apps:
+                break
+            }
+            refresh()
+        case .down:
+            switch focusZone {
+            case .apps:
+                focusZone = presentCategories.isEmpty ? .cards : .kinds
+            case .kinds:
+                focusZone = .cards
+            case .cards:
+                break
+            }
+            refresh()
+        }
+    }
+
+    private func navigateHorizontally(_ step: Int) {
+        switch focusZone {
+        case .cards:
+            moveSelection(step > 0 ? .next : .previous)
+        case .apps:
+            focusedAppIndex = max(0, min(focusedAppIndex + step, distinctSources.count - 1))
+            refresh()
+        case .kinds:
+            focusedKindIndex = max(0, min(focusedKindIndex + step, presentCategories.count - 1))
+            refresh()
+        }
+    }
+
+    /// Acts on whatever holds the keyboard focus. Returns true only when a
+    /// card was put back on the pasteboard — the caller closes the panel
+    /// then, and stays open for chip toggles.
+    @discardableResult
+    func activateFocused() -> Bool {
+        switch focusZone {
+        case .cards:
+            return activateSelected()
+        case .apps:
+            let sources = distinctSources
+            guard sources.indices.contains(focusedAppIndex) else { return false }
+            toggleSourceFilter(sources[focusedAppIndex].filterKey)
+            return false
+        case .kinds:
+            let categories = presentCategories
+            guard categories.indices.contains(focusedKindIndex) else { return false }
+            toggleCategoryFilter(categories[focusedKindIndex].rawValue)
+            return false
+        }
     }
 
     /// Puts the highlighted card back on the pasteboard; the first visible
@@ -138,6 +224,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         activeSourceKey = nil
         activeCategory = nil
         selectedID = nil
+        focusZone = .cards
+        focusedAppIndex = 0
+        focusedKindIndex = 0
         refresh()
     }
 
@@ -197,6 +286,14 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         if let category = activeCategory, !categories.contains(category) {
             activeCategory = nil
         }
+        focusedAppIndex = max(0, min(focusedAppIndex, sources.count - 1))
+        focusedKindIndex = max(0, min(focusedKindIndex, categories.count - 1))
+        if focusZone == .apps, sources.isEmpty {
+            focusZone = .cards
+        }
+        if focusZone == .kinds, categories.isEmpty {
+            focusZone = .cards
+        }
         let matches = filterHistory(history, filter: currentFilter(sources: sources))
         let visible = Array(matches.prefix(railLimit))
         if selectedID == nil || !visible.contains(where: { $0.id == selectedID }) {
@@ -213,7 +310,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                     sources: sources,
                     categories: categories,
                     activeSourceKey: activeSourceKey,
-                    activeCategory: activeCategory
+                    activeCategory: activeCategory,
+                    focusedAppIndex: focusZone == .apps ? focusedAppIndex : nil,
+                    focusedKindIndex: focusZone == .kinds ? focusedKindIndex : nil
                 )
             )
         )

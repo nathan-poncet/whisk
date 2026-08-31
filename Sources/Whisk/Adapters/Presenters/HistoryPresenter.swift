@@ -6,17 +6,23 @@ struct FilterContext: Equatable {
     let categories: [ContentCategory]
     let activeSourceKey: String?
     let activeCategory: ContentCategory?
+    let focusedAppIndex: Int?
+    let focusedKindIndex: Int?
 
     init(
         sources: [SourceApp],
         categories: [ContentCategory],
         activeSourceKey: String?,
-        activeCategory: ContentCategory?
+        activeCategory: ContentCategory?,
+        focusedAppIndex: Int? = nil,
+        focusedKindIndex: Int? = nil
     ) {
         self.sources = sources
         self.categories = categories
         self.activeSourceKey = activeSourceKey
         self.activeCategory = activeCategory
+        self.focusedAppIndex = focusedAppIndex
+        self.focusedKindIndex = focusedKindIndex
     }
 
     static let empty = FilterContext(sources: [], categories: [], activeSourceKey: nil, activeCategory: nil)
@@ -103,20 +109,22 @@ struct HistoryPresenter {
 
     private func filterBar(from context: FilterContext) -> FilterBarViewState {
         FilterBarViewState(
-            apps: context.sources.map { source in
+            apps: context.sources.enumerated().map { index, source in
                 FilterChip(
                     id: source.filterKey,
                     label: source.name ?? source.bundleID ?? "Unknown",
                     sourceBundleID: source.bundleID,
-                    isActive: source.filterKey == context.activeSourceKey
+                    isActive: source.filterKey == context.activeSourceKey,
+                    isFocused: index == context.focusedAppIndex
                 )
             },
-            kinds: context.categories.map { category in
+            kinds: context.categories.enumerated().map { index, category in
                 FilterChip(
                     id: category.rawValue,
                     label: category.rawValue.capitalized,
                     sourceBundleID: nil,
-                    isActive: category == context.activeCategory
+                    isActive: category == context.activeCategory,
+                    isFocused: index == context.focusedKindIndex
                 )
             }
         )

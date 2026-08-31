@@ -39,12 +39,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 PasteSimulator.paste()
             },
             highlight: { clipboard.highlight($0) },
-            activateSelected: { [weak self] in
-                guard clipboard.activateSelected() else { return }
+            activate: { [weak self] in
+                guard clipboard.activateFocused() else { return }
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
-            moveSelection: { clipboard.moveSelection($0) },
+            navigate: { clipboard.navigate($0) },
             toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
             toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
             togglePin: { clipboard.togglePin($0) },

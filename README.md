@@ -79,8 +79,10 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
 
 - **Left-click** the menu bar icon (or `⇧⌘V`): toggle the panel.
 - **Right-click** the icon: menu (show, clear, quit).
-- **Arrow keys** (`←`/`↑` previous, `→`/`↓` next): step through the cards —
-  the panel scrolls to keep the selection in view.
+- **Arrow keys**: `←`/`→` move within the focused zone; `↑`/`↓` jump
+  between the card rail, the category chips, and the app chips. `Return`
+  toggles the focused chip (the panel stays open) or pastes the selected
+  card.
 - **Return**: paste the selected card into the text field that had focus
   before the panel opened. The panel never steals focus, so the caret is
   exactly where you left it; the first use prompts for Accessibility
@@ -134,6 +136,11 @@ This is a working prototype, not a Paste replacement (yet). Not implemented:
 
 Contributions welcome — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 for the rules the codebase follows.
+
+## Credits
+
+The Neovim mark (used as the code-category icon) is by Jason Long,
+licensed [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
 
 ## License
 
