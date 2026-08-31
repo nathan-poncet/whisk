@@ -1,5 +1,5 @@
 import Foundation
-import PasteurKernel
+import WhiskKernel
 
 struct SystemClock: Clock {
     func now() -> Date { Date() }

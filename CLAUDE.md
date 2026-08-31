@@ -8,9 +8,9 @@ Architecture rules: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The essentials
 - Prefix commits and issues with a **Gitmoji** (📝 docs, ✨ feat, ✅ tests, ♻️ refactor, 👷 ci, 🔒 security…).
 
 ## Design
-- The Dependency Rule is the SwiftPM target graph: `PasteurKernel` imports Foundation only;
+- The Dependency Rule is the SwiftPM target graph: `WhiskKernel` imports Foundation only;
   adapters (`HistoryStoreFile`, `PasteboardAppKit`) depend on the kernel alone;
-  the `Pasteur` executable is the composition root and a sink.
+  the `Whisk` executable is the composition root and a sink.
 - Newtypes over primitives; make illegal states unrepresentable.
 - Fail closed: no force-unwraps in production paths; a storage failure never kills the UX.
 

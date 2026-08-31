@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import PasteurKernel
+import WhiskKernel
 
 /// Presentation state for the history panel; every mutation goes through a
 /// kernel use case. A storage failure keeps the in-memory history alive.
@@ -20,7 +20,7 @@ final class HistoryViewModel: ObservableObject {
         do {
             history = try useCases.load()
         } catch {
-            NSLog("Pasteur: could not load history — %@", String(describing: error))
+            NSLog("Whisk: could not load history — %@", String(describing: error))
             history = History()
         }
     }
@@ -72,7 +72,7 @@ final class HistoryViewModel: ObservableObject {
         do {
             history = try transform(history)
         } catch {
-            NSLog("Pasteur: storage failure — %@", String(describing: error))
+            NSLog("Whisk: storage failure — %@", String(describing: error))
         }
     }
 }

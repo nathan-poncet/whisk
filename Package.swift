@@ -2,40 +2,40 @@
 import PackageDescription
 
 let package = Package(
-    name: "Pasteur",
+    name: "Whisk",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "Pasteur", targets: ["Pasteur"]),
-        .library(name: "PasteurKernel", targets: ["PasteurKernel"]),
+        .executable(name: "Whisk", targets: ["Whisk"]),
+        .library(name: "WhiskKernel", targets: ["WhiskKernel"]),
     ],
     targets: [
         .target(
-            name: "PasteurKernel",
+            name: "WhiskKernel",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(
             name: "HistoryStoreFile",
-            dependencies: ["PasteurKernel"],
+            dependencies: ["WhiskKernel"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(
             name: "PasteboardAppKit",
-            dependencies: ["PasteurKernel"],
+            dependencies: ["WhiskKernel"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .executableTarget(
-            name: "Pasteur",
-            dependencies: ["PasteurKernel", "HistoryStoreFile", "PasteboardAppKit"],
+            name: "Whisk",
+            dependencies: ["WhiskKernel", "HistoryStoreFile", "PasteboardAppKit"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
-            name: "PasteurKernelTests",
-            dependencies: ["PasteurKernel"],
+            name: "WhiskKernelTests",
+            dependencies: ["WhiskKernel"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
             name: "HistoryStoreFileTests",
-            dependencies: ["HistoryStoreFile", "PasteurKernel"],
+            dependencies: ["HistoryStoreFile", "WhiskKernel"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]
