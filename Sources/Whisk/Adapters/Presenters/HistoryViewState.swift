@@ -8,16 +8,68 @@ struct HistoryViewState: Equatable {
     let query: String
     let selectedID: UUID?
     let hiddenCount: Int
+    let filters: FilterBarViewState
 
-    init(cards: [CardViewState], countLabel: String, query: String, selectedID: UUID?, hiddenCount: Int) {
+    init(
+        cards: [CardViewState],
+        countLabel: String,
+        query: String,
+        selectedID: UUID?,
+        hiddenCount: Int,
+        filters: FilterBarViewState
+    ) {
         self.cards = cards
         self.countLabel = countLabel
         self.query = query
         self.selectedID = selectedID
         self.hiddenCount = hiddenCount
+        self.filters = filters
     }
 
-    static let empty = HistoryViewState(cards: [], countLabel: "0 items", query: "", selectedID: nil, hiddenCount: 0)
+    static let empty = HistoryViewState(
+        cards: [],
+        countLabel: "0 items",
+        query: "",
+        selectedID: nil,
+        hiddenCount: 0,
+        filters: .empty
+    )
+}
+
+/// The chip bar: one chip per source application, one per content
+/// category present in the history.
+struct FilterBarViewState: Equatable {
+    let apps: [FilterChip]
+    let kinds: [FilterChip]
+
+    init(apps: [FilterChip], kinds: [FilterChip]) {
+        self.apps = apps
+        self.kinds = kinds
+    }
+
+    var isEmpty: Bool {
+        apps.isEmpty && kinds.isEmpty
+    }
+
+    var hasActiveChip: Bool {
+        (apps + kinds).contains(where: \.isActive)
+    }
+
+    static let empty = FilterBarViewState(apps: [], kinds: [])
+}
+
+struct FilterChip: Equatable, Identifiable {
+    let id: String
+    let label: String
+    let sourceBundleID: String?
+    let isActive: Bool
+
+    init(id: String, label: String, sourceBundleID: String?, isActive: Bool) {
+        self.id = id
+        self.label = label
+        self.sourceBundleID = sourceBundleID
+        self.isActive = isActive
+    }
 }
 
 /// One rendered clipboard entry.

@@ -13,9 +13,16 @@ struct HistoryPanelView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             toolbar
                 .padding(.horizontal, 16)
+            if !store.state.filters.isEmpty {
+                FilterBarView(
+                    filters: store.state.filters,
+                    onToggleApp: actions.toggleSourceFilter,
+                    onToggleKind: actions.toggleCategoryFilter
+                )
+            }
             content
         }
         .padding(.vertical, 12)
@@ -106,8 +113,12 @@ struct HistoryPanelView: View {
             Image(systemName: "doc.on.clipboard")
                 .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.secondary)
-            Text(store.state.query.isEmpty ? "Copy something to get started" : "No matches")
-                .foregroundStyle(.secondary)
+            Text(
+                store.state.query.isEmpty && !store.state.filters.hasActiveChip
+                    ? "Copy something to get started"
+                    : "No matches"
+            )
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))

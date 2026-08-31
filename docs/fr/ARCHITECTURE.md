@@ -14,7 +14,7 @@ flèches pointent uniquement vers l'intérieur.
 ```
 Sources/Whisk/
 ├── Entities/               History · ClipboardItem · Payload · SourceApp · HistoryCapacity
-├── UseCases/               CaptureClipboardChange · SelectItem · SearchHistory ·
+├── UseCases/               CaptureClipboardChange · SelectItem · FilterHistory ·
 │   └── Ports/              TogglePin · DeleteItem · ClearHistory · LoadHistory
 │                           Pasteboard · HistoryStore · Clock        (Foundation seulement)
 ├── Adapters/

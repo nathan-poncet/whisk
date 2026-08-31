@@ -1,5 +1,27 @@
 import Foundation
 
+/// What the controller knows about filtering, handed over for the chip bar.
+struct FilterContext: Equatable {
+    let sources: [SourceApp]
+    let categories: [ContentCategory]
+    let activeSourceKey: String?
+    let activeCategory: ContentCategory?
+
+    init(
+        sources: [SourceApp],
+        categories: [ContentCategory],
+        activeSourceKey: String?,
+        activeCategory: ContentCategory?
+    ) {
+        self.sources = sources
+        self.categories = categories
+        self.activeSourceKey = activeSourceKey
+        self.activeCategory = activeCategory
+    }
+
+    static let empty = FilterContext(sources: [], categories: [], activeSourceKey: nil, activeCategory: nil)
+}
+
 /// Maps kernel entities to display-ready view state. Pure: time comes in as
 /// a value, never read from the system.
 struct HistoryPresenter {
@@ -10,48 +32,47 @@ struct HistoryPresenter {
         query: String,
         now: Date,
         selectedID: UUID? = nil,
-        hiddenCount: Int = 0
+        hiddenCount: Int = 0,
+        filters: FilterContext = .empty
     ) -> HistoryViewState {
         HistoryViewState(
             cards: items.map { card(for: $0, now: now, isSelected: $0.id == selectedID) },
             countLabel: countLabel(items.count + hiddenCount),
             query: query,
             selectedID: selectedID,
-            hiddenCount: hiddenCount
+            hiddenCount: hiddenCount,
+            filters: filterBar(from: filters)
         )
     }
 
     private func card(for item: ClipboardItem, now: Date, isSelected: Bool) -> CardViewState {
-        let kind = kindLabel(item.payload)
-        let preview = preview(for: item.payload)
-        let displayKind: String
-        if case .code = preview {
-            displayKind = "code"
-        } else {
-            displayKind = kind.lowercased()
-        }
+        let category = item.payload.category
         return CardViewState(
             id: item.id,
-            sourceLabel: item.source?.name ?? item.source?.bundleID ?? kind,
+            sourceLabel: item.source?.name ?? item.source?.bundleID ?? category.rawValue.capitalized,
             sourceBundleID: item.source?.bundleID,
-            kindLabel: displayKind,
+            kindLabel: category.rawValue,
             timeLabel: timeLabel(for: item.copiedAt, now: now),
             isPinned: item.isPinned,
             isSelected: isSelected,
-            preview: preview
+            preview: preview(for: item.payload)
         )
     }
 
     private func preview(for payload: Payload) -> CardPreview {
         switch payload {
         case .text(let value):
-            if let swatch = colorSwatch(in: value) {
-                return swatch
+            switch payload.category {
+            case .color:
+                if let swatch = colorSwatch(for: payload) {
+                    return swatch
+                }
+                return .text(value)
+            case .code:
+                return .code(text: value, tokens: CodeHighlighter.tokens(in: value))
+            default:
+                return .text(value)
             }
-            if let tokens = CodeHighlighter.highlight(value) {
-                return .code(text: value, tokens: tokens)
-            }
-            return .text(value)
         case .link(let url):
             return .link(url.absoluteString)
         case .image(let data):
@@ -66,13 +87,12 @@ struct HistoryPresenter {
         }
     }
 
-    private func colorSwatch(in text: String) -> CardPreview? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.range(of: "^#?[0-9a-fA-F]{6}$", options: .regularExpression) != nil else { return nil }
-        let hex = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
-        guard let value = UInt32(hex, radix: 16) else { return nil }
+    private func colorSwatch(for payload: Payload) -> CardPreview? {
+        guard let code = payload.hexColorCode,
+            let value = UInt32(code.dropFirst(), radix: 16)
+        else { return nil }
         return .color(
-            code: "#" + hex.uppercased(),
+            code: code,
             rgb: RGB(
                 red: Double((value >> 16) & 0xFF) / 255,
                 green: Double((value >> 8) & 0xFF) / 255,
@@ -81,13 +101,25 @@ struct HistoryPresenter {
         )
     }
 
-    private func kindLabel(_ payload: Payload) -> String {
-        switch payload {
-        case .text: return "Text"
-        case .link: return "Link"
-        case .image: return "Image"
-        case .fileReferences: return "Files"
-        }
+    private func filterBar(from context: FilterContext) -> FilterBarViewState {
+        FilterBarViewState(
+            apps: context.sources.map { source in
+                FilterChip(
+                    id: source.filterKey,
+                    label: source.name ?? source.bundleID ?? "Unknown",
+                    sourceBundleID: source.bundleID,
+                    isActive: source.filterKey == context.activeSourceKey
+                )
+            },
+            kinds: context.categories.map { category in
+                FilterChip(
+                    id: category.rawValue,
+                    label: category.rawValue.capitalized,
+                    sourceBundleID: nil,
+                    isActive: category == context.activeCategory
+                )
+            }
+        )
     }
 
     /// Sub-minute labels would churn every second and force every card to

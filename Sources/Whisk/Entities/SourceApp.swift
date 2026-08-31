@@ -9,4 +9,18 @@ struct SourceApp: Equatable, Hashable {
         self.name = name
         self.bundleID = bundleID
     }
+
+    /// Stable identity for filtering; the invariant guarantees one field.
+    var filterKey: String {
+        bundleID ?? name ?? ""
+    }
+
+    /// Lenient identity: items recorded before the bundle id existed carry
+    /// a name only, and must still count as the same application.
+    func matches(_ other: SourceApp) -> Bool {
+        if let mine = bundleID, let theirs = other.bundleID {
+            return mine == theirs
+        }
+        return name != nil && name == other.name
+    }
 }

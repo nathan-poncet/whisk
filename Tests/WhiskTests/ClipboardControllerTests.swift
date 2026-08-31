@@ -192,6 +192,32 @@ import Testing
         #expect(spy.last.hiddenCount == 0)
     }
 
+    @Test func chip_toggles_filter_the_rail_and_toggle_back_off() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Slack", bundle: "com.slack"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty", "Slack"])
+        #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
+
+        controller.toggleSourceFilter("com.slack")
+        #expect(spy.last.cards.map(\.sourceLabel) == ["Slack"])
+        #expect(spy.last.filters.apps.map(\.isActive) == [false, true])
+
+        controller.toggleCategoryFilter("code")
+        #expect(spy.last.cards.isEmpty)
+
+        controller.toggleSourceFilter("com.slack")
+        controller.toggleCategoryFilter("code")
+        #expect(spy.last.cards.count == 2)
+        #expect(spy.last.filters.hasActiveChip == false)
+    }
+
     @Test func the_panel_reset_clears_the_query() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("alpha")), anItem(.text("beta"))]

@@ -49,7 +49,7 @@ final class PanelController {
     func show() {
         guard let screen = NSScreen.main else { return }
         let frame = screen.visibleFrame
-        let height: CGFloat = 340
+        let height: CGFloat = 380
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true
