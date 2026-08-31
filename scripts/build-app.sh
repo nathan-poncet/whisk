@@ -22,6 +22,15 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BINARY" "$APP/Contents/MacOS/Whisk"
 cp Assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
+# The SwiftPM resource bundle must ship inside the app: views resolve
+# bundled icons from Contents/Resources.
+RESOURCE_BUNDLE="$(dirname "$BINARY")/Whisk_Whisk.bundle"
+if [ -d "$RESOURCE_BUNDLE" ]; then
+  cp -R "$RESOURCE_BUNDLE" "$APP/Contents/Resources/"
+else
+  echo "warning: $RESOURCE_BUNDLE not found; bundled icons will fall back" >&2
+fi
+
 cat > "$APP/Contents/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

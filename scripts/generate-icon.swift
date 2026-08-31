@@ -4,6 +4,8 @@ import AppKit
 
 let masterSize: CGFloat = 1024
 
+// A chasen — the bamboo matcha whisk the app is named after: handle on
+// top, thread binding, tines fanning down into a bell.
 func drawMaster() -> NSImage {
     let image = NSImage(size: NSSize(width: masterSize, height: masterSize))
     image.lockFocus()
@@ -13,22 +15,40 @@ func drawMaster() -> NSImage {
     let plate = NSRect(x: inset, y: inset, width: masterSize - inset * 2, height: masterSize - inset * 2)
     let platePath = NSBezierPath(roundedRect: plate, xRadius: 185, yRadius: 185)
     NSGradient(
-        starting: NSColor(srgbRed: 0.38, green: 0.36, blue: 0.94, alpha: 1),
-        ending: NSColor(srgbRed: 0.17, green: 0.64, blue: 0.90, alpha: 1)
+        starting: NSColor(srgbRed: 0.58, green: 0.74, blue: 0.44, alpha: 1),
+        ending: NSColor(srgbRed: 0.25, green: 0.42, blue: 0.22, alpha: 1)
     )?.draw(in: platePath, angle: -70)
 
-    if let symbol = NSImage(systemSymbolName: "doc.on.clipboard.fill", accessibilityDescription: nil)?
-        .withSymbolConfiguration(.init(pointSize: 420, weight: .medium))
-    {
-        let glyphBox = NSRect(x: masterSize * 0.27, y: masterSize * 0.26, width: masterSize * 0.46, height: masterSize * 0.48)
-        let tinted = NSImage(size: symbol.size)
-        tinted.lockFocus()
-        symbol.draw(at: .zero, from: .zero, operation: .sourceOver, fraction: 1)
-        NSColor.white.set()
-        NSRect(origin: .zero, size: symbol.size).fill(using: .sourceAtop)
-        tinted.unlockFocus()
-        tinted.draw(in: glyphBox, from: .zero, operation: .sourceOver, fraction: 1)
+    let cx = masterSize / 2
+    NSColor.white.set()
+
+    for i in -4...4 {
+        let offset = CGFloat(i)
+        let tine = NSBezierPath()
+        tine.lineWidth = 16
+        tine.lineCapStyle = .round
+        tine.move(to: NSPoint(x: cx + offset * 11, y: 520))
+        tine.curve(
+            to: NSPoint(x: cx + offset * 41, y: 240 + abs(offset) * 10),
+            controlPoint1: NSPoint(x: cx + offset * 17, y: 460),
+            controlPoint2: NSPoint(x: cx + offset * 38, y: 320)
+        )
+        tine.stroke()
     }
+
+    let binding = NSBezierPath(
+        roundedRect: NSRect(x: cx - 68, y: 500, width: 136, height: 58),
+        xRadius: 24,
+        yRadius: 24
+    )
+    binding.fill()
+
+    let handle = NSBezierPath(
+        roundedRect: NSRect(x: cx - 47, y: 540, width: 94, height: 230),
+        xRadius: 42,
+        yRadius: 42
+    )
+    handle.fill()
 
     image.unlockFocus()
     return image
