@@ -57,7 +57,7 @@ final class FloatingPanel: NSPanel {
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         backgroundColor = .clear
         isOpaque = false
-        hasShadow = true
+        hasShadow = false
         isMovable = false
         hidesOnDeactivate = false
     }

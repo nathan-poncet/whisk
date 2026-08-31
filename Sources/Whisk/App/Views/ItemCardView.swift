@@ -6,6 +6,10 @@ struct ItemCardView: View {
     let onTogglePin: () -> Void
     let onDelete: () -> Void
 
+    @State private var isHovering = false
+
+    private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
@@ -14,14 +18,21 @@ struct ItemCardView: View {
             footer
         }
         .frame(width: 230)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(.quaternary)
+        .liquidGlass(
+            in: Self.shape,
+            tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID).tint.opacity(0.32),
+            interactive: true
         )
-        .contentShape(Rectangle())
+        .overlay(
+            Self.shape.strokeBorder(.white.opacity(isHovering ? 0.30 : 0.10), lineWidth: 1)
+        )
+        .scaleEffect(isHovering ? 1.02 : 1)
+        .animation(.easeOut(duration: 0.16), value: isHovering)
+        .contentShape(Self.shape)
         .onTapGesture(perform: onSelect)
+        .onHover { hovering in
+            isHovering = hovering
+        }
         .contextMenu {
             Button(card.isPinned ? "Unpin" : "Pin", action: onTogglePin)
             Button("Delete", role: .destructive, action: onDelete)
@@ -29,20 +40,28 @@ struct ItemCardView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 7) {
+            if let icon = SourceAppStyle.resolve(bundleID: card.sourceBundleID).icon {
+                Image(nsImage: icon)
+                    .resizable()
+                    .frame(width: 16, height: 16)
+            } else {
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
             Text(card.sourceLabel)
                 .font(.caption.weight(.semibold))
                 .lineLimit(1)
             Spacer()
             if card.isPinned {
                 Image(systemName: "pin.fill")
-                    .font(.caption2)
+                    .font(.system(size: 9))
             }
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(kindColor)
+        .padding(.horizontal, 14)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
 
     @ViewBuilder private var preview: some View {
@@ -50,43 +69,46 @@ struct ItemCardView: View {
         case .text(let value):
             Text(value)
                 .font(.callout)
-                .lineLimit(7)
-                .padding(10)
+                .lineLimit(6)
+                .padding(.horizontal, 14)
         case .color(let code, let rgb):
             VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Color(red: rgb.red, green: rgb.green, blue: rgb.blue))
-                    .frame(height: 90)
+                    .frame(height: 86)
                 Text(code)
                     .font(.callout.monospaced())
             }
-            .padding(10)
+            .padding(.horizontal, 14)
         case .link(let address):
             VStack(alignment: .leading, spacing: 6) {
-                Image(systemName: "link")
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                 Text(address)
                     .font(.callout)
                     .lineLimit(5)
             }
-            .padding(10)
+            .padding(.horizontal, 14)
         case .image(let data):
             if let image = NSImage(data: data) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.horizontal, 14)
             } else {
                 Text("Image")
                     .foregroundStyle(.secondary)
-                    .padding(10)
+                    .padding(.horizontal, 14)
             }
         case .files(let names, let overflow):
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 ForEach(names, id: \.self) { name in
                     HStack(spacing: 6) {
                         Image(systemName: "doc")
+                            .font(.system(size: 10))
                             .foregroundStyle(.secondary)
                         Text(name)
                             .font(.callout)
@@ -99,7 +121,7 @@ struct ItemCardView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(10)
+            .padding(.horizontal, 14)
         }
     }
 
@@ -111,16 +133,8 @@ struct ItemCardView: View {
         }
         .font(.caption2)
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-    }
-
-    private var kindColor: Color {
-        switch card.preview {
-        case .text, .color: return .blue
-        case .link: return .teal
-        case .image: return .purple
-        case .files: return .orange
-        }
+        .padding(.horizontal, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
     }
 }

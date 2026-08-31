@@ -14,9 +14,11 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 - **Clipboard history** — every copy is captured and persisted locally,
   newest first, deduplicated.
-- **Paste-style panel** — `⇧⌘V` opens a bottom panel with one card per item;
-  click a card to copy it back (and paste it directly when Accessibility
-  access is granted).
+- **Liquid Glass panel** — `⇧⌘V` opens a floating glass panel (the macOS 26
+  look, translucent materials on earlier systems); click a card to copy it
+  back (and paste it directly when Accessibility access is granted).
+- **Per-app styling** — each card carries the icon of the application it
+  was copied from and takes its tint from that app's icon.
 - **Search** — type to filter text, links and file names instantly; `Return`
   selects the first match.
 - **Pins** — right-click a card to pin it; pinned items survive
@@ -29,8 +31,9 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Requirements
 
-- macOS 14 or later
-- Swift 6 toolchain (Xcode 16+, or Command Line Tools for building only —
+- macOS 14 or later to run (Liquid Glass on macOS 26, material fallback
+  before that)
+- The macOS 26 SDK to build (Xcode 26+, or matching Command Line Tools —
   running the test suite requires Xcode)
 
 ## Run it
@@ -61,10 +64,12 @@ You can also open `Package.swift` in Xcode and run the `Whisk` scheme.
 swift test
 ```
 
-The kernel suite covers history behaviour (dedup, capacity, pins, search)
-with deterministic fakes — frozen clock, scripted pasteboard, in-memory
-store. A contract suite runs the `HistoryStore` port against the file
-adapter in a temporary directory. CI runs both on every push.
+The suites cover history behaviour (dedup, capacity, pins, search),
+controller orchestration, and presenter formatting with deterministic
+fakes — frozen clock, scripted pasteboard, in-memory store. A contract
+suite runs the `HistoryStore` port against the file gateway in a temporary
+directory. The Dependency Rule is linted by
+`./scripts/check-dependency-rule.sh`. CI runs everything on every push.
 
 ## Status & roadmap
 
