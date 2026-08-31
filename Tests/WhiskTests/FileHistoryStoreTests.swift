@@ -1,7 +1,6 @@
 import Foundation
-import HistoryStoreFile
-import WhiskKernel
 import Testing
+@testable import Whisk
 
 /// Contract suite for the `HistoryStore` port, run against the file adapter
 /// in a fresh temporary directory per test.

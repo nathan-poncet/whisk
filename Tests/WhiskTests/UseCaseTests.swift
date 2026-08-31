@@ -1,7 +1,6 @@
 import Foundation
-import WhiskKernel
-import WhiskTestKit
 import Testing
+@testable import Whisk
 
 @Suite struct UseCaseBehaviour {
     let pasteboard = ScriptedPasteboard()

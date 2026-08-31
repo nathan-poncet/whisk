@@ -1,5 +1,4 @@
 import SwiftUI
-import WhiskAdapters
 
 struct HistoryPanelView: View {
     @ObservedObject var store: HistoryViewStateStore
