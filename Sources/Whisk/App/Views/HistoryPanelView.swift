@@ -27,7 +27,8 @@ struct HistoryPanelView: View {
                 .padding(.horizontal, 16)
             content
         }
-        .padding(.vertical, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: store.focusRevision) {
             searchFocused = true
