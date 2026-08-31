@@ -1,8 +1,8 @@
-import WhiskKernel
 import SwiftUI
+import WhiskAdapters
 
 struct ItemCardView: View {
-    let item: ClipboardItem
+    let card: CardViewState
     let onSelect: () -> Void
     let onTogglePin: () -> Void
     let onDelete: () -> Void
@@ -24,18 +24,18 @@ struct ItemCardView: View {
         .contentShape(Rectangle())
         .onTapGesture(perform: onSelect)
         .contextMenu {
-            Button(item.isPinned ? "Unpin" : "Pin", action: onTogglePin)
+            Button(card.isPinned ? "Unpin" : "Pin", action: onTogglePin)
             Button("Delete", role: .destructive, action: onDelete)
         }
     }
 
     private var header: some View {
         HStack(spacing: 6) {
-            Text(item.sourceApp ?? kindLabel)
+            Text(card.sourceLabel)
                 .font(.caption.weight(.semibold))
                 .lineLimit(1)
             Spacer()
-            if item.isPinned {
+            if card.isPinned {
                 Image(systemName: "pin.fill")
                     .font(.caption2)
             }
@@ -47,28 +47,26 @@ struct ItemCardView: View {
     }
 
     @ViewBuilder private var preview: some View {
-        switch item.payload {
+        switch card.preview {
         case .text(let value):
-            if let hex = HexColor(value) {
-                VStack(alignment: .leading, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(hex.color)
-                        .frame(height: 90)
-                    Text(hex.code)
-                        .font(.callout.monospaced())
-                }
+            Text(value)
+                .font(.callout)
+                .lineLimit(7)
                 .padding(10)
-            } else {
-                Text(value)
-                    .font(.callout)
-                    .lineLimit(7)
-                    .padding(10)
+        case .color(let code, let rgb):
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color(red: rgb.red, green: rgb.green, blue: rgb.blue))
+                    .frame(height: 90)
+                Text(code)
+                    .font(.callout.monospaced())
             }
-        case .link(let url):
+            .padding(10)
+        case .link(let address):
             VStack(alignment: .leading, spacing: 6) {
                 Image(systemName: "link")
                     .foregroundStyle(.secondary)
-                Text(url.absoluteString)
+                Text(address)
                     .font(.callout)
                     .lineLimit(5)
             }
@@ -85,19 +83,19 @@ struct ItemCardView: View {
                     .foregroundStyle(.secondary)
                     .padding(10)
             }
-        case .fileReferences(let paths):
+        case .files(let names, let overflow):
             VStack(alignment: .leading, spacing: 4) {
-                ForEach(paths.prefix(4), id: \.self) { path in
+                ForEach(names, id: \.self) { name in
                     HStack(spacing: 6) {
                         Image(systemName: "doc")
                             .foregroundStyle(.secondary)
-                        Text((path as NSString).lastPathComponent)
+                        Text(name)
                             .font(.callout)
                             .lineLimit(1)
                     }
                 }
-                if paths.count > 4 {
-                    Text("+ \(paths.count - 4) more")
+                if overflow > 0 {
+                    Text("+ \(overflow) more")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -108,9 +106,9 @@ struct ItemCardView: View {
 
     private var footer: some View {
         HStack {
-            Text(Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: Date()))
+            Text(card.timeLabel)
             Spacer()
-            Text(kindLabel)
+            Text(card.kindLabel)
         }
         .font(.caption2)
         .foregroundStyle(.secondary)
@@ -118,45 +116,12 @@ struct ItemCardView: View {
         .padding(.vertical, 6)
     }
 
-    private var kindLabel: String {
-        switch item.payload {
-        case .text: return "Text"
-        case .link: return "Link"
-        case .image: return "Image"
-        case .fileReferences: return "Files"
-        }
-    }
-
     private var kindColor: Color {
-        switch item.payload {
-        case .text: return .blue
+        switch card.preview {
+        case .text, .color: return .blue
         case .link: return .teal
         case .image: return .purple
-        case .fileReferences: return .orange
+        case .files: return .orange
         }
-    }
-
-    private static let relativeFormatter: RelativeDateTimeFormatter = {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter
-    }()
-}
-
-struct HexColor {
-    let color: Color
-    let code: String
-
-    init?(_ raw: String) {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.range(of: "^#?[0-9a-fA-F]{6}$", options: .regularExpression) != nil else { return nil }
-        let hex = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
-        guard let value = UInt32(hex, radix: 16) else { return nil }
-        code = "#" + hex.uppercased()
-        color = Color(
-            red: Double((value >> 16) & 0xFF) / 255,
-            green: Double((value >> 8) & 0xFF) / 255,
-            blue: Double(value & 0xFF) / 255
-        )
     }
 }

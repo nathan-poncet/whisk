@@ -2,12 +2,15 @@ import AppKit
 import Carbon.HIToolbox
 import HistoryStoreFile
 import PasteboardAppKit
+import WhiskAdapters
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var panelController: PanelController?
     private var hotKey: HotKey?
-    private var viewModel: HistoryViewModel?
+    private var stateStore: HistoryViewStateStore?
+    private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, FileHistoryStore>?
+    private var pollTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let store: FileHistoryStore
@@ -19,21 +22,53 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let useCases = UseCaseBundle.live(pasteboard: AppKitPasteboard(), store: store, clock: SystemClock())
-        let viewModel = HistoryViewModel(useCases: useCases)
-        let panelController = PanelController(viewModel: viewModel)
-        viewModel.onSelection = { [weak panelController] in
-            panelController?.hide()
-            PasteSimulator.pasteIfTrusted()
+        let stateStore = HistoryViewStateStore()
+        let clipboard = ClipboardController(
+            pasteboard: AppKitPasteboard(),
+            store: store,
+            clock: SystemClock()
+        ) { state in
+            stateStore.update(state)
         }
-        self.viewModel = viewModel
+        self.stateStore = stateStore
+        self.clipboard = clipboard
+
+        let actions = PanelActions(
+            search: { clipboard.search($0) },
+            select: { [weak self] id in
+                clipboard.select(id)
+                self?.panelController?.hide()
+                PasteSimulator.pasteIfTrusted()
+            },
+            selectFirst: { [weak self] in
+                guard clipboard.selectFirstVisible() else { return }
+                self?.panelController?.hide()
+                PasteSimulator.pasteIfTrusted()
+            },
+            togglePin: { clipboard.togglePin($0) },
+            delete: { clipboard.delete($0) },
+            panelWillShow: { clipboard.panelWillShow() }
+        )
+        let panelController = PanelController(stateStore: stateStore, actions: actions)
         self.panelController = panelController
 
         configureStatusItem()
         hotKey = HotKey(keyCode: UInt32(kVK_ANSI_V), modifiers: UInt32(cmdKey | shiftKey)) { [weak panelController] in
             panelController?.toggle()
         }
-        viewModel.startPolling()
+        startPolling(clipboard)
+
+        if CommandLine.arguments.contains("--show-panel") {
+            panelController.show()
+        }
+    }
+
+    private func startPolling(_ clipboard: ClipboardController<AppKitPasteboard, SystemClock, FileHistoryStore>) {
+        let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
+            clipboard.pollTick()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        pollTimer = timer
     }
 
     private func configureStatusItem() {
@@ -75,7 +110,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func clearHistory() {
-        viewModel?.clear()
+        clipboard?.clear()
     }
 
     @objc private func quit() {
