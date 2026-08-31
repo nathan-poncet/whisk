@@ -6,11 +6,13 @@ set -euo pipefail
 VERSION="${1:-0.0.0}"
 ARCH="${2:-native}"
 
+# --disable-sandbox turns off SwiftPM's own sandbox, which cannot start
+# inside Homebrew's build sandbox (sandbox_apply: Operation not permitted).
 if [ "$ARCH" = "universal" ]; then
-  swift build -c release --arch arm64 --arch x86_64
+  swift build --disable-sandbox -c release --arch arm64 --arch x86_64
   BINARY=".build/apple/Products/Release/Whisk"
 else
-  swift build -c release
+  swift build --disable-sandbox -c release
   BINARY=".build/release/Whisk"
 fi
 
