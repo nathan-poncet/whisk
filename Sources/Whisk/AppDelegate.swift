@@ -14,7 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             store = FileHistoryStore(directory: try FileHistoryStore.defaultDirectory())
         } catch {
-            fputs("Pasteur: cannot open storage directory — \(error)\n", stderr)
+            fputs("Whisk: cannot open storage directory — \(error)\n", stderr)
             NSApp.terminate(nil)
             return
         }
@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Pasteur")
+        item.button?.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Whisk")
         item.button?.target = self
         item.button?.action = #selector(statusItemClicked)
         item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -58,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(menuItem(title: "Show History (⇧⌘V)", action: #selector(showPanel)))
         menu.addItem(menuItem(title: "Clear Unpinned Items", action: #selector(clearHistory)))
         menu.addItem(.separator())
-        menu.addItem(menuItem(title: "Quit Pasteur", action: #selector(quit)))
+        menu.addItem(menuItem(title: "Quit Whisk", action: #selector(quit)))
         statusItem?.menu = menu
         statusItem?.button?.performClick(nil)
         statusItem?.menu = nil

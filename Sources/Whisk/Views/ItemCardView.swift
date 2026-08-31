@@ -1,4 +1,4 @@
-import PasteurKernel
+import WhiskKernel
 import SwiftUI
 
 struct ItemCardView: View {

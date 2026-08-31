@@ -1,6 +1,6 @@
 # Architecture
 
-Pasteur suit la Clean Architecture : un noyau pur derrière des ports, des
+Whisk suit la Clean Architecture : un noyau pur derrière des ports, des
 adaptateurs en périphérie, une unique racine de composition. Le graphe de
 cibles SwiftPM *est* la Dependency Rule — le noyau ne dépend de rien qui
 nous appartienne, les adaptateurs ne dépendent que du noyau, et seul
@@ -9,20 +9,20 @@ l'exécutable peut tout nommer.
 ## La carte
 
 ```
-                      Pasteur  (exécutable — racine de composition, puits)
+                      Whisk  (exécutable — racine de composition, puits)
                          │ peut tout nommer
           ┌──────────────┼──────────────────┐
           ▼              ▼                  ▼
-   PasteurKernel   HistoryStoreFile   PasteboardAppKit
+   WhiskKernel   HistoryStoreFile   PasteboardAppKit
                          │ (adaptateur)     │ (adaptateur)
                          └──────────┬───────┘
                                     ▼
-                            PasteurKernel
+                            WhiskKernel
 ```
 
 ## Les règles
 
-1. **Un seul bounded context.** `PasteurKernel` contient `Entities/` et
+1. **Un seul bounded context.** `WhiskKernel` contient `Entities/` et
    `UseCases/` avec ses `UseCases/Ports/`. Il n'importe que Foundation —
    jamais AppKit, jamais SwiftUI.
 2. **Les ports vivent dans le noyau**, un fichier par port, des noms de
@@ -31,7 +31,7 @@ l'exécutable peut tout nommer.
 3. **Les adaptateurs sont des cibles séparées**, nommées `<Rôle><Tech>`
    (`HistoryStoreFile`, `PasteboardAppKit`) ; chacune dépend du noyau et de
    rien d'autre qui nous appartienne.
-4. **La racine de composition est un puits.** L'exécutable `Pasteur` câble
+4. **La racine de composition est un puits.** L'exécutable `Whisk` câble
    les adaptateurs dans les use cases (`UseCaseBundle`) et possède toute
    l'UI ; rien ne dépend de lui.
 5. **Cœur synchrone et pur ; le temps en périphérie.** Les use cases sont

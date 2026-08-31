@@ -1,5 +1,5 @@
 import Foundation
-import PasteurKernel
+import WhiskKernel
 
 final class FakeClock: Clock {
     private var current: Date

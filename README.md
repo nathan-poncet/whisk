@@ -1,4 +1,4 @@
-# Pasteur
+# Whisk
 
 An open-source clipboard manager for macOS, inspired by
 [Paste](https://pasteapp.io/). A menu bar app that remembers everything you
@@ -24,7 +24,7 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Rich previews** — images, links, file lists, and color swatches for
   copied hex codes.
 - **Privacy** — everything stays on disk in
-  `~/Library/Application Support/Pasteur`; password managers marking their
+  `~/Library/Application Support/Whisk`; password managers marking their
   content as concealed (`org.nspasteboard.ConcealedType`) are never recorded.
 
 ## Requirements
@@ -36,9 +36,9 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 ## Run it
 
 ```sh
-git clone https://github.com/nathan-poncet/pasteur.git
-cd pasteur
-swift run Pasteur
+git clone https://github.com/nathan-poncet/whisk.git
+cd whisk
+swift run Whisk
 ```
 
 The clipboard icon appears in the menu bar. Copy a few things, then press
@@ -47,13 +47,13 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
 - **Left-click** the menu bar icon (or `⇧⌘V`): toggle the panel.
 - **Right-click** the icon: menu (show, clear, quit).
 - **Click a card**: copy it back to the clipboard. If the app that launched
-  Pasteur (e.g. your terminal) has Accessibility permission
+  Whisk (e.g. your terminal) has Accessibility permission
   (System Settings → Privacy & Security → Accessibility), the item is pasted
   straight into the frontmost app.
 - **Right-click a card**: pin or delete.
 - **Esc** or click outside: close the panel.
 
-You can also open `Package.swift` in Xcode and run the `Pasteur` scheme.
+You can also open `Package.swift` in Xcode and run the `Whisk` scheme.
 
 ## Tests
 

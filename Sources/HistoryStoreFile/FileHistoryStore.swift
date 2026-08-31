@@ -1,5 +1,5 @@
 import Foundation
-import PasteurKernel
+import WhiskKernel
 
 /// Stores the history as a JSON index plus one blob file per image.
 /// Dates are pinned to whole milliseconds so a saved history loads back
@@ -13,7 +13,7 @@ public final class FileHistoryStore: HistoryStore {
         self.fileManager = fileManager
     }
 
-    /// `~/Library/Application Support/Pasteur`, created by the first save.
+    /// `~/Library/Application Support/Whisk`, created by the first save.
     public static func defaultDirectory(fileManager: FileManager = .default) throws -> URL {
         let base = try fileManager.url(
             for: .applicationSupportDirectory,
@@ -21,7 +21,7 @@ public final class FileHistoryStore: HistoryStore {
             appropriateFor: nil,
             create: true
         )
-        return base.appendingPathComponent("Pasteur", isDirectory: true)
+        return base.appendingPathComponent("Whisk", isDirectory: true)
     }
 
     public func load() throws -> [ClipboardItem] {

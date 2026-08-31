@@ -1,10 +1,10 @@
 import AppKit
-import PasteurKernel
+import WhiskKernel
 
 /// Reads and writes the system pasteboard. Change detection relies on
 /// `changeCount`; our own writes advance the counter and are skipped so a
 /// selection is not re-captured.
-public final class AppKitPasteboard: PasteurKernel.Pasteboard {
+public final class AppKitPasteboard: WhiskKernel.Pasteboard {
     private static let concealedTypes: Set<String> = [
         "org.nspasteboard.ConcealedType",
         "org.nspasteboard.TransientType",

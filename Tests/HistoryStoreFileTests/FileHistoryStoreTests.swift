@@ -1,6 +1,6 @@
 import Foundation
 import HistoryStoreFile
-import PasteurKernel
+import WhiskKernel
 import Testing
 
 /// Contract suite for the `HistoryStore` port, run against the file adapter
@@ -8,7 +8,7 @@ import Testing
 @Suite struct FileHistoryStoreContract {
     private func makeStore() throws -> (FileHistoryStore, URL) {
         let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("pasteur-tests-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("whisk-tests-\(UUID().uuidString)", isDirectory: true)
         return (FileHistoryStore(directory: directory), directory)
     }
 

@@ -1,5 +1,5 @@
 import Foundation
-import PasteurKernel
+import WhiskKernel
 import Testing
 
 @Suite struct HistoryBehaviour {

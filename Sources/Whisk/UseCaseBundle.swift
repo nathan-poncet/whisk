@@ -1,7 +1,7 @@
 import Foundation
 import HistoryStoreFile
 import PasteboardAppKit
-import PasteurKernel
+import WhiskKernel
 
 /// Concrete use cases wired by the composition root, type-erased for the UI.
 struct UseCaseBundle {
