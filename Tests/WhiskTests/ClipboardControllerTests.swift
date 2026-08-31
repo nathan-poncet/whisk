@@ -156,6 +156,26 @@ import Testing
         #expect(spy.last.cards.isEmpty)
     }
 
+    @Test func highlighting_moves_the_selection_without_writing_back() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("second"))]
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: store, clock: FakeClock(), present: spy.record
+        )
+        let secondID = spy.last.cards[1].id
+
+        controller.highlight(secondID)
+
+        #expect(spy.last.cards.map(\.isSelected) == [false, true])
+        #expect(pasteboard.written.isEmpty)
+
+        let presented = spy.states.count
+        controller.highlight(secondID)
+        #expect(spy.states.count == presented)
+    }
+
     @Test func the_rail_is_bounded_and_reports_what_it_hides() {
         let store = InMemoryHistoryStore()
         store.stored = (1...70).map { anItem(.text("item \($0)")) }
