@@ -28,7 +28,8 @@ import Testing
     private func seededHistory() -> History {
         History()
             .recording(
-                .text("let x = api.compute(1)"), from: SourceApp(name: "Ghostty", bundleID: "dev.ghostty"), at: clock.now()
+                .text("let x = api.compute(1)"), from: SourceApp(name: "Ghostty", bundleID: "dev.ghostty"),
+                at: clock.now()
             )
             .recording(.text("plain words"), from: SourceApp(name: "Slack", bundleID: "com.slack"), at: clock.now())
             .recording(.text("#FF6B35"), from: SourceApp(name: "Slack", bundleID: "com.slack"), at: clock.now())
