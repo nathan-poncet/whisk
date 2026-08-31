@@ -30,7 +30,7 @@ final class LinkPreviewStore: ObservableObject {
 
     func load(_ address: String) {
         guard previews[address] == nil, !inFlight.contains(address),
-              let url = URL(string: address)
+            let url = URL(string: address)
         else { return }
         inFlight.insert(address)
         let provider = LPMetadataProvider()
@@ -71,7 +71,8 @@ final class LinkPreviewStore: ObservableObject {
         }
     }
 
-    private nonisolated static func loadImage(from provider: NSItemProvider?, completion: @escaping (NSImage?) -> Void) {
+    private nonisolated static func loadImage(from provider: NSItemProvider?, completion: @escaping (NSImage?) -> Void)
+    {
         guard let provider, provider.canLoadObject(ofClass: NSImage.self) else {
             completion(nil)
             return

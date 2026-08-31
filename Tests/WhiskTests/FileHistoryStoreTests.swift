@@ -20,10 +20,20 @@ import Testing
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = try #require(URL(string: "https://example.com/a?b=c"))
         let items = [
-            ClipboardItem(id: UUID(), payload: .text("héllo\nworld"), source: SourceApp(name: "Safari", bundleID: "com.apple.Safari"), copiedAt: date(ms: 1_700_000_000_123), isPinned: true),
-            ClipboardItem(id: UUID(), payload: .link(url), source: nil, copiedAt: date(ms: 1_700_000_001_456), isPinned: false),
-            ClipboardItem(id: UUID(), payload: .image(Data([0x89, 0x50, 0x4E, 0x47])), source: SourceApp(name: "Preview", bundleID: "com.apple.Preview"), copiedAt: date(ms: 1_700_000_002_789), isPinned: false),
-            ClipboardItem(id: UUID(), payload: .fileReferences(["/tmp/a.txt", "/tmp/b.txt"]), source: SourceApp(name: "Finder", bundleID: "com.apple.finder"), copiedAt: date(ms: 1_700_000_003_000), isPinned: true),
+            ClipboardItem(
+                id: UUID(), payload: .text("héllo\nworld"),
+                source: SourceApp(name: "Safari", bundleID: "com.apple.Safari"), copiedAt: date(ms: 1_700_000_000_123),
+                isPinned: true),
+            ClipboardItem(
+                id: UUID(), payload: .link(url), source: nil, copiedAt: date(ms: 1_700_000_001_456), isPinned: false),
+            ClipboardItem(
+                id: UUID(), payload: .image(Data([0x89, 0x50, 0x4E, 0x47])),
+                source: SourceApp(name: "Preview", bundleID: "com.apple.Preview"),
+                copiedAt: date(ms: 1_700_000_002_789), isPinned: false),
+            ClipboardItem(
+                id: UUID(), payload: .fileReferences(["/tmp/a.txt", "/tmp/b.txt"]),
+                source: SourceApp(name: "Finder", bundleID: "com.apple.finder"), copiedAt: date(ms: 1_700_000_003_000),
+                isPinned: true),
         ]
 
         try store.save(items)
@@ -42,8 +52,11 @@ import Testing
     @Test func a_blob_no_longer_referenced_is_removed_on_save() throws {
         let (store, directory) = try makeStore()
         defer { try? FileManager.default.removeItem(at: directory) }
-        let image = ClipboardItem(id: UUID(), payload: .image(Data([0x01])), source: nil, copiedAt: date(ms: 1_700_000_000_000), isPinned: false)
-        let text = ClipboardItem(id: UUID(), payload: .text("survivor"), source: nil, copiedAt: date(ms: 1_700_000_001_000), isPinned: false)
+        let image = ClipboardItem(
+            id: UUID(), payload: .image(Data([0x01])), source: nil, copiedAt: date(ms: 1_700_000_000_000),
+            isPinned: false)
+        let text = ClipboardItem(
+            id: UUID(), payload: .text("survivor"), source: nil, copiedAt: date(ms: 1_700_000_001_000), isPinned: false)
         let blobs = directory.appendingPathComponent("blobs", isDirectory: true)
 
         try store.save([image, text])
@@ -57,7 +70,9 @@ import Testing
         let (store, directory) = try makeStore()
         defer { try? FileManager.default.removeItem(at: directory) }
         try store.save([
-            ClipboardItem(id: UUID(), payload: .text("valid"), source: nil, copiedAt: date(ms: 1_700_000_000_000), isPinned: false)
+            ClipboardItem(
+                id: UUID(), payload: .text("valid"), source: nil, copiedAt: date(ms: 1_700_000_000_000), isPinned: false
+            )
         ])
         let index = directory.appendingPathComponent("history.json")
         let corrupted = try String(contentsOf: index, encoding: .utf8)

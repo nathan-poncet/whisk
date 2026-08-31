@@ -119,7 +119,7 @@ final class FileHistoryStore: HistoryStore {
             return .link(url)
         case "image":
             guard let name = stored.imageFile,
-                  let data = try? Data(contentsOf: blobsDirectory.appendingPathComponent(name))
+                let data = try? Data(contentsOf: blobsDirectory.appendingPathComponent(name))
             else { return nil }
             return .image(data)
         case "files":

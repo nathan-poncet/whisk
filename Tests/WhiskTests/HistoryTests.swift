@@ -48,7 +48,8 @@ import Testing
             .recording(.text("pinned"), from: nil, at: clock.now())
         history = history.togglingPin(history.items[0].id)
 
-        history = history
+        history =
+            history
             .recording(.text("a"), from: nil, at: clock.now())
             .recording(.text("b"), from: nil, at: clock.now())
 
