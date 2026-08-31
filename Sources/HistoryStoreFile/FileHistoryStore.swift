@@ -68,6 +68,7 @@ public final class FileHistoryStore: HistoryStore {
         var imageFile: String?
         var files: [String]?
         var sourceApp: String?
+        var sourceBundleID: String?
         var copiedAtMs: Int64
         var isPinned: Bool
     }
@@ -76,7 +77,8 @@ public final class FileHistoryStore: HistoryStore {
         var stored = StoredItem(
             id: item.id,
             kind: "",
-            sourceApp: item.sourceApp,
+            sourceApp: item.source?.name,
+            sourceBundleID: item.source?.bundleID,
             copiedAtMs: Int64((item.copiedAt.timeIntervalSince1970 * 1000).rounded()),
             isPinned: item.isPinned
         )
@@ -102,7 +104,7 @@ public final class FileHistoryStore: HistoryStore {
         return ClipboardItem(
             id: stored.id,
             payload: payload,
-            sourceApp: stored.sourceApp,
+            source: SourceApp(name: stored.sourceApp, bundleID: stored.sourceBundleID),
             copiedAt: Date(timeIntervalSince1970: Double(stored.copiedAtMs) / 1000),
             isPinned: stored.isPinned
         )

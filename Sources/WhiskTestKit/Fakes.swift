@@ -62,8 +62,15 @@ public final class ScriptedPasteboard: Pasteboard {
 public func anItem(
     _ payload: Payload,
     from source: String? = "Tests",
+    bundle: String? = nil,
     at date: Date = Date(timeIntervalSince1970: 1_700_000_000),
     pinned: Bool = false
 ) -> ClipboardItem {
-    ClipboardItem(id: UUID(), payload: payload, sourceApp: source, copiedAt: date, isPinned: pinned)
+    ClipboardItem(
+        id: UUID(),
+        payload: payload,
+        source: SourceApp(name: source, bundleID: bundle),
+        copiedAt: date,
+        isPinned: pinned
+    )
 }

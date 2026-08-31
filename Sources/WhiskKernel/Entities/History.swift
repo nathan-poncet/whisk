@@ -14,14 +14,14 @@ public struct History: Equatable {
 
     /// Records a captured payload. A payload already present keeps its
     /// identity and pin, and moves to the front with a refreshed date.
-    public func recording(_ payload: Payload, from sourceApp: String?, at date: Date, id: UUID = UUID()) -> History {
+    public func recording(_ payload: Payload, from source: SourceApp?, at date: Date, id: UUID = UUID()) -> History {
         var next = self
         if let index = next.items.firstIndex(where: { $0.payload == payload }) {
             let refreshed = next.items.remove(at: index).copied(at: date)
             next.items.insert(refreshed, at: 0)
             return next
         }
-        let item = ClipboardItem(id: id, payload: payload, sourceApp: sourceApp, copiedAt: date, isPinned: false)
+        let item = ClipboardItem(id: id, payload: payload, source: source, copiedAt: date, isPinned: false)
         next.items.insert(item, at: 0)
         next.evictOverflow()
         return next

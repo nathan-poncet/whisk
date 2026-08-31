@@ -18,7 +18,8 @@ public struct HistoryPresenter {
         let kind = kindLabel(item.payload)
         return CardViewState(
             id: item.id,
-            sourceLabel: item.sourceApp ?? kind,
+            sourceLabel: item.source?.name ?? item.source?.bundleID ?? kind,
+            sourceBundleID: item.source?.bundleID,
             kindLabel: kind.lowercased(),
             timeLabel: Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now),
             isPinned: item.isPinned,

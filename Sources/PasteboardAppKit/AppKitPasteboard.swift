@@ -24,9 +24,10 @@ public final class AppKitPasteboard: WhiskKernel.Pasteboard {
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count
         guard !holdsConcealedContent(), let payload = readPayload() else { return nil }
+        let app = NSWorkspace.shared.frontmostApplication
         return PasteboardSnapshot(
             payload: payload,
-            sourceApp: NSWorkspace.shared.frontmostApplication?.localizedName
+            source: SourceApp(name: app?.localizedName, bundleID: app?.bundleIdentifier)
         )
     }
 

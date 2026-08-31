@@ -9,13 +9,13 @@ import Testing
     let store = InMemoryHistoryStore()
 
     @Test func capture_records_a_change_and_persists_it() throws {
-        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("copied"), sourceApp: "Safari")]
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("copied"), source: SourceApp(name: "Safari"))]
         let capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
 
         let history = try capture(into: History())
 
         #expect(history.items.map(\.payload) == [.text("copied")])
-        #expect(history.items[0].sourceApp == "Safari")
+        #expect(history.items[0].source?.name == "Safari")
         #expect(store.stored == history.items)
     }
 
