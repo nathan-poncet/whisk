@@ -5,7 +5,9 @@ An open-source clipboard manager for macOS, inspired by
 copy — text, links, images, files, colors — and brings it back through a
 Paste-style panel at the bottom of your screen.
 
-https://github.com/nathan-poncet/whisk/raw/main/docs/media/demo.mp4
+![Whisk demo — the panel, keyboard navigation, filters, and direct paste](docs/media/demo.gif)
+
+*(Crisp MP4: [docs/media/demo.mp4](docs/media/demo.mp4), also attached to the [releases](https://github.com/nathan-poncet/whisk/releases).)*
 
 
 Built in Swift/SwiftUI following Clean Architecture: a pure, synchronous
