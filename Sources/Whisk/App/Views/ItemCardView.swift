@@ -139,9 +139,11 @@ struct ItemCardView: View, Equatable {
         .padding(.bottom, 12)
     }
 
-    // Decoding image bytes on every body evaluation is visible as a flash;
-    // items are immutable, so the decoded image is cached per card.
+    // Decoding image bytes on every body evaluation is visible as a flash,
+    // and the rail renders eagerly — so each card decodes once and keeps a
+    // card-sized thumbnail, never the full bitmap.
     private static let imageCache = NSCache<NSUUID, NSImage>()
+    private static let thumbnailMaxDimension: CGFloat = 480
 
     private static func decodedImage(for id: UUID, data: Data) -> NSImage? {
         let key = id as NSUUID
@@ -149,8 +151,21 @@ struct ItemCardView: View, Equatable {
             return cached
         }
         guard let image = NSImage(data: data) else { return nil }
-        imageCache.setObject(image, forKey: key)
-        return image
+        let thumbnail = downscaled(image)
+        imageCache.setObject(thumbnail, forKey: key)
+        return thumbnail
+    }
+
+    private static func downscaled(_ image: NSImage) -> NSImage {
+        let longestSide = max(image.size.width, image.size.height)
+        guard longestSide > thumbnailMaxDimension, longestSide > 0 else { return image }
+        let scale = thumbnailMaxDimension / longestSide
+        let target = NSSize(width: image.size.width * scale, height: image.size.height * scale)
+        let thumbnail = NSImage(size: target)
+        thumbnail.lockFocus()
+        image.draw(in: NSRect(origin: .zero, size: target))
+        thumbnail.unlockFocus()
+        return thumbnail
     }
 }
 

@@ -156,6 +156,22 @@ import Testing
         #expect(spy.last.cards.isEmpty)
     }
 
+    @Test func the_rail_is_bounded_and_reports_what_it_hides() {
+        let store = InMemoryHistoryStore()
+        store.stored = (1...70).map { anItem(.text("item \($0)")) }
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        #expect(spy.last.cards.count == 60)
+        #expect(spy.last.hiddenCount == 10)
+        #expect(spy.last.countLabel == "70 items")
+
+        controller.search("item 7")
+        #expect(spy.last.hiddenCount == 0)
+    }
+
     @Test func the_panel_reset_clears_the_query() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("alpha")), anItem(.text("beta"))]

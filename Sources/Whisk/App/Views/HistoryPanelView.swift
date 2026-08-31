@@ -48,7 +48,10 @@ struct HistoryPanelView: View {
         } else {
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: 14) {
+                    // Eager on purpose: a lazy stack materializes cards at
+                    // the viewport's edge, which pops them in during fast
+                    // scrolls. The controller bounds the rail instead.
+                    HStack(spacing: 14) {
                         ForEach(store.state.cards) { card in
                             ItemCardView(
                                 card: card,
@@ -58,6 +61,9 @@ struct HistoryPanelView: View {
                             )
                             .equatable()
                             .id(card.id)
+                        }
+                        if store.state.hiddenCount > 0 {
+                            overflowCard
                         }
                     }
                     .padding(4)
@@ -72,6 +78,20 @@ struct HistoryPanelView: View {
                 }
             }
         }
+    }
+
+    private var overflowCard: some View {
+        VStack(spacing: 6) {
+            Text("+\(store.state.hiddenCount)")
+                .font(.title3.weight(.semibold))
+            Text("older items\nsearch to find them")
+                .font(.caption2)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+        }
+        .frame(width: 120)
+        .frame(maxHeight: .infinity)
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var emptyState: some View {

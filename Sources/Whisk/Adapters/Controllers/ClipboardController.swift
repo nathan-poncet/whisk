@@ -6,6 +6,10 @@ enum SelectionMove {
     case next
 }
 
+/// The rail renders eagerly (lazy loading pops cards in during fast
+/// scrolls), so it is bounded; search reaches everything beyond it.
+private let railLimit = 60
+
 /// Translates UI and OS events into use case invocations and hands each
 /// result to the presenter. Owns the current history, search query and
 /// keyboard selection; generic over its gateways, like the use cases it
@@ -109,7 +113,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private var visibleItems: [ClipboardItem] {
-        searchHistory(history, query: query)
+        Array(searchHistory(history, query: query).prefix(railLimit))
     }
 
     private func mutate(_ transform: (History) throws -> History) {
@@ -124,10 +128,19 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private func refresh() {
-        let items = visibleItems
-        if selectedID == nil || !items.contains(where: { $0.id == selectedID }) {
-            selectedID = items.first?.id
+        let matches = searchHistory(history, query: query)
+        let visible = Array(matches.prefix(railLimit))
+        if selectedID == nil || !visible.contains(where: { $0.id == selectedID }) {
+            selectedID = visible.first?.id
         }
-        present(presenter.present(items: items, query: query, now: clock.now(), selectedID: selectedID))
+        present(
+            presenter.present(
+                items: visible,
+                query: query,
+                now: clock.now(),
+                selectedID: selectedID,
+                hiddenCount: matches.count - visible.count
+            )
+        )
     }
 }

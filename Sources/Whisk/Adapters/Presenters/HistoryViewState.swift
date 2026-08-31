@@ -7,15 +7,17 @@ struct HistoryViewState: Equatable {
     let countLabel: String
     let query: String
     let selectedID: UUID?
+    let hiddenCount: Int
 
-    init(cards: [CardViewState], countLabel: String, query: String, selectedID: UUID?) {
+    init(cards: [CardViewState], countLabel: String, query: String, selectedID: UUID?, hiddenCount: Int) {
         self.cards = cards
         self.countLabel = countLabel
         self.query = query
         self.selectedID = selectedID
+        self.hiddenCount = hiddenCount
     }
 
-    static let empty = HistoryViewState(cards: [], countLabel: "0 items", query: "", selectedID: nil)
+    static let empty = HistoryViewState(cards: [], countLabel: "0 items", query: "", selectedID: nil, hiddenCount: 0)
 }
 
 /// One rendered clipboard entry.

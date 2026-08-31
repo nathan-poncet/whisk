@@ -5,12 +5,19 @@ import Foundation
 struct HistoryPresenter {
     init() {}
 
-    func present(items: [ClipboardItem], query: String, now: Date, selectedID: UUID? = nil) -> HistoryViewState {
+    func present(
+        items: [ClipboardItem],
+        query: String,
+        now: Date,
+        selectedID: UUID? = nil,
+        hiddenCount: Int = 0
+    ) -> HistoryViewState {
         HistoryViewState(
             cards: items.map { card(for: $0, now: now, isSelected: $0.id == selectedID) },
-            countLabel: countLabel(items.count),
+            countLabel: countLabel(items.count + hiddenCount),
             query: query,
-            selectedID: selectedID
+            selectedID: selectedID,
+            hiddenCount: hiddenCount
         )
     }
 
