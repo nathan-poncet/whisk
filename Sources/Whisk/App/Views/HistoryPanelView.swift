@@ -15,9 +15,9 @@ struct HistoryPanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             toolbar
+                .padding(.horizontal, 16)
             content
         }
-        .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: store.focusRevision) {
@@ -67,8 +67,14 @@ struct HistoryPanelView: View {
                             overflowCard
                         }
                     }
-                    .padding(4)
+                    .padding(.vertical, 8)
                 }
+                // The rail spans the full screen width; margins live inside
+                // the scroll content so cards travel all the way to the
+                // edges, and the clip is lifted so the selection halo and
+                // zoom are never shaved off.
+                .contentMargins(.horizontal, 16, for: .scrollContent)
+                .scrollClipDisabled()
                 .onChange(of: store.state.selectedID) { _, selectedID in
                     guard let selectedID else { return }
                     // No anchor: scroll the minimum needed to reveal the
@@ -105,5 +111,6 @@ struct HistoryPanelView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(.horizontal, 16)
     }
 }
