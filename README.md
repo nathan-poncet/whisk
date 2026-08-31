@@ -16,7 +16,10 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   newest first, deduplicated.
 - **Liquid Glass panel** — `⇧⌘V` opens a floating glass panel (the macOS 26
   look, translucent materials on earlier systems); click a card to copy it
-  back (and paste it directly when Accessibility access is granted).
+  back (and paste it directly when Accessibility access is granted). The
+  shortcut follows your keyboard layout — `V` is wherever your layout
+  prints it (Dvorak, AZERTY, Colemak, …), re-resolved live when you switch
+  layouts.
 - **Per-app styling** — each card carries the icon of the application it
   was copied from and takes its tint from that app's icon.
 - **Search** — type to filter text, links and file names instantly; `Return`

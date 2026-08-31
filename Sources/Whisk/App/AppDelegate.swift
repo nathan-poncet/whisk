@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var panelController: PanelController?
     private var hotKey: HotKey?
+    private var layoutObserver: NSObjectProtocol?
     private var stateStore: HistoryViewStateStore?
     private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, FileHistoryStore>?
     private var pollTimer: Timer?
@@ -50,13 +51,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.panelController = panelController
 
         configureStatusItem()
-        hotKey = HotKey(keyCode: UInt32(kVK_ANSI_V), modifiers: UInt32(cmdKey | shiftKey)) { [weak panelController] in
-            panelController?.toggle()
-        }
+        registerHotKey()
+        observeKeyboardLayoutChanges()
         startPolling(clipboard)
 
         if CommandLine.arguments.contains("--show-panel") {
             panelController.show()
+        }
+    }
+
+    /// ⇧⌘V wherever the current layout prints a V — Dvorak, AZERTY, … —
+    /// falling back to the physical ANSI position for layouts without one.
+    private func registerHotKey() {
+        hotKey = nil
+        let keyCode = KeyboardLayout.keyCode(for: "v") ?? CGKeyCode(kVK_ANSI_V)
+        hotKey = HotKey(keyCode: UInt32(keyCode), modifiers: UInt32(cmdKey | shiftKey)) { [weak self] in
+            self?.panelController?.toggle()
+        }
+    }
+
+    private func observeKeyboardLayoutChanges() {
+        layoutObserver = DistributedNotificationCenter.default().addObserver(
+            forName: NSNotification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.registerHotKey()
         }
     }
 
