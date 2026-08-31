@@ -12,7 +12,7 @@ public struct CaptureClipboardChange<Board: Pasteboard, Time: Clock, Store: Hist
 
     public func callAsFunction(into history: History) throws -> History {
         guard let snapshot = pasteboard.readIfChanged() else { return history }
-        let next = history.recording(snapshot.payload, from: snapshot.sourceApp, at: clock.now())
+        let next = history.recording(snapshot.payload, from: snapshot.source, at: clock.now())
         try store.save(next.items)
         return next
     }

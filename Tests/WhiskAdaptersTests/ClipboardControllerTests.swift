@@ -13,7 +13,7 @@ import WhiskTestKit
 
     @Test func a_poll_tick_with_a_change_presents_the_new_card_first() {
         let pasteboard = ScriptedPasteboard()
-        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("fresh"), sourceApp: "Safari")]
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("fresh"), source: SourceApp(name: "Safari"))]
         let spy = StateSpy()
         let controller = ClipboardController(
             pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
@@ -86,7 +86,7 @@ import WhiskTestKit
 
     @Test func a_storage_failure_keeps_the_presented_state_alive() {
         let pasteboard = ScriptedPasteboard()
-        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("doomed"), sourceApp: nil)]
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("doomed"), source: nil)]
         let spy = StateSpy()
         let controller = ClipboardController(
             pasteboard: pasteboard, store: FailingHistoryStore(), clock: FakeClock(), present: spy.record

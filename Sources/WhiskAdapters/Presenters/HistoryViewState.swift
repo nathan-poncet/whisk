@@ -20,6 +20,7 @@ public struct HistoryViewState: Equatable {
 public struct CardViewState: Equatable, Identifiable {
     public let id: UUID
     public let sourceLabel: String
+    public let sourceBundleID: String?
     public let kindLabel: String
     public let timeLabel: String
     public let isPinned: Bool
@@ -28,6 +29,7 @@ public struct CardViewState: Equatable, Identifiable {
     public init(
         id: UUID,
         sourceLabel: String,
+        sourceBundleID: String?,
         kindLabel: String,
         timeLabel: String,
         isPinned: Bool,
@@ -35,6 +37,7 @@ public struct CardViewState: Equatable, Identifiable {
     ) {
         self.id = id
         self.sourceLabel = sourceLabel
+        self.sourceBundleID = sourceBundleID
         self.kindLabel = kindLabel
         self.timeLabel = timeLabel
         self.isPinned = isPinned

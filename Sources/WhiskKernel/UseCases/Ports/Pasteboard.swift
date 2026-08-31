@@ -1,11 +1,11 @@
 /// What the system pasteboard held when a change was observed.
 public struct PasteboardSnapshot: Equatable {
     public let payload: Payload
-    public let sourceApp: String?
+    public let source: SourceApp?
 
-    public init(payload: Payload, sourceApp: String?) {
+    public init(payload: Payload, source: SourceApp?) {
         self.payload = payload
-        self.sourceApp = sourceApp
+        self.source = source
     }
 }
 
