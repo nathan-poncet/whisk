@@ -1,14 +1,16 @@
 import AppKit
 import SwiftUI
 
-/// Two stacked chip rows under the search field — source applications on
+/// Two stacked chip rows above the search field — source applications on
 /// top, content categories below. The active chip filters the rail; the
 /// focused chip is the keyboard cursor (↑/↓ reach the rows, ←/→ move,
-/// Return toggles).
+/// Return toggles) and hovering moves that same focus with the mouse.
 struct FilterBarView: View {
     let filters: FilterBarViewState
     let onToggleApp: (String) -> Void
     let onToggleKind: (String) -> Void
+    let onFocusApp: (String) -> Void
+    let onFocusKind: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -22,7 +24,7 @@ struct FilterBarView: View {
     }
 
     private var appsRow: some View {
-        chipRow(filters.apps, toggle: onToggleApp) { chip in
+        chipRow(filters.apps, toggle: onToggleApp, focus: onFocusApp) { chip in
             HStack(spacing: 5) {
                 if let icon = SourceAppStyle.resolve(bundleID: chip.sourceBundleID).icon {
                     Image(nsImage: icon)
@@ -35,7 +37,7 @@ struct FilterBarView: View {
     }
 
     private var kindsRow: some View {
-        chipRow(filters.kinds, toggle: onToggleKind) { chip in
+        chipRow(filters.kinds, toggle: onToggleKind, focus: onFocusKind) { chip in
             HStack(spacing: 5) {
                 kindIcon(chip.id)
                 Text(chip.label)
@@ -46,24 +48,27 @@ struct FilterBarView: View {
     private func chipRow(
         _ chips: [FilterChip],
         toggle: @escaping (String) -> Void,
+        focus: @escaping (String) -> Void,
         @ViewBuilder label: @escaping (FilterChip) -> some View
     ) -> some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(chips) { chip in
-                        Button {
-                            toggle(chip.id)
-                        } label: {
+                        ChipButton(
+                            chip: chip,
+                            onToggle: { toggle(chip.id) },
+                            onFocus: { focus(chip.id) }
+                        ) {
                             label(chip)
                         }
-                        .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: chip.isFocused))
                         .id(chip.id)
                     }
                 }
-                .padding(.vertical, 2)
+                .padding(.vertical, 3)
             }
             .contentMargins(.horizontal, 16, for: .scrollContent)
+            .scrollClipDisabled()
             .onChange(of: filters.focusedChipID) { _, id in
                 guard let id, chips.contains(where: { $0.id == id }) else { return }
                 withAnimation(.easeOut(duration: 0.12)) {
@@ -94,6 +99,30 @@ struct FilterBarView: View {
         case "image": "photo"
         case "files": "folder"
         default: "square"
+        }
+    }
+}
+
+/// One chip. Like the cards: hovering moves the shared keyboard focus onto
+/// it, and focus or an active filter zooms it slightly.
+private struct ChipButton<Label: View>: View {
+    let chip: FilterChip
+    let onToggle: () -> Void
+    let onFocus: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    var body: some View {
+        Button(action: onToggle) {
+            label()
+        }
+        .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: chip.isFocused))
+        .scaleEffect(chip.isFocused || chip.isActive ? 1.06 : 1)
+        .animation(.easeOut(duration: 0.14), value: chip.isFocused)
+        .animation(.easeOut(duration: 0.14), value: chip.isActive)
+        .onHover { hovering in
+            if hovering {
+                onFocus()
+            }
         }
     }
 }

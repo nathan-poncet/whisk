@@ -14,15 +14,17 @@ struct HistoryPanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            toolbar
-                .padding(.horizontal, 16)
             if !store.state.filters.isEmpty {
                 FilterBarView(
                     filters: store.state.filters,
                     onToggleApp: actions.toggleSourceFilter,
-                    onToggleKind: actions.toggleCategoryFilter
+                    onToggleKind: actions.toggleCategoryFilter,
+                    onFocusApp: actions.focusSourceChip,
+                    onFocusKind: actions.focusCategoryChip
                 )
             }
+            toolbar
+                .padding(.horizontal, 16)
             content
         }
         .padding(.vertical, 12)

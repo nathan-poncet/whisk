@@ -26,6 +26,8 @@ struct PanelActions {
     let navigate: (ArrowDirection) -> Void
     let toggleSourceFilter: (String) -> Void
     let toggleCategoryFilter: (String) -> Void
+    let focusSourceChip: (String) -> Void
+    let focusCategoryChip: (String) -> Void
     let togglePin: (UUID) -> Void
     let delete: (UUID) -> Void
     let panelWillShow: () -> Void
