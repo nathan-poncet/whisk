@@ -70,7 +70,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         let items = visibleItems
         guard !items.isEmpty else { return }
         guard let current = selectedID,
-              let index = items.firstIndex(where: { $0.id == current })
+            let index = items.firstIndex(where: { $0.id == current })
         else {
             selectedID = items.first?.id
             refresh()

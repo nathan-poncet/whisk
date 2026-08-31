@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+    env:
+      TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependency Rule
+        run: ./scripts/check-dependency-rule.sh
+
+      - name: Format lint
+        run: swift format lint --strict --recursive Sources Tests Package.swift
+
+      - name: Test
+        run: swift test
+
+      - name: Build app bundle
+        run: ./scripts/build-app.sh "${GITHUB_REF_NAME#v}" universal
+
+      - name: Zip app
+        run: ditto -c -k --keepParent dist/Whisk.app "dist/Whisk-${GITHUB_REF_NAME}.zip"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "dist/Whisk-${GITHUB_REF_NAME}.zip" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes
+
+      - name: Bump Homebrew formula
+        if: env.TAP_TOKEN != ''
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          TARBALL_URL="https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${GITHUB_REF_NAME}.tar.gz"
+          curl -sL "$TARBALL_URL" -o source.tar.gz
+          SHA=$(shasum -a 256 source.tar.gz | cut -d' ' -f1)
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/nathan-poncet/homebrew-tap.git" tap
+          cd tap
+          sed -i '' \
+            -e "s|^  url .*|  url \"${TARBALL_URL}\"|" \
+            -e "s|^  sha256 .*|  sha256 \"${SHA}\"|" \
+            Formula/whisk.rb
+          git config user.name "Nathan Poncet"
+          git config user.email "112613712+nathan-poncet@users.noreply.github.com"
+          git commit -am "whisk ${VERSION}"
+          git push

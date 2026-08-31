@@ -34,7 +34,8 @@ enum SourceAppStyle {
 
     private static func dominantColor(of image: NSImage) -> NSColor? {
         guard let tiff = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiff) else { return nil }
+            let bitmap = NSBitmapImageRep(data: tiff)
+        else { return nil }
         let width = bitmap.pixelsWide
         let height = bitmap.pixelsHigh
         guard width > 0, height > 0 else { return nil }
@@ -46,7 +47,8 @@ enum SourceAppStyle {
         for x in stride(from: 0, to: width, by: step) {
             for y in stride(from: 0, to: height, by: step) {
                 guard let sample = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB),
-                      sample.alphaComponent > 0.5 else { continue }
+                    sample.alphaComponent > 0.5
+                else { continue }
                 // Colorful pixels dominate so white and gray chrome doesn't
                 // wash the tint out.
                 let pixelWeight = 0.15 + sample.saturationComponent

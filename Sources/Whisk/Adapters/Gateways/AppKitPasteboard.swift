@@ -74,8 +74,9 @@ final class AppKitPasteboard: Whisk.Pasteboard {
             return png
         }
         if let tiff = board.data(forType: .tiff),
-           let bitmap = NSBitmapImageRep(data: tiff),
-           let png = bitmap.representation(using: .png, properties: [:]) {
+            let bitmap = NSBitmapImageRep(data: tiff),
+            let png = bitmap.representation(using: .png, properties: [:])
+        {
             return png
         }
         return nil
@@ -84,10 +85,10 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     private func webLink(in string: String) -> URL? {
         let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty,
-              trimmed.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
-              let url = URL(string: trimmed),
-              let scheme = url.scheme?.lowercased(),
-              scheme == "http" || scheme == "https"
+            trimmed.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
+            let url = URL(string: trimmed),
+            let scheme = url.scheme?.lowercased(),
+            scheme == "http" || scheme == "https"
         else { return nil }
         return url
     }

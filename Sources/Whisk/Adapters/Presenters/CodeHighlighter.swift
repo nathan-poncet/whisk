@@ -76,12 +76,15 @@ enum CodeHighlighter {
     private static let passes: [(CodeToken.Kind, NSRegularExpression?)] = [
         (.comment, regex("//[^\\n]*|/\\*[\\s\\S]*?\\*/|(?<=^|\\s)#(?!include)[^\\n]*")),
         (.string, regex("\"(?:\\\\.|[^\"\\\\\\n])*\"|'(?:\\\\.|[^'\\\\\\n])*'")),
-        (.keyword, regex(
-            "\\b(?:func|def|fn|let|var|const|import|from|return|if|else|elif|for|while|switch"
-            + "|case|class|struct|enum|protocol|extension|public|private|internal|final|static"
-            + "|guard|defer|async|await|try|catch|throw|throws|impl|pub|mut|match|do|end"
-            + "|defmodule|defp|nil|null|true|false|self|this|new|void|int|string|bool)\\b"
-        )),
+        (
+            .keyword,
+            regex(
+                "\\b(?:func|def|fn|let|var|const|import|from|return|if|else|elif|for|while|switch"
+                    + "|case|class|struct|enum|protocol|extension|public|private|internal|final|static"
+                    + "|guard|defer|async|await|try|catch|throw|throws|impl|pub|mut|match|do|end"
+                    + "|defmodule|defp|nil|null|true|false|self|this|new|void|int|string|bool)\\b"
+            )
+        ),
         (.number, regex("\\b\\d+(?:\\.\\d+)?\\b")),
     ]
 

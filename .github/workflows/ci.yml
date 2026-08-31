@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Dependency Rule
         run: ./scripts/check-dependency-rule.sh
+      - name: Format lint
+        run: swift format lint --strict --recursive Sources Tests Package.swift
       - name: Build
         run: swift build
       - name: Test

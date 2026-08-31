@@ -45,12 +45,30 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - The macOS 26 SDK to build (Xcode 26+, or matching Command Line Tools —
   running the test suite requires Xcode)
 
-## Run it
+## Install
+
+With Homebrew (builds from source, needs the macOS 26 SDK):
+
+```sh
+brew install nathan-poncet/tap/whisk
+whisk
+```
+
+Then link it into /Applications if you want it in Launchpad — the path is
+printed in the install caveats.
+
+## Run it from source
 
 ```sh
 git clone https://github.com/nathan-poncet/whisk.git
 cd whisk
 swift run Whisk
+```
+
+To build a proper app bundle (icon, Info.plist, menu-bar-only):
+
+```sh
+./scripts/build-app.sh 0.0.0 native   # → dist/Whisk.app
 ```
 
 The clipboard icon appears in the menu bar. Copy a few things, then press
@@ -83,6 +101,23 @@ fakes — frozen clock, scripted pasteboard, in-memory store. A contract
 suite runs the `HistoryStore` port against the file gateway in a temporary
 directory. The Dependency Rule is linted by
 `./scripts/check-dependency-rule.sh`. CI runs everything on every push.
+
+## CI & releases
+
+Every push runs the Dependency Rule lint, `swift format lint --strict`,
+the build, and the tests ([ci.yml](.github/workflows/ci.yml)). Renovate
+keeps the GitHub Actions (and any future package dependencies) up to date.
+
+Pushing a tag `v*` runs [release.yml](.github/workflows/release.yml): it
+tests, builds a universal (arm64 + x86_64) `Whisk.app`, attaches the zip to
+a GitHub release, and bumps the Homebrew formula in
+[nathan-poncet/homebrew-tap](https://github.com/nathan-poncet/homebrew-tap)
+(requires a `TAP_GITHUB_TOKEN` repository secret with write access to the
+tap).
+
+```sh
+git tag v0.2.0 && git push origin v0.2.0
+```
 
 ## Status & roadmap
 

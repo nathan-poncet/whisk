@@ -27,20 +27,22 @@ import Testing
         let state = presenter.present(items: [anItem(.fileReferences(paths))], query: "", now: now)
 
         let expectedNames = ["file-1.txt", "file-2.txt", "file-3.txt", "file-4.txt"]
-        #expect(state.cards.first?.preview == .files(
-            names: expectedNames,
-            overflow: 2,
-            thumbnailPath: "/tmp/deep/dir/file-1.txt"
-        ))
+        #expect(
+            state.cards.first?.preview
+                == .files(
+                    names: expectedNames,
+                    overflow: 2,
+                    thumbnailPath: "/tmp/deep/dir/file-1.txt"
+                ))
     }
 
     @Test func swift_like_text_presents_as_highlighted_code() throws {
         let snippet = """
-        func greet(name: String) -> String {
-            // says hello
-            return "Hello there"
-        }
-        """
+            func greet(name: String) -> String {
+                // says hello
+                return "Hello there"
+            }
+            """
         let state = presenter.present(items: [anItem(.text(snippet))], query: "", now: now)
 
         guard case .code(let text, let tokens) = state.cards.first?.preview else {
@@ -75,9 +77,9 @@ import Testing
 
     @Test func keywords_inside_strings_and_comments_stay_claimed_by_them() {
         let snippet = """
-        // let this comment mention func and class
-        let label = "if you return"
-        """
+            // let this comment mention func and class
+            let label = "if you return"
+            """
         let tokens = CodeHighlighter.tokens(in: snippet)
 
         let commentToken = tokens.first { $0.kind == .comment }
@@ -85,8 +87,10 @@ import Testing
         #expect(commentToken != nil)
         #expect(stringToken != nil)
         for keyword in tokens.filter({ $0.kind == .keyword }) {
-            let insideComment = commentToken.map { keyword.start >= $0.start && keyword.start < $0.start + $0.length } ?? false
-            let insideString = stringToken.map { keyword.start >= $0.start && keyword.start < $0.start + $0.length } ?? false
+            let insideComment =
+                commentToken.map { keyword.start >= $0.start && keyword.start < $0.start + $0.length } ?? false
+            let insideString =
+                stringToken.map { keyword.start >= $0.start && keyword.start < $0.start + $0.length } ?? false
             #expect(!insideComment && !insideString)
         }
     }
