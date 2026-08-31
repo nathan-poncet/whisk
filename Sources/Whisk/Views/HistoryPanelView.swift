@@ -1,9 +1,17 @@
-import WhiskKernel
 import SwiftUI
+import WhiskAdapters
 
 struct HistoryPanelView: View {
-    @ObservedObject var viewModel: HistoryViewModel
+    @ObservedObject var store: HistoryViewStateStore
+    let actions: PanelActions
     @FocusState private var searchFocused: Bool
+
+    private var queryBinding: Binding<String> {
+        Binding(
+            get: { store.state.query },
+            set: { actions.search($0) }
+        )
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -13,7 +21,7 @@ struct HistoryPanelView: View {
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .onChange(of: viewModel.focusRevision) {
+        .onChange(of: store.focusRevision) {
             searchFocused = true
         }
     }
@@ -22,31 +30,31 @@ struct HistoryPanelView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("Search clipboard history", text: $viewModel.query)
+            TextField("Search clipboard history", text: queryBinding)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
                 .onSubmit {
-                    viewModel.selectFirstVisible()
+                    actions.selectFirst()
                 }
             Spacer()
-            Text(countLabel)
+            Text(store.state.countLabel)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder private var content: some View {
-        if viewModel.visibleItems.isEmpty {
+        if store.state.cards.isEmpty {
             emptyState
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
-                    ForEach(viewModel.visibleItems) { item in
+                    ForEach(store.state.cards) { card in
                         ItemCardView(
-                            item: item,
-                            onSelect: { viewModel.select(item.id) },
-                            onTogglePin: { viewModel.togglePin(item.id) },
-                            onDelete: { viewModel.delete(item.id) }
+                            card: card,
+                            onSelect: { actions.select(card.id) },
+                            onTogglePin: { actions.togglePin(card.id) },
+                            onDelete: { actions.delete(card.id) }
                         )
                     }
                 }
@@ -60,14 +68,9 @@ struct HistoryPanelView: View {
             Image(systemName: "doc.on.clipboard")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text(viewModel.query.isEmpty ? "Copy something to get started" : "No matches")
+            Text(store.state.query.isEmpty ? "Copy something to get started" : "No matches")
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var countLabel: String {
-        let count = viewModel.visibleItems.count
-        return count == 1 ? "1 item" : "\(count) items"
     }
 }

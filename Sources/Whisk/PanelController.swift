@@ -5,12 +5,16 @@ import SwiftUI
 /// so the frontmost application keeps focus while the user picks an item.
 final class PanelController {
     private let panel: FloatingPanel
-    private let viewModel: HistoryViewModel
+    private let stateStore: HistoryViewStateStore
+    private let actions: PanelActions
 
-    init(viewModel: HistoryViewModel) {
-        self.viewModel = viewModel
+    init(stateStore: HistoryViewStateStore, actions: PanelActions) {
+        self.stateStore = stateStore
+        self.actions = actions
         panel = FloatingPanel()
-        panel.contentView = NSHostingView(rootView: HistoryPanelView(viewModel: viewModel))
+        panel.contentView = NSHostingView(
+            rootView: HistoryPanelView(store: stateStore, actions: actions)
+        )
     }
 
     func toggle() {
@@ -30,7 +34,8 @@ final class PanelController {
             NSRect(x: frame.minX + inset, y: frame.minY + inset, width: frame.width - inset * 2, height: height),
             display: true
         )
-        viewModel.panelWillShow()
+        actions.panelWillShow()
+        stateStore.requestSearchFocus()
         panel.makeKeyAndOrderFront(nil)
     }
 

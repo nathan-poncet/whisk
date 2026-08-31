@@ -1,5 +1,6 @@
 import Foundation
 import WhiskKernel
+import WhiskTestKit
 import Testing
 
 @Suite struct HistoryBehaviour {

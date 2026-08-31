@@ -14,6 +14,11 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .target(
+            name: "WhiskAdapters",
+            dependencies: ["WhiskKernel"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .target(
             name: "HistoryStoreFile",
             dependencies: ["WhiskKernel"],
             swiftSettings: [.swiftLanguageMode(.v5)]
@@ -23,14 +28,24 @@ let package = Package(
             dependencies: ["WhiskKernel"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        .target(
+            name: "WhiskTestKit",
+            dependencies: ["WhiskKernel"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .executableTarget(
             name: "Whisk",
-            dependencies: ["WhiskKernel", "HistoryStoreFile", "PasteboardAppKit"],
+            dependencies: ["WhiskKernel", "WhiskAdapters", "HistoryStoreFile", "PasteboardAppKit"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
             name: "WhiskKernelTests",
-            dependencies: ["WhiskKernel"],
+            dependencies: ["WhiskKernel", "WhiskTestKit"],
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "WhiskAdaptersTests",
+            dependencies: ["WhiskAdapters", "WhiskTestKit"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
