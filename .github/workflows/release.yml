@@ -33,11 +33,16 @@ jobs:
       - name: Zip app
         run: ditto -c -k --keepParent dist/Whisk.app "dist/Whisk-${GITHUB_REF_NAME}.zip"
 
+      - name: Build DMG
+        run: ./scripts/make-dmg.sh
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" "dist/Whisk-${GITHUB_REF_NAME}.zip" \
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/Whisk-${GITHUB_REF_NAME}.zip" \
+            "dist/Whisk.dmg" \
             --title "$GITHUB_REF_NAME" \
             --generate-notes
 
