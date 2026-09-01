@@ -39,7 +39,7 @@ struct ItemCardView: View, Equatable {
         }
         .onTapGesture(perform: onSelect)
         .onHover { hovering in
-            if hovering {
+            if hovering, MouseActivity.movedRecently {
                 onHighlight()
             }
         }
