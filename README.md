@@ -175,4 +175,10 @@ licensed [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
 
 ## License
 
-[MIT](LICENSE)
+[GPL-3.0-or-later](LICENSE) since v0.5.0: you can use, study, modify and
+redistribute Whisk freely, but derivatives must stay open source under the
+same terms and keep the copyright notice — no proprietary forks. For a
+commercial license under other terms, contact the author.
+
+Releases up to and including v0.4.0 were published under MIT and remain so
+(an already-granted MIT license is irrevocable for those versions).
