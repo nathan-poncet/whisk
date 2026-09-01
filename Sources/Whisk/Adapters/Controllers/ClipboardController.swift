@@ -401,17 +401,13 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         distinctSources(of: history.items).filter { activeSourceKeys.contains($0.filterKey) }
     }
 
-    // Each facet adapts to the OTHER active facets — selecting Spotify
-    // hides the categories Spotify never produced; selecting several apps
-    // shows the union of what those apps contain. The free-text query is
-    // deliberately left out: chips must not vanish mid-typing.
+    // The apps facet is primary and stays complete; the categories facet
+    // adapts to it — selecting Spotify hides the categories Spotify never
+    // produced, selecting several apps shows the union of what they
+    // contain. Pruning only flows downhill (apps → categories), otherwise
+    // picking a category would cascade into deselecting apps.
     private var availableSources: [SourceApp] {
-        distinctSources(
-            of: filterHistory(
-                history,
-                filter: HistoryFilter(categories: activeCategories, pinnedOnly: pinnedOnly)
-            )
-        )
+        distinctSources(of: history.items)
     }
 
     private var availableCategories: [ContentCategory] {
@@ -483,9 +479,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private func refresh() {
-        // Reconcile the facets: a selection that its counterparts made
-        // impossible (Spotify picked while "code" was active, say) is
-        // dropped instead of yielding an empty rail.
+        // Reconcile the facets: app keys survive as long as the app exists
+        // in the history at all; a category selection the chosen apps made
+        // impossible is dropped instead of yielding an empty rail.
         let sources = availableSources
         activeSourceKeys = activeSourceKeys.filter { key in
             sources.contains { $0.filterKey == key }

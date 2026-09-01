@@ -321,14 +321,14 @@ import Testing
         )
         #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
 
-        // Selecting the code category first: only apps that produced code
-        // remain selectable.
+        // Selecting a category never shrinks the app row: apps are the
+        // primary facet.
         controller.toggleCategoryFilter("code")
-        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty"])
+        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty", "Spotify"])
 
         // Selecting Spotify (text only): the code chip disappears — that
-        // category cannot match anything from the selected app.
-        controller.toggleCategoryFilter("code")
+        // category cannot match anything from the selected app — and the
+        // stale code selection is dropped with it.
         controller.toggleSourceFilter("com.spotify.client")
         #expect(spy.last.filters.kinds.map(\.id) == ["text"])
         #expect(spy.last.cards.map(\.sourceLabel) == ["Spotify"])
