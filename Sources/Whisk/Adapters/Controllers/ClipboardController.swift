@@ -323,7 +323,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private var presentCategories: [ContentCategory] {
-        let present = Set(history.items.map(\.payload.category))
+        let present = Set(history.items.map(\.category))
         return ContentCategory.allCases.filter(present.contains)
     }
 

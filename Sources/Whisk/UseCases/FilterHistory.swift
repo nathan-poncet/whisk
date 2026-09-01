@@ -36,7 +36,7 @@ struct FilterHistory {
             if let source = filter.source, !(item.source?.matches(source) ?? false) {
                 return false
             }
-            if let category = filter.category, item.payload.category != category {
+            if let category = filter.category, item.category != category {
                 return false
             }
             if !query.isEmpty, !item.payload.matches(query) {
