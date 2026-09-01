@@ -50,22 +50,22 @@ final class PanelController {
         return false
     }
 
-    /// ⌘1…⌘9 → rail position 0…8, resolved by typed character first and by
-    /// physical ANSI position for layouts whose digits live on shift.
+    /// ⌘ + the digit the user actually typed → rail position 0…8. Shift is
+    /// allowed and applied, so layouts whose digits live on shift
+    /// (Programmer Dvorak, AZERTY) use their real digit keys — never the
+    /// physical QWERTY positions.
     private func commandDigitIndex(of event: NSEvent) -> Int? {
-        guard event.modifierFlags.intersection([.command, .option, .control, .shift]) == .command else {
-            return nil
-        }
-        if let character = event.charactersIgnoringModifiers?.first,
-            let digit = character.wholeNumberValue, (1...9).contains(digit)
-        {
-            return digit - 1
-        }
-        let ansiDigits: [UInt16: Int] = [18: 1, 19: 2, 20: 3, 21: 4, 23: 5, 22: 6, 26: 7, 28: 8, 25: 9]
-        if let digit = ansiDigits[event.keyCode] {
-            return digit - 1
-        }
-        return nil
+        let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
+        guard modifiers == .command || modifiers == [.command, .shift] else { return nil }
+        let typed =
+            modifiers.contains(.shift)
+            ? event.characters(byApplyingModifiers: .shift)
+            : event.charactersIgnoringModifiers
+        guard let character = typed?.first,
+            let digit = character.wholeNumberValue,
+            (1...9).contains(digit)
+        else { return nil }
+        return digit - 1
     }
 
     func toggle() {

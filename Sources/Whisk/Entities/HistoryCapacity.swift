@@ -11,6 +11,9 @@ struct HistoryCapacity: Equatable, Hashable {
     /// Default bound used by the application.
     static var standard: HistoryCapacity { HistoryCapacity(unchecked: 500) }
 
+    /// No practical bound: eviction never triggers.
+    static var unlimited: HistoryCapacity { HistoryCapacity(unchecked: Int.max) }
+
     private init(unchecked: Int) {
         value = unchecked
     }

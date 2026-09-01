@@ -33,7 +33,7 @@ struct SettingsView: View {
                 }
                 Picker("History capacity", selection: $general.capacity) {
                     ForEach(GeneralSettingsStore.capacityChoices, id: \.self) { choice in
-                        Text("\(choice) items").tag(choice)
+                        Text(GeneralSettingsStore.capacityLabel(choice)).tag(choice)
                     }
                 }
                 Text("Pinned items are never expired or evicted.")

@@ -78,6 +78,15 @@ import Testing
         #expect(emptied.items.isEmpty)
     }
 
+    @Test func an_unlimited_capacity_never_evicts() {
+        var history = History(capacity: .unlimited)
+        for index in 1...600 {
+            history = history.recording(.text("item \(index)"), from: nil, at: clock.now())
+        }
+
+        #expect(history.items.count == 600)
+    }
+
     @Test func a_capacity_below_one_is_rejected() {
         #expect(HistoryCapacity(0) == nil)
         #expect(HistoryCapacity(-3) == nil)

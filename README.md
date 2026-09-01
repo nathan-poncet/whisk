@@ -113,7 +113,9 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   access (System Settings → Privacy & Security → Accessibility), and until
   it is granted the card still lands on the clipboard for a manual `⌘V`.
 - **Click a card**: same as Return, for that card.
-- **⌘1…⌘9**: paste the card at that position directly.
+- **⌘1…⌘9**: paste the card at that position directly — the digit you
+  actually type, so shifted-digit layouts (Programmer Dvorak, AZERTY) use
+  `⌘⇧digit`.
 - **⌘P / ⌘⌫**: pin or delete the selected card.
 - **Right-click a card**: pin or delete.
 - **Esc** or click outside: close the panel.
