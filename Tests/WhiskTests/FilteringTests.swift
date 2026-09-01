@@ -16,8 +16,39 @@ import Testing
         #expect(Payload.text("Let me know when you arrive, we can talk then.").category == .text)
         #expect(Payload.text("func greet() -> String { return \"hi\" }").category == .code)
         #expect(Payload.text(" #7d9471 ").category == .color)
-        #expect(Payload.text(" #7d9471 ").hexColorCode == "#7D9471")
+        #expect(Payload.text(" #7d9471 ").parsedColor != nil)
         #expect(Payload.text("#7D947").category == .text)
+    }
+
+    @Test func every_common_color_notation_is_recognized() {
+        #expect(Payload.text("#abc").category == .color)
+        #expect(Payload.text("#abcd").category == .color)
+        #expect(Payload.text("#AABBCCDD").category == .color)
+        #expect(Payload.text("rgb(255, 107, 53)").category == .color)
+        #expect(Payload.text("rgb(100%, 0%, 20%)").category == .color)
+        #expect(Payload.text("rgba(255 107 53 / 0.5)").category == .color)
+        #expect(Payload.text("hsl(14, 100%, 60%)").category == .color)
+        #expect(Payload.text("hsla(14deg 100% 60% / 40%)").category == .color)
+        #expect(Payload.text("hsv(14, 79%, 100%)").category == .color)
+        #expect(Payload.text("hsb(14, 79, 100)").category == .color)
+
+        #expect(Payload.text("abc").category == .text)
+        #expect(Payload.text("rgb(hello, there, friend)").category == .text)
+        #expect(Payload.text("rgb(1, 2)").category == .text)
+        #expect(Payload.text("I said rgb(1, 2, 3) in a sentence").category == .text)
+    }
+
+    @Test func color_notations_convert_to_the_same_srgb_components() {
+        let red = ParsedColor(red: 1, green: 0, blue: 0)
+        #expect(ParsedColor.parse("#ff0000") == red)
+        #expect(ParsedColor.parse("#f00") == red)
+        #expect(ParsedColor.parse("rgb(255, 0, 0)") == red)
+        #expect(ParsedColor.parse("hsl(0, 100%, 50%)") == red)
+        #expect(ParsedColor.parse("hsv(0, 100%, 100%)") == red)
+
+        #expect(ParsedColor.parse("hsl(120, 100%, 50%)") == ParsedColor(red: 0, green: 1, blue: 0))
+        #expect(ParsedColor.parse("rgba(0, 0, 255, 0.5)") == ParsedColor(red: 0, green: 0, blue: 1, alpha: 0.5))
+        #expect(ParsedColor.parse("rgb(300, -20, 0)") == red)
     }
 }
 
