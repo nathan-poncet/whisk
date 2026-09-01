@@ -34,9 +34,16 @@ struct FilterContext: Equatable {
     static let empty = FilterContext(sources: [], categories: [], activeSourceKey: nil, activeCategory: nil)
 }
 
-/// Maps kernel entities to display-ready view state. Pure: time comes in as
-/// a value, never read from the system.
-struct HistoryPresenter {
+/// Maps kernel entities to display-ready view state. Pure in behaviour —
+/// time comes in as a value, never read from the system — with memoization
+/// underneath: previews (regex tokenization, color parsing) and minute-
+/// grained time labels are cached per immutable item, so a selection move
+/// re-renders in microseconds instead of re-running regexes on 60 cards.
+final class HistoryPresenter {
+    private var previewCache: [UUID: CardPreview] = [:]
+    private var timeCache: [UUID: (bucket: Int, label: String)] = [:]
+    private let cacheLimit = 2048
+
     init() {}
 
     func present(
@@ -58,25 +65,36 @@ struct HistoryPresenter {
     }
 
     private func card(for item: ClipboardItem, now: Date, isSelected: Bool) -> CardViewState {
-        let category = item.payload.category
-        return CardViewState(
+        CardViewState(
             id: item.id,
-            sourceLabel: item.source?.name ?? item.source?.bundleID ?? category.rawValue.capitalized,
+            sourceLabel: item.source?.name ?? item.source?.bundleID ?? item.category.rawValue.capitalized,
             sourceBundleID: item.source?.bundleID,
-            kindLabel: category.rawValue,
-            timeLabel: timeLabel(for: item.copiedAt, now: now),
+            kindLabel: item.category.rawValue,
+            timeLabel: timeLabel(for: item, now: now),
             isPinned: item.isPinned,
             isSelected: isSelected,
-            preview: preview(for: item.payload)
+            preview: preview(for: item)
         )
     }
 
-    private func preview(for payload: Payload) -> CardPreview {
-        switch payload {
+    private func preview(for item: ClipboardItem) -> CardPreview {
+        if let cached = previewCache[item.id] {
+            return cached
+        }
+        let preview = computePreview(for: item)
+        if previewCache.count >= cacheLimit {
+            previewCache.removeAll(keepingCapacity: true)
+        }
+        previewCache[item.id] = preview
+        return preview
+    }
+
+    private func computePreview(for item: ClipboardItem) -> CardPreview {
+        switch item.payload {
         case .text(let value):
-            switch payload.category {
+            switch item.category {
             case .color:
-                if let swatch = colorSwatch(for: payload) {
+                if let swatch = colorSwatch(for: item.payload) {
                     return swatch
                 }
                 return .text(value)
@@ -158,10 +176,21 @@ struct HistoryPresenter {
     }
 
     /// Sub-minute labels would churn every second and force every card to
-    /// re-render on each refresh, so the first minute reads as "now".
-    private func timeLabel(for date: Date, now: Date) -> String {
-        guard now.timeIntervalSince(date) >= 60 else { return "now" }
-        return Self.relativeFormatter.localizedString(for: date, relativeTo: now)
+    /// re-render on each refresh, so the first minute reads as "now";
+    /// beyond it the formatter only runs when the minute bucket moves.
+    private func timeLabel(for item: ClipboardItem, now: Date) -> String {
+        let age = now.timeIntervalSince(item.copiedAt)
+        guard age >= 60 else { return "now" }
+        let bucket = Int(age / 60)
+        if let cached = timeCache[item.id], cached.bucket == bucket {
+            return cached.label
+        }
+        let label = Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now)
+        if timeCache.count >= cacheLimit {
+            timeCache.removeAll(keepingCapacity: true)
+        }
+        timeCache[item.id] = (bucket, label)
+        return label
     }
 
     private func countLabel(_ count: Int) -> String {
