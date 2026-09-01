@@ -71,13 +71,16 @@ import Testing
             .recording(.text("old era"), from: SourceApp(name: "Slack"), at: clock.now())
             .recording(.text("new era"), from: SourceApp(name: "Slack", bundleID: "com.slack"), at: clock.now())
 
-        let matches = filter(history, filter: HistoryFilter(sources: [SourceApp(name: "Slack", bundleID: "com.slack")]))
+        let matches = filter(
+            history,
+            filter: HistoryFilter(sources: [SourceApp(name: "Slack", bundleID: "com.slack")].compactMap { $0 })
+        )
 
         #expect(matches.count == 2)
     }
 
-    @Test func filtering_by_source_keeps_only_that_apps_items() {
-        let slack = SourceApp(name: "Slack", bundleID: "com.slack")
+    @Test func filtering_by_source_keeps_only_that_apps_items() throws {
+        let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
 
         let matches = filter(seededHistory(), filter: HistoryFilter(sources: [slack]))
 
@@ -118,9 +121,9 @@ import Testing
         #expect(one.map(\.payload) == [.text("plain words")])
     }
 
-    @Test func several_sources_combine_with_or_semantics() {
-        let slack = SourceApp(name: "Slack", bundleID: "com.slack")
-        let ghostty = SourceApp(name: "Ghostty", bundleID: "dev.ghostty")
+    @Test func several_sources_combine_with_or_semantics() throws {
+        let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
+        let ghostty = try #require(SourceApp(name: "Ghostty", bundleID: "dev.ghostty"))
 
         let matches = filter(seededHistory(), filter: HistoryFilter(sources: [slack, ghostty]))
 
@@ -183,8 +186,8 @@ import Testing
         #expect(bounded.items.map(\.payload) == [.text("newest")])
     }
 
-    @Test func source_category_and_query_combine() {
-        let slack = SourceApp(name: "Slack", bundleID: "com.slack")
+    @Test func source_category_and_query_combine() throws {
+        let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
 
         let both = filter(seededHistory(), filter: HistoryFilter(sources: [slack], categories: [.color]))
         #expect(both.map(\.payload) == [.text("#FF6B35")])
