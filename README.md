@@ -55,7 +55,7 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Install
 
-With Homebrew (builds from source, needs the macOS 26 SDK):
+**Homebrew** (recommended — builds from source, needs the macOS 26 SDK):
 
 ```sh
 brew install nathan-poncet/tap/whisk
@@ -64,6 +64,22 @@ whisk
 
 Then link it into /Applications if you want it in Launchpad — the path is
 printed in the install caveats.
+
+**Direct download** — grab the latest DMG and drag Whisk into
+Applications:
+
+> [**Download Whisk.dmg (latest)**](https://github.com/nathan-poncet/whisk/releases/latest/download/Whisk.dmg)
+
+⚠️ Whisk is not notarized yet (that requires an Apple Developer
+membership), so on first launch macOS will refuse to open a downloaded
+copy. Allow it in **System Settings → Privacy & Security → "Open
+Anyway"**, or clear the quarantine flag yourself:
+
+```sh
+xattr -d com.apple.quarantine /Applications/Whisk.app
+```
+
+Homebrew builds locally, so it never hits this prompt.
 
 ## Run it from source
 
