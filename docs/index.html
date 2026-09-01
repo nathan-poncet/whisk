@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Whisk — your clipboard, remembered</title>
+  <meta name="description" content="Whisk is a free, open-source clipboard manager for macOS. A Liquid Glass panel with search, filters, pins, a paste stack and keyboard-first navigation.">
+  <meta property="og:title" content="Whisk — your clipboard, remembered">
+  <meta property="og:description" content="A free, open-source clipboard manager for macOS with a Liquid Glass panel, search, filters, pins and a paste stack.">
+  <meta property="og:image" content="https://nathan-poncet.github.io/whisk/media/screenshot.png">
+  <meta property="og:url" content="https://nathan-poncet.github.io/whisk/">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%B5%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #0b0f0d;
+      --panel: rgba(255, 255, 255, 0.055);
+      --border: rgba(255, 255, 255, 0.10);
+      --text: #e8ede9;
+      --muted: #9aa69e;
+      --accent: #7fd8a4;
+      --accent-deep: #3f9d68;
+      --radius: 18px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20% -10% auto;
+      height: 70vh;
+      background:
+        radial-gradient(600px 400px at 20% 10%, rgba(127, 216, 164, 0.16), transparent 70%),
+        radial-gradient(700px 500px at 80% 0%, rgba(63, 157, 104, 0.14), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    main { position: relative; z-index: 1; max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+    .hero { text-align: center; padding: 88px 0 40px; }
+    .hero .mark { font-size: 56px; line-height: 1; }
+    .hero h1 {
+      font-size: clamp(44px, 7vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(120deg, #f2f7f3 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-top: 12px;
+    }
+    .hero p.tagline { font-size: clamp(18px, 2.6vw, 23px); color: var(--muted); margin-top: 10px; }
+    .hero .sub { max-width: 620px; margin: 14px auto 0; color: var(--muted); font-size: 16px; }
+
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 22px; border-radius: 999px;
+      font-size: 15px; font-weight: 600; text-decoration: none;
+      border: 1px solid var(--border);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: linear-gradient(120deg, var(--accent), var(--accent-deep)); color: #06130b; border-color: transparent; }
+    .btn.ghost { background: var(--panel); color: var(--text); backdrop-filter: blur(12px); }
+    .btn.ghost:hover { background: rgba(255, 255, 255, 0.09); }
+
+    .brew {
+      display: inline-flex; align-items: center; gap: 12px;
+      margin-top: 18px; padding: 11px 16px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 14px;
+      backdrop-filter: blur(12px);
+    }
+    .brew .dollar { color: var(--accent); user-select: none; }
+    .brew button {
+      background: none; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--muted); font-size: 12px; padding: 4px 10px; cursor: pointer;
+    }
+    .brew button:hover { color: var(--text); }
+    .requires { margin-top: 14px; color: var(--muted); font-size: 13px; }
+
+    .demo { margin: 56px auto 0; }
+    .demo video {
+      width: 100%; display: block; border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(127, 216, 164, 0.07);
+    }
+
+    section { padding: 72px 0 0; }
+    h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; text-align: center; }
+    .grid {
+      display: grid; gap: 16px; margin-top: 32px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 22px; backdrop-filter: blur(12px);
+    }
+    .card .icon { font-size: 24px; }
+    .card h3 { font-size: 16px; font-weight: 650; margin: 10px 0 6px; }
+    .card p { color: var(--muted); font-size: 14px; }
+    .card code {
+      font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 12.5px;
+      background: rgba(255, 255, 255, 0.08); border-radius: 5px; padding: 1px 5px;
+    }
+    kbd {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 12.5px;
+      background: rgba(255, 255, 255, 0.10); border: 1px solid var(--border);
+      border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px;
+    }
+
+    .install { text-align: center; }
+    .install .options { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+    .install .option { flex: 1 1 320px; max-width: 460px; text-align: left; }
+    .install .option h3 { display: flex; align-items: center; gap: 8px; }
+    .install .note { color: var(--muted); font-size: 13px; margin-top: 10px; }
+    .install .note code {
+      font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 12px;
+      background: rgba(255, 255, 255, 0.08); border-radius: 5px; padding: 1px 5px;
+    }
+
+    .open { text-align: center; margin-top: 72px; padding: 40px 24px; }
+    .open p { max-width: 640px; margin: 12px auto 0; color: var(--muted); }
+
+    footer {
+      margin-top: 72px; padding: 32px 24px 40px;
+      border-top: 1px solid var(--border);
+      text-align: center; color: var(--muted); font-size: 13.5px;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="mark">🍵</div>
+    <h1>Whisk</h1>
+    <p class="tagline">Your clipboard, remembered.</p>
+    <p class="sub">
+      A free, open-source clipboard manager for macOS. Everything you copy lands in a
+      Liquid Glass panel — search it, filter it, pin it, stack it, paste it. All local, keyboard-first.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/nathan-poncet/whisk/releases/latest/download/Whisk.dmg">⬇︎ Download for macOS</a>
+      <a class="btn ghost" href="https://github.com/nathan-poncet/whisk">View on GitHub</a>
+    </div>
+    <div class="brew">
+      <span class="dollar">$</span>
+      <span id="brew-cmd">brew install nathan-poncet/tap/whisk</span>
+      <button onclick="navigator.clipboard.writeText(document.getElementById('brew-cmd').textContent).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 1400); })">Copy</button>
+    </div>
+    <p class="requires">macOS 14+ · Liquid Glass on macOS 26 · GPL-3.0</p>
+
+    <div class="demo">
+      <video autoplay loop muted playsinline poster="media/screenshot.png">
+        <source src="media/demo.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <section id="features">
+    <h2>Everything a clipboard should have kept</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">📋</div>
+        <h3>Full history, persisted</h3>
+        <p>Every copy is captured and stored locally — text, links, colors, images and files. Keep it forever or auto-expire it; pins never die.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔍</div>
+        <h3>Search that understands</h3>
+        <p>Type to filter instantly, by content or by the app it came from. Operators like <code>app:safari</code> and <code>type:link</code> combine with free text.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🥞</div>
+        <h3>Paste stack</h3>
+        <p>Queue several cards with <kbd>⇧⏎</kbd>, then pop them one by one anywhere with a global shortcut. Collect once, paste in order.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⌨️</div>
+        <h3>Keyboard-first, layout-aware</h3>
+        <p>Arrows, <kbd>⏎</kbd> to paste in place, <kbd>⌥⏎</kbd> for plain text, <kbd>⌘1…9</kbd> for direct hits, <kbd>Space</kbd> for a full preview. Every shortcut is remappable and follows your keyboard layout — Dvorak included.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✨</div>
+        <h3>Rich previews</h3>
+        <p>Links show their title and cover image, code is syntax-highlighted, colors render as swatches, files get QuickLook thumbnails. Cards carry the tint and icon of their source app.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔒</div>
+        <h3>Private by design</h3>
+        <p>History never leaves your Mac. Concealed content from password managers is never recorded, and you can exclude any app entirely.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="install">
+    <h2>Install</h2>
+    <div class="options grid">
+      <div class="card option">
+        <h3>🍺 Homebrew</h3>
+        <p style="margin-top: 8px"><code>brew install nathan-poncet/tap/whisk</code></p>
+        <p class="note">Builds from source against your SDK — needs Xcode 26+ or matching Command Line Tools.</p>
+      </div>
+      <div class="card option">
+        <h3>💿 DMG</h3>
+        <p style="margin-top: 8px"><a class="btn primary" style="padding: 9px 16px; font-size: 14px" href="https://github.com/nathan-poncet/whisk/releases/latest/download/Whisk.dmg">Download Whisk.dmg</a></p>
+        <p class="note">Unsigned build: on first launch, right-click → Open, or run <code>xattr -cr /Applications/Whisk.app</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="open">
+    <h2>Open source, open kitchen</h2>
+    <p>
+      Whisk is GPL-3.0 and built with Clean Architecture in Swift — entities and use cases at the core,
+      adapters at the edges, a dependency rule checked in CI. Issues and pull requests welcome.
+    </p>
+    <div class="cta">
+      <a class="btn ghost" href="https://github.com/nathan-poncet/whisk/blob/main/CONTRIBUTING.md">Contribute</a>
+      <a class="btn ghost" href="https://github.com/nathan-poncet/whisk/releases">Release notes</a>
+    </div>
+  </div>
+
+  <footer>
+    Made by <a href="https://github.com/nathan-poncet">Nathan Poncet</a> ·
+    <a href="https://github.com/nathan-poncet/whisk/blob/main/LICENSE">GPL-3.0-or-later</a> ·
+    Neovim mark by Jason Long (CC-BY 3.0)
+  </footer>
+</main>
+</body>
+</html>
