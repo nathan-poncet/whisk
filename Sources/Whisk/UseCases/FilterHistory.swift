@@ -1,31 +1,34 @@
 import Foundation
 
 /// Criteria narrowing the history; empty criteria match everything.
+/// Several sources or categories may be selected at once — an item
+/// matches when it belongs to any of them (OR within a facet, AND
+/// across facets).
 struct HistoryFilter: Equatable {
     var query: String
-    var source: SourceApp?
-    var category: ContentCategory?
+    var sources: [SourceApp]
+    var categories: Set<ContentCategory>
     var pinnedOnly: Bool
 
     init(
         query: String = "",
-        source: SourceApp? = nil,
-        category: ContentCategory? = nil,
+        sources: [SourceApp] = [],
+        categories: Set<ContentCategory> = [],
         pinnedOnly: Bool = false
     ) {
         self.query = query
-        self.source = source
-        self.category = category
+        self.sources = sources
+        self.categories = categories
         self.pinnedOnly = pinnedOnly
     }
 
     static let none = HistoryFilter()
 }
 
-/// Narrows the history by query, source application, and content category.
-/// The query understands `app:` and `type:` operators; free words match
-/// the content or the source application name, all case-insensitively,
-/// and every word must match (AND).
+/// Narrows the history by query, source applications, and content
+/// categories. The query understands `app:` and `type:` operators; free
+/// words match the content or the source application name, all
+/// case-insensitively, and every word must match (AND).
 struct FilterHistory {
     init() {}
 
@@ -35,10 +38,12 @@ struct FilterHistory {
             if filter.pinnedOnly, !item.isPinned {
                 return false
             }
-            if let source = filter.source, !(item.source?.matches(source) ?? false) {
+            if !filter.sources.isEmpty,
+                !filter.sources.contains(where: { item.source?.matches($0) ?? false })
+            {
                 return false
             }
-            if let category = filter.category, item.category != category {
+            if !filter.categories.isEmpty, !filter.categories.contains(item.category) {
                 return false
             }
             return query.matches(item)

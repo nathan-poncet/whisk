@@ -40,7 +40,7 @@ import Testing
             .recording(.text("old era"), from: SourceApp(name: "Slack"), at: clock.now())
             .recording(.text("new era"), from: SourceApp(name: "Slack", bundleID: "com.slack"), at: clock.now())
 
-        let matches = filter(history, filter: HistoryFilter(source: SourceApp(name: "Slack", bundleID: "com.slack")))
+        let matches = filter(history, filter: HistoryFilter(sources: [SourceApp(name: "Slack", bundleID: "com.slack")]))
 
         #expect(matches.count == 2)
     }
@@ -48,14 +48,14 @@ import Testing
     @Test func filtering_by_source_keeps_only_that_apps_items() {
         let slack = SourceApp(name: "Slack", bundleID: "com.slack")
 
-        let matches = filter(seededHistory(), filter: HistoryFilter(source: slack))
+        let matches = filter(seededHistory(), filter: HistoryFilter(sources: [slack]))
 
         #expect(matches.count == 2)
         #expect(matches.allSatisfy { $0.source == slack })
     }
 
     @Test func filtering_by_category_keeps_only_that_kind() {
-        let matches = filter(seededHistory(), filter: HistoryFilter(category: .code))
+        let matches = filter(seededHistory(), filter: HistoryFilter(categories: [.code]))
 
         #expect(matches.map(\.payload) == [.text("let x = api.compute(1)")])
     }
@@ -85,6 +85,23 @@ import Testing
 
         let one = filter(seededHistory(), filter: HistoryFilter(query: "app:slack plain"))
         #expect(one.map(\.payload) == [.text("plain words")])
+    }
+
+    @Test func several_sources_combine_with_or_semantics() {
+        let slack = SourceApp(name: "Slack", bundleID: "com.slack")
+        let ghostty = SourceApp(name: "Ghostty", bundleID: "dev.ghostty")
+
+        let matches = filter(seededHistory(), filter: HistoryFilter(sources: [slack, ghostty]))
+
+        #expect(matches.count == 3)
+    }
+
+    @Test func several_categories_combine_with_or_semantics() {
+        let matches = filter(seededHistory(), filter: HistoryFilter(categories: [.code, .color]))
+
+        #expect(matches.count == 2)
+        #expect(matches.contains { $0.payload == .text("let x = api.compute(1)") })
+        #expect(matches.contains { $0.payload == .text("#FF6B35") })
     }
 
     @Test func the_pinned_filter_keeps_only_pinned_items() {
@@ -138,10 +155,11 @@ import Testing
     @Test func source_category_and_query_combine() {
         let slack = SourceApp(name: "Slack", bundleID: "com.slack")
 
-        let both = filter(seededHistory(), filter: HistoryFilter(source: slack, category: .color))
+        let both = filter(seededHistory(), filter: HistoryFilter(sources: [slack], categories: [.color]))
         #expect(both.map(\.payload) == [.text("#FF6B35")])
 
-        let none = filter(seededHistory(), filter: HistoryFilter(query: "plain", source: slack, category: .color))
+        let none = filter(
+            seededHistory(), filter: HistoryFilter(query: "plain", sources: [slack], categories: [.color]))
         #expect(none.isEmpty)
     }
 }

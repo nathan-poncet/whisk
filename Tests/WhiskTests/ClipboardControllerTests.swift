@@ -281,13 +281,61 @@ import Testing
         #expect(spy.last.cards.map(\.sourceLabel) == ["Slack"])
         #expect(spy.last.filters.apps.map(\.isActive) == [false, true])
 
-        controller.toggleCategoryFilter("code")
-        #expect(spy.last.cards.isEmpty)
-
         controller.toggleSourceFilter("com.slack")
-        controller.toggleCategoryFilter("code")
         #expect(spy.last.cards.count == 2)
         #expect(spy.last.filters.hasActiveChip == false)
+    }
+
+    @Test func several_apps_and_categories_can_be_selected_at_once() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Slack", bundle: "com.slack"),
+            anItem(.text("release notes"), from: "Notes", bundle: "com.apple.notes"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.toggleSourceFilter("dev.ghostty")
+        controller.toggleSourceFilter("com.slack")
+        #expect(spy.last.filters.apps.map(\.isActive) == [true, true, false])
+        #expect(spy.last.cards.count == 2)
+
+        controller.toggleCategoryFilter("text")
+        controller.toggleCategoryFilter("code")
+        #expect(spy.last.filters.kinds.map(\.isActive) == [true, true])
+        #expect(spy.last.cards.count == 2)
+    }
+
+    @Test func facets_adapt_to_the_selection_and_impossible_ones_are_dropped() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Spotify", bundle: "com.spotify.client"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
+
+        // Selecting the code category first: only apps that produced code
+        // remain selectable.
+        controller.toggleCategoryFilter("code")
+        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty"])
+
+        // Selecting Spotify (text only): the code chip disappears — that
+        // category cannot match anything from the selected app.
+        controller.toggleCategoryFilter("code")
+        controller.toggleSourceFilter("com.spotify.client")
+        #expect(spy.last.filters.kinds.map(\.id) == ["text"])
+        #expect(spy.last.cards.map(\.sourceLabel) == ["Spotify"])
+
+        // Widening back with a second app widens the categories again.
+        controller.toggleSourceFilter("dev.ghostty")
+        #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
     }
 
     @Test func pausing_consumes_changes_without_recording_them() {
@@ -346,21 +394,24 @@ import Testing
         #expect(controller.activate(at: 9) == false)
     }
 
-    @Test func the_pinned_chip_appears_with_a_pin_and_filters_the_rail() {
+    @Test func the_pinned_chip_leads_the_row_and_filters_the_rail() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("loose")), anItem(.text("kept"), pinned: true)]
         let spy = StateSpy()
         let controller = ClipboardController(
             pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
         )
-        #expect(spy.last.filters.kinds.first?.id == "pinned")
+        #expect(spy.last.filters.pinned.map(\.id) == ["pinned"])
 
+        // Arrowing up lands on the pinned chip: it is the first of the row,
+        // before the applications.
         controller.navigate(.up)
-        controller.switchChipGroup()
-        #expect(spy.last.filters.kinds.first?.isFocused == true)
+        #expect(spy.last.filters.pinned.first?.isFocused == true)
+        #expect(spy.last.filters.apps.allSatisfy { !$0.isFocused })
+
         controller.activateFocused()
         #expect(spy.last.cards.map(\.preview) == [.text("kept")])
-        #expect(spy.last.filters.kinds.first?.isActive == true)
+        #expect(spy.last.filters.pinned.first?.isActive == true)
 
         controller.toggleCategoryFilter("pinned")
         #expect(spy.last.cards.count == 2)

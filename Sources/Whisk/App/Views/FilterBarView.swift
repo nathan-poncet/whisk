@@ -1,10 +1,11 @@
 import AppKit
 import SwiftUI
 
-/// Two stacked chip rows above the search field — source applications on
-/// top, content categories below. The active chip filters the rail; the
-/// focused chip is the keyboard cursor (↑/↓ reach the rows, ←/→ move,
-/// Return toggles) and hovering moves that same focus with the mouse.
+/// One chip row above the search field, three groups separated by thin
+/// bars — the pinned toggle, then source applications, then content
+/// categories. Several chips can be active at once; the focused chip is
+/// the keyboard cursor (↑/↓ reach the row, ←/→ move, Return toggles) and
+/// hovering moves that same focus with the mouse.
 struct FilterBarView: View {
     let filters: FilterBarViewState
     let onToggleApp: (String) -> Void
@@ -16,6 +17,22 @@ struct FilterBarView: View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
+                    ForEach(filters.pinned) { chip in
+                        ChipButton(
+                            chip: chip,
+                            onToggle: { onToggleKind(chip.id) },
+                            onFocus: { onFocusKind(chip.id) }
+                        ) {
+                            HStack(spacing: 5) {
+                                kindIcon(chip.id)
+                                Text(chip.label)
+                            }
+                        }
+                        .id(chip.id)
+                    }
+                    if !filters.pinned.isEmpty && !(filters.apps.isEmpty && filters.kinds.isEmpty) {
+                        separator
+                    }
                     ForEach(filters.apps) { chip in
                         ChipButton(
                             chip: chip,
@@ -34,10 +51,7 @@ struct FilterBarView: View {
                         .id(chip.id)
                     }
                     if !filters.apps.isEmpty && !filters.kinds.isEmpty {
-                        Rectangle()
-                            .fill(.white.opacity(0.25))
-                            .frame(width: 1, height: 16)
-                            .padding(.horizontal, 4)
+                        separator
                     }
                     ForEach(filters.kinds) { chip in
                         ChipButton(
@@ -64,6 +78,13 @@ struct FilterBarView: View {
                 }
             }
         }
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(.white.opacity(0.25))
+            .frame(width: 1, height: 16)
+            .padding(.horizontal, 4)
     }
 
     @ViewBuilder private func kindIcon(_ id: String) -> some View {

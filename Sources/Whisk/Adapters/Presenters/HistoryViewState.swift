@@ -39,27 +39,30 @@ struct HistoryViewState: Equatable {
     )
 }
 
-/// The chip bar: one chip per source application, one per content
-/// category present in the history.
+/// The chip bar, three groups in display order: the pinned toggle, one
+/// chip per source application, one per content category — all adapted to
+/// what the current selection can still match.
 struct FilterBarViewState: Equatable {
+    let pinned: [FilterChip]
     let apps: [FilterChip]
     let kinds: [FilterChip]
 
-    init(apps: [FilterChip], kinds: [FilterChip]) {
+    init(pinned: [FilterChip] = [], apps: [FilterChip], kinds: [FilterChip]) {
+        self.pinned = pinned
         self.apps = apps
         self.kinds = kinds
     }
 
     var isEmpty: Bool {
-        apps.isEmpty && kinds.isEmpty
+        pinned.isEmpty && apps.isEmpty && kinds.isEmpty
     }
 
     var hasActiveChip: Bool {
-        (apps + kinds).contains(where: \.isActive)
+        (pinned + apps + kinds).contains(where: \.isActive)
     }
 
     var focusedChipID: String? {
-        (apps + kinds).first(where: \.isFocused)?.id
+        (pinned + apps + kinds).first(where: \.isFocused)?.id
     }
 
     static let empty = FilterBarViewState(apps: [], kinds: [])
