@@ -5,6 +5,8 @@ An open-source clipboard manager for macOS, inspired by
 copy — text, links, images, files, colors — and brings it back through a
 Paste-style panel at the bottom of your screen.
 
+**Website: [nathan-poncet.github.io/whisk](https://nathan-poncet.github.io/whisk/)**
+
 ![Whisk demo — the panel, keyboard navigation, filters, and direct paste](docs/media/demo.gif)
 
 *(Crisp MP4: [docs/media/demo.mp4](docs/media/demo.mp4), also attached to the [releases](https://github.com/nathan-poncet/whisk/releases).)*
@@ -27,27 +29,42 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   layouts.
 - **Per-app styling** — each card carries the icon of the application it
   was copied from and takes its tint from that app's icon.
-- **Search** — type to filter text, links and file names instantly; `Return`
+- **Search** — type to filter instantly by content **or by the app it came
+  from** (`slack invoice` finds "invoice" copied from Slack); operators
+  `app:safari`, `type:link` and `pinned` combine with free text; `Return`
   selects the first match.
 - **Filters** — a chip bar narrows the rail by source application (one chip
   per app, with its icon) and by content category (text, code, color, link,
   image, files); chips combine with each other and with the search query.
 - **Pins** — pin a card (`⌘P` or right-click) and filter to pinned items
   with one chip; pinned items survive *Clear*, eviction and retention.
+- **Paste stack** — queue several cards with `⇧⏎`, then pop them one by
+  one anywhere with `⌥⌘V` (global, rebindable): collect once, paste in
+  order.
+- **Rich text** — formatting (RTF) is captured and pasted back; `⌥⏎`
+  pastes as plain text instead.
+- **Space preview** — `Space` opens a large preview of the selected card
+  (full text, full-size image, file list).
+- **Drag & drop** — drag any card straight into another application.
 - **Retention** — keep history forever, or auto-expire after 24 hours,
-  7 days or 30 days; capacity is configurable too (Settings).
-- **Launch at login** — one toggle in Settings.
+  7 days or 30 days; capacity is configurable up to unlimited (Settings).
+- **Pause & exclusions** — pause capture from the menu bar; exclude any
+  app permanently in Settings (its copies are never recorded).
+- **Launch at login** — one toggle in Settings; a first-run onboarding
+  explains the Accessibility permission, and Whisk can check GitHub for
+  new releases at launch (opt-out in Settings).
 - **Rich previews** — copied links show the page's title, favicon and lead
   image; files show a QuickLook thumbnail; images render inline; hex codes
   become color swatches.
 - **Syntax highlighting** — text that reads as code is detected and
   highlighted (keywords, strings, comments, numbers), language-agnostic.
 - **Privacy** — history stays on disk in
-  `~/Library/Application Support/Whisk`; password managers marking their
-  content as concealed (`org.nspasteboard.ConcealedType`) are never
-  recorded. One exception to "nothing leaves your machine": link previews
-  fetch metadata from the copied URL over the network (cached, once per
-  link).
+  `~/Library/Application Support/Whisk` (SQLite); password managers marking
+  their content as concealed (`org.nspasteboard.ConcealedType`) are never
+  recorded. Two exceptions to "nothing leaves your machine": link previews
+  fetch metadata from the copied URL (cached, once per link), and the
+  optional update check queries the GitHub releases API at launch.
+- **English & French** — the interface follows your system language.
 
 ## Requirements
 
@@ -113,6 +130,11 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   exactly where you left it; the first use prompts for Accessibility
   access (System Settings → Privacy & Security → Accessibility), and until
   it is granted the card still lands on the clipboard for a manual `⌘V`.
+- **⌥⏎**: paste as plain text (formatting stripped).
+- **⇧⏎**: add the selected card to the paste stack; **⌥⌘V** (global) pops
+  the next stacked card wherever you are typing.
+- **Space**: large preview of the selected card (when the search field is
+  empty); `Space` again or `Esc` closes it.
 - **Click a card**: same as Return, for that card.
 - **⌘1…⌘9**: paste the card at that position directly — the digit you
   actually type, so shifted-digit layouts (Programmer Dvorak, AZERTY) use
@@ -135,8 +157,8 @@ swift test
 The suites cover history behaviour (dedup, capacity, pins, search),
 controller orchestration, and presenter formatting with deterministic
 fakes — frozen clock, scripted pasteboard, in-memory store. A contract
-suite runs the `HistoryStore` port against the file gateway in a temporary
-directory. The Dependency Rule is linted by
+suite runs the `HistoryStore` port against both gateways (JSON file and
+SQLite) in temporary directories. The Dependency Rule is linted by
 `./scripts/check-dependency-rule.sh`. CI runs everything on every push.
 
 ## CI & releases
@@ -160,16 +182,20 @@ git tag v0.2.0 && git push origin v0.2.0
 
 ## Status & roadmap
 
-This is a working prototype, not a Paste replacement (yet). Not implemented:
+Whisk covers the daily-driver feature set: history with pins and retention,
+search with operators, filters, keyboard-first navigation with rebindable
+shortcuts, rich previews, paste stack, plain-text paste, drag & drop,
+pause & per-app exclusions, SQLite storage, and an English/French
+interface. Still on the list:
 
-- iCloud sync and iOS/iPadOS companion app
+- Signed & notarized release builds (requires an Apple Developer
+  membership)
+- iCloud sync and an iOS/iPadOS companion app
 - Shared pinboards
-- Keyboard navigation inside the panel (arrow keys)
-- Preferences (hotkey, capacity, excluded apps)
-- Launch at login, signed/notarized release builds
 
-Contributions welcome — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-for the rules the codebase follows.
+Contributions welcome — start with [CONTRIBUTING.md](CONTRIBUTING.md) and
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the rules the codebase
+follows.
 
 ## Credits
 
