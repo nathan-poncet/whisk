@@ -34,7 +34,12 @@ enum RetentionPeriodOption: String, CaseIterable, Identifiable {
 /// History housekeeping settings, persisted and translated into the
 /// kernel's RetentionPolicy.
 final class GeneralSettingsStore: ObservableObject {
-    static let capacityChoices = [100, 250, 500, 1000]
+    /// 0 stands for unlimited.
+    static let capacityChoices = [100, 250, 500, 1000, 0]
+
+    static func capacityLabel(_ choice: Int) -> String {
+        choice == 0 ? "Unlimited" : "\(choice) items"
+    }
 
     @Published var retentionPeriod: RetentionPeriodOption {
         didSet { defaults.set(retentionPeriod.rawValue, forKey: "retentionPeriod") }
@@ -49,13 +54,13 @@ final class GeneralSettingsStore: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         retentionPeriod = RetentionPeriodOption(rawValue: defaults.string(forKey: "retentionPeriod") ?? "") ?? .forever
-        let stored = defaults.integer(forKey: "historyCapacity")
-        capacity = stored > 0 ? stored : 500
+        capacity =
+            defaults.object(forKey: "historyCapacity") == nil ? 500 : defaults.integer(forKey: "historyCapacity")
     }
 
     var policy: RetentionPolicy {
         RetentionPolicy(
-            capacity: HistoryCapacity(capacity) ?? .standard,
+            capacity: capacity == 0 ? .unlimited : (HistoryCapacity(capacity) ?? .standard),
             maxAge: retentionPeriod.maxAge
         )
     }
