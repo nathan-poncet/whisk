@@ -11,23 +11,7 @@ enum PasteSimulator {
     static func paste() {
         guard trusted() else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            postCommandVWhenChordReleased(attempt: 0)
-        }
-    }
-
-    /// Right after the global pop shortcut the user is still holding ⌥ —
-    /// a ⌘V posted at that instant reaches the app as ⌥⌘V and pastes
-    /// nothing. Wait for ⌥/⇧/⌃ to lift before posting; ⌘ may stay held,
-    /// it is part of the chord being sent.
-    private static func postCommandVWhenChordReleased(attempt: Int) {
-        let held = CGEventSource.flagsState(.combinedSessionState)
-        let conflicting: CGEventFlags = [.maskAlternate, .maskShift, .maskControl]
-        if held.intersection(conflicting).isEmpty || attempt >= 40 {
             postCommandV()
-            return
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            postCommandVWhenChordReleased(attempt: attempt + 1)
         }
     }
 
@@ -44,11 +28,21 @@ enum PasteSimulator {
     private static func postCommandV() {
         let keyCode = KeyboardLayout.keyCode(for: "v") ?? CGKeyCode(kVK_ANSI_V)
         let source = CGEventSource(stateID: .combinedSessionState)
+        // Right after the global pop shortcut the user is still holding
+        // ⌥⌘, and those hardware modifiers would merge into the synthetic
+        // event — the app would receive ⌥⌘V and paste nothing. Suppressing
+        // local keyboard events for the injection interval keeps the chord
+        // clean, so the paste fires the instant the shortcut is pressed
+        // (the technique Flycut and Maccy ship).
+        source?.setLocalEventsFilterDuringSuppressionState(
+            [.permitLocalMouseEvents, .permitSystemDefinedEvents],
+            state: .eventSuppressionStateSuppressionInterval
+        )
         let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true)
         let keyUp = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)
         keyDown?.flags = .maskCommand
         keyUp?.flags = .maskCommand
-        keyDown?.post(tap: .cghidEventTap)
-        keyUp?.post(tap: .cghidEventTap)
+        keyDown?.post(tap: .cgAnnotatedSessionEventTap)
+        keyUp?.post(tap: .cgAnnotatedSessionEventTap)
     }
 }
