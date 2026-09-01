@@ -6,11 +6,11 @@ import Testing
     let presenter = HistoryPresenter()
     let now = Date(timeIntervalSince1970: 1_700_000_060)
 
-    @Test func a_hex_color_text_presents_as_a_swatch() {
+    @Test func a_color_text_presents_as_a_swatch_labeled_as_copied() {
         let state = presenter.present(items: [anItem(.text(" #7d9471 "))], query: "", now: now)
 
         let expected = CardPreview.color(
-            code: "#7D9471",
+            code: "#7d9471",
             rgb: RGB(red: Double(0x7D) / 255, green: Double(0x94) / 255, blue: Double(0x71) / 255)
         )
         #expect(state.cards.first?.preview == expected)
