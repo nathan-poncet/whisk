@@ -25,6 +25,7 @@ struct PanelActions {
     let activate: () -> Void
     let activateCard: (Int) -> Void
     let navigate: (ArrowDirection) -> Void
+    let switchChipGroup: () -> Void
     let toggleSourceFilter: (String) -> Void
     let toggleCategoryFilter: (String) -> Void
     let focusSourceChip: (String) -> Void

@@ -31,6 +31,7 @@ final class PanelController {
             (.nextCard, { self.actions.navigate(.right) }),
             (.rowUp, { self.actions.navigate(.up) }),
             (.rowDown, { self.actions.navigate(.down) }),
+            (.switchChipGroup, { self.actions.switchChipGroup() }),
             (.pinSelection, { self.actions.togglePinSelected() }),
             (.deleteSelection, { self.actions.deleteSelected() }),
         ]
@@ -81,7 +82,7 @@ final class PanelController {
         // The full frame, not visibleFrame: the panel floats above the
         // Dock, flush with the physical bottom edge of the screen.
         let frame = screen.frame
-        let height: CGFloat = 444
+        let height: CGFloat = 414
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true

@@ -192,7 +192,7 @@ import Testing
         #expect(spy.last.hiddenCount == 0)
     }
 
-    @Test func arrows_move_the_focus_between_cards_kinds_and_apps() {
+    @Test func the_chip_row_is_one_line_and_arrows_cross_the_separator() {
         let store = InMemoryHistoryStore()
         store.stored = [
             anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
@@ -206,21 +206,40 @@ import Testing
         #expect(spy.last.filters.focusedChipID == nil)
 
         controller.navigate(.up)
-        #expect(spy.last.filters.kinds.map(\.isFocused) == [true, false])
-
-        controller.navigate(.right)
-        #expect(spy.last.filters.kinds.map(\.isFocused) == [false, true])
-        #expect(controller.activateFocused() == false)
-        #expect(spy.last.cards.map(\.kindLabel) == ["code"])
-
-        controller.navigate(.up)
         #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
 
-        controller.navigate(.down)
+        controller.navigate(.right)
+        controller.navigate(.right)
+        #expect(spy.last.filters.kinds.map(\.isFocused) == [true, false])
+
+        controller.navigate(.left)
+        #expect(spy.last.filters.apps.map(\.isFocused) == [false, true])
+
         controller.navigate(.down)
         #expect(spy.last.filters.focusedChipID == nil)
         #expect(controller.activateFocused() == true)
         #expect(pasteboard.written == [.text("func run() { start() }")])
+    }
+
+    @Test func the_group_switch_shortcut_jumps_across_the_separator() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Slack", bundle: "com.slack"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.switchChipGroup()
+        #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
+
+        controller.switchChipGroup()
+        #expect(spy.last.filters.kinds.first?.isFocused == true)
+
+        controller.switchChipGroup()
+        #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
     }
 
     @Test func hovering_a_chip_moves_the_shared_keyboard_focus() {
@@ -295,6 +314,7 @@ import Testing
         #expect(spy.last.filters.kinds.first?.id == "pinned")
 
         controller.navigate(.up)
+        controller.switchChipGroup()
         #expect(spy.last.filters.kinds.first?.isFocused == true)
         controller.activateFocused()
         #expect(spy.last.cards.map(\.preview) == [.text("kept")])

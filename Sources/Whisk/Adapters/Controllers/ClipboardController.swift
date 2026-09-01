@@ -203,39 +203,59 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         case .left, .right:
             navigateHorizontally(direction == .right ? 1 : -1)
         case .up:
-            switch focusZone {
-            case .cards:
-                focusZone = kindChipIDs.isEmpty ? (distinctSources.isEmpty ? .cards : .apps) : .kinds
-            case .kinds:
-                if !distinctSources.isEmpty {
-                    focusZone = .apps
-                }
-            case .apps:
-                break
+            if focusZone == .cards {
+                focusZone = distinctSources.isEmpty ? (kindChipIDs.isEmpty ? .cards : .kinds) : .apps
             }
             refresh()
         case .down:
-            switch focusZone {
-            case .apps:
-                focusZone = kindChipIDs.isEmpty ? .cards : .kinds
-            case .kinds:
-                focusZone = .cards
-            case .cards:
-                break
-            }
+            focusZone = .cards
             refresh()
         }
     }
 
+    /// Jumps between the app group and the kind group of the chip row —
+    /// the fast lane next to arrowing across the separator.
+    func switchChipGroup() {
+        let hasApps = !distinctSources.isEmpty
+        let hasKinds = !kindChipIDs.isEmpty
+        switch focusZone {
+        case .apps:
+            if hasKinds { focusZone = .kinds }
+        case .kinds:
+            if hasApps { focusZone = .apps }
+        case .cards:
+            if hasApps {
+                focusZone = .apps
+            } else if hasKinds {
+                focusZone = .kinds
+            }
+        }
+        refresh()
+    }
+
+    // The two chip groups share one visual row: arrowing past a group's
+    // edge crosses the separator into the other group.
     private func navigateHorizontally(_ step: Int) {
         switch focusZone {
         case .cards:
             moveSelection(step > 0 ? .next : .previous)
         case .apps:
-            focusedAppIndex = max(0, min(focusedAppIndex + step, distinctSources.count - 1))
+            let destination = focusedAppIndex + step
+            if destination >= distinctSources.count, !kindChipIDs.isEmpty {
+                focusZone = .kinds
+                focusedKindIndex = 0
+            } else {
+                focusedAppIndex = max(0, min(destination, distinctSources.count - 1))
+            }
             refresh()
         case .kinds:
-            focusedKindIndex = max(0, min(focusedKindIndex + step, kindChipIDs.count - 1))
+            let destination = focusedKindIndex + step
+            if destination < 0, !distinctSources.isEmpty {
+                focusZone = .apps
+                focusedAppIndex = distinctSources.count - 1
+            } else {
+                focusedKindIndex = max(0, min(destination, kindChipIDs.count - 1))
+            }
             refresh()
         }
     }

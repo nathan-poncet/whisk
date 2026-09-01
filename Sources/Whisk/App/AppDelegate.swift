@@ -58,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 PasteSimulator.paste()
             },
             navigate: { clipboard.navigate($0) },
+            switchChipGroup: { clipboard.switchChipGroup() },
             toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
             toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
             focusSourceChip: { clipboard.focusSourceChip($0) },

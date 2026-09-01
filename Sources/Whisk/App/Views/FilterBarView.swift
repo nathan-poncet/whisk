@@ -13,54 +13,42 @@ struct FilterBarView: View {
     let onFocusKind: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !filters.apps.isEmpty {
-                appsRow
-            }
-            if !filters.kinds.isEmpty {
-                kindsRow
-            }
-        }
-    }
-
-    private var appsRow: some View {
-        chipRow(filters.apps, toggle: onToggleApp, focus: onFocusApp) { chip in
-            HStack(spacing: 5) {
-                if let icon = SourceAppStyle.resolve(bundleID: chip.sourceBundleID).icon {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .frame(width: 14, height: 14)
-                }
-                Text(chip.label)
-            }
-        }
-    }
-
-    private var kindsRow: some View {
-        chipRow(filters.kinds, toggle: onToggleKind, focus: onFocusKind) { chip in
-            HStack(spacing: 5) {
-                kindIcon(chip.id)
-                Text(chip.label)
-            }
-        }
-    }
-
-    private func chipRow(
-        _ chips: [FilterChip],
-        toggle: @escaping (String) -> Void,
-        focus: @escaping (String) -> Void,
-        @ViewBuilder label: @escaping (FilterChip) -> some View
-    ) -> some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    ForEach(chips) { chip in
+                    ForEach(filters.apps) { chip in
                         ChipButton(
                             chip: chip,
-                            onToggle: { toggle(chip.id) },
-                            onFocus: { focus(chip.id) }
+                            onToggle: { onToggleApp(chip.id) },
+                            onFocus: { onFocusApp(chip.id) }
                         ) {
-                            label(chip)
+                            HStack(spacing: 5) {
+                                if let icon = SourceAppStyle.resolve(bundleID: chip.sourceBundleID).icon {
+                                    Image(nsImage: icon)
+                                        .resizable()
+                                        .frame(width: 14, height: 14)
+                                }
+                                Text(chip.label)
+                            }
+                        }
+                        .id(chip.id)
+                    }
+                    if !filters.apps.isEmpty && !filters.kinds.isEmpty {
+                        Rectangle()
+                            .fill(.white.opacity(0.25))
+                            .frame(width: 1, height: 16)
+                            .padding(.horizontal, 4)
+                    }
+                    ForEach(filters.kinds) { chip in
+                        ChipButton(
+                            chip: chip,
+                            onToggle: { onToggleKind(chip.id) },
+                            onFocus: { onFocusKind(chip.id) }
+                        ) {
+                            HStack(spacing: 5) {
+                                kindIcon(chip.id)
+                                Text(chip.label)
+                            }
                         }
                         .id(chip.id)
                     }
@@ -70,7 +58,7 @@ struct FilterBarView: View {
             .contentMargins(.horizontal, 16, for: .scrollContent)
             .scrollClipDisabled()
             .onChange(of: filters.focusedChipID) { _, id in
-                guard let id, chips.contains(where: { $0.id == id }) else { return }
+                guard let id else { return }
                 withAnimation(.easeOut(duration: 0.12)) {
                     proxy.scrollTo(id)
                 }
