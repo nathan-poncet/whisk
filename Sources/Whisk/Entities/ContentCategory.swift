@@ -18,23 +18,16 @@ extension Payload {
         case .image: return .image
         case .fileReferences: return .files
         case .text(let value):
-            if Self.hexColorCode(in: value) != nil { return .color }
+            if ParsedColor.parse(value) != nil { return .color }
             if Self.readsAsCode(value) { return .code }
             return .text
         }
     }
 
-    /// The normalized "#RRGGBB" code when the payload is a color.
-    var hexColorCode: String? {
+    /// The color the payload spells out, in any recognized notation.
+    var parsedColor: ParsedColor? {
         guard case .text(let value) = self else { return nil }
-        return Self.hexColorCode(in: value)
-    }
-
-    static func hexColorCode(in text: String) -> String? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.range(of: "^#?[0-9a-fA-F]{6}$", options: .regularExpression) != nil else { return nil }
-        let hex = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
-        return "#" + hex.uppercased()
+        return ParsedColor.parse(value)
     }
 
     /// Scoring heuristic, deliberately approximate: this classifies a card,

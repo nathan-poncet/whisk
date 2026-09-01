@@ -130,15 +130,17 @@ enum CardPreview: Equatable {
     case files(names: [String], overflow: Int, thumbnailPath: String?)
 }
 
-/// Framework-free color triple in the 0...1 range.
+/// Framework-free color components in the 0...1 range.
 struct RGB: Equatable {
     let red: Double
     let green: Double
     let blue: Double
+    let alpha: Double
 
-    init(red: Double, green: Double, blue: Double) {
+    init(red: Double, green: Double, blue: Double, alpha: Double = 1) {
         self.red = red
         self.green = green
         self.blue = blue
+        self.alpha = alpha
     }
 }

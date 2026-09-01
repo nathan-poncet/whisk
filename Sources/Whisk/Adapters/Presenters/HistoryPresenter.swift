@@ -141,16 +141,10 @@ final class HistoryPresenter {
     }
 
     private func colorSwatch(for payload: Payload) -> CardPreview? {
-        guard let code = payload.hexColorCode,
-            let value = UInt32(code.dropFirst(), radix: 16)
-        else { return nil }
+        guard case .text(let value) = payload, let color = payload.parsedColor else { return nil }
         return .color(
-            code: code,
-            rgb: RGB(
-                red: Double((value >> 16) & 0xFF) / 255,
-                green: Double((value >> 8) & 0xFF) / 255,
-                blue: Double(value & 0xFF) / 255
-            )
+            code: value.trimmingCharacters(in: .whitespacesAndNewlines),
+            rgb: RGB(red: color.red, green: color.green, blue: color.blue, alpha: color.alpha)
         )
     }
 

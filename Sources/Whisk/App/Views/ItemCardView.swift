@@ -110,10 +110,11 @@ struct ItemCardView: View, Equatable {
         case .color(let code, let rgb):
             VStack(alignment: .leading, spacing: 8) {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color(red: rgb.red, green: rgb.green, blue: rgb.blue))
+                    .fill(Color(red: rgb.red, green: rgb.green, blue: rgb.blue).opacity(rgb.alpha))
                     .frame(height: 86)
                 Text(code)
                     .font(.callout.monospaced())
+                    .lineLimit(1)
             }
             .padding(.horizontal, 14)
         case .code(let text, let tokens):
