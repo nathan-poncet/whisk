@@ -129,11 +129,8 @@ struct HistoryPanelView: View {
             )
             .foregroundStyle(.secondary)
         }
-        // A compact pill like the toolbar, not a full-width slab: every
-        // other element in the panel floats, the empty state should too.
-        .padding(.horizontal, 28)
-        .padding(.vertical, 20)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(.horizontal, 16)
     }
 }
