@@ -10,8 +10,13 @@ struct CaptureClipboardChange<Board: Pasteboard, Time: Clock, Store: HistoryStor
         self.store = store
     }
 
-    func callAsFunction(into history: History) throws -> History {
+    /// Records a change unless its source application is excluded; an
+    /// excluded change is still consumed so it is never captured later.
+    func callAsFunction(into history: History, excluding excludedBundleIDs: Set<String> = []) throws -> History {
         guard let snapshot = pasteboard.readIfChanged() else { return history }
+        if let bundleID = snapshot.source?.bundleID, excludedBundleIDs.contains(bundleID) {
+            return history
+        }
         let next = history.recording(snapshot.payload, from: snapshot.source, at: clock.now())
         try store.save(next.items)
         return next

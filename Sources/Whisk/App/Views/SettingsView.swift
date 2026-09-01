@@ -39,6 +39,41 @@ struct SettingsView: View {
                 Text("Pinned items are never expired or evicted.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Toggle("Check for updates at launch", isOn: $general.checkForUpdates)
+
+                Divider()
+
+                HStack {
+                    Text("Excluded apps")
+                    Spacer()
+                    Button("Add App…") {
+                        addExcludedApp()
+                    }
+                }
+                if general.excludedApps.isEmpty {
+                    Text("Copies from excluded apps are never recorded.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(general.excludedApps) { app in
+                        HStack(spacing: 8) {
+                            if let icon = SourceAppStyle.resolve(bundleID: app.bundleID).icon {
+                                Image(nsImage: icon)
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
+                            }
+                            Text(app.name)
+                            Spacer()
+                            Button {
+                                general.excludedApps.removeAll { $0.bundleID == app.bundleID }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+                }
             }
             .padding(12)
             .background(
@@ -108,6 +143,21 @@ struct SettingsView: View {
         }
         .padding(20)
         .frame(width: 460)
+    }
+
+    private func addExcludedApp() {
+        let panel = NSOpenPanel()
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.allowedContentTypes = [.applicationBundle]
+        panel.allowsMultipleSelection = true
+        guard panel.runModal() == .OK else { return }
+        for url in panel.urls {
+            guard let bundle = Bundle(url: url), let bundleID = bundle.bundleIdentifier else { continue }
+            let name =
+                (bundle.infoDictionary?["CFBundleName"] as? String) ?? url.deletingPathExtension().lastPathComponent
+            guard !general.excludedApps.contains(where: { $0.bundleID == bundleID }) else { continue }
+            general.excludedApps.append(ExcludedApp(bundleID: bundleID, name: name))
+        }
     }
 }
 

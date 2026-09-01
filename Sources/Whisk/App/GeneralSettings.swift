@@ -31,6 +31,14 @@ enum RetentionPeriodOption: String, CaseIterable, Identifiable {
     }
 }
 
+/// An application whose copies are never recorded.
+struct ExcludedApp: Codable, Equatable, Identifiable {
+    let bundleID: String
+    let name: String
+
+    var id: String { bundleID }
+}
+
 /// History housekeeping settings, persisted and translated into the
 /// kernel's RetentionPolicy.
 final class GeneralSettingsStore: ObservableObject {
@@ -49,6 +57,18 @@ final class GeneralSettingsStore: ObservableObject {
         didSet { defaults.set(capacity, forKey: "historyCapacity") }
     }
 
+    @Published var checkForUpdates: Bool {
+        didSet { defaults.set(checkForUpdates, forKey: "checkForUpdates") }
+    }
+
+    @Published var excludedApps: [ExcludedApp] {
+        didSet {
+            if let data = try? JSONEncoder().encode(excludedApps) {
+                defaults.set(data, forKey: "excludedApps")
+            }
+        }
+    }
+
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
@@ -56,6 +76,19 @@ final class GeneralSettingsStore: ObservableObject {
         retentionPeriod = RetentionPeriodOption(rawValue: defaults.string(forKey: "retentionPeriod") ?? "") ?? .forever
         capacity =
             defaults.object(forKey: "historyCapacity") == nil ? 500 : defaults.integer(forKey: "historyCapacity")
+        checkForUpdates =
+            defaults.object(forKey: "checkForUpdates") == nil ? true : defaults.bool(forKey: "checkForUpdates")
+        if let data = defaults.data(forKey: "excludedApps"),
+            let stored = try? JSONDecoder().decode([ExcludedApp].self, from: data)
+        {
+            excludedApps = stored
+        } else {
+            excludedApps = []
+        }
+    }
+
+    var excludedBundleIDs: Set<String> {
+        Set(excludedApps.map(\.bundleID))
     }
 
     var policy: RetentionPolicy {

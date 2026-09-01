@@ -42,6 +42,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var activeCategory: ContentCategory?
     private var pinnedOnly = false
     private var retention = RetentionPolicy.standard
+    private var isPaused = false
+    private var excludedBundleIDs: Set<String> = []
     private var selectedID: UUID?
     private var focusZone: PanelZone = .cards
     private var focusedAppIndex = 0
@@ -56,6 +58,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let filterHistory = FilterHistory()
     private let presenter: HistoryPresenter
     private let clock: Time
+    private let pasteboard: Board
     private let present: (HistoryViewState) -> Void
 
     init(
@@ -67,6 +70,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     ) {
         self.clock = clock
         self.presenter = presenter
+        self.pasteboard = pasteboard
         self.present = present
         capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
         selectItem = SelectItem(pasteboard: pasteboard, clock: clock, store: store)
@@ -84,9 +88,25 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func pollTick() {
-        mutate { try capture(into: $0) }
+        if isPaused {
+            // Consume changes so nothing copied during the pause is
+            // retro-captured on resume.
+            _ = pasteboard.readIfChanged()
+        } else {
+            mutate { try capture(into: $0, excluding: excludedBundleIDs) }
+        }
         guard retention.maxAge != nil else { return }
         enforceRetentionNow()
+    }
+
+    /// Suspends or resumes capture; everything else keeps working.
+    func setPaused(_ paused: Bool) {
+        isPaused = paused
+    }
+
+    /// Applications whose copies must never be recorded.
+    func applyExclusions(_ bundleIDs: Set<String>) {
+        excludedBundleIDs = bundleIDs
     }
 
     /// Applies a new retention policy immediately and keeps enforcing it.
