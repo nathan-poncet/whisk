@@ -26,6 +26,10 @@ enum ArrowDirection {
 /// scrolls), so it is bounded; search reaches everything beyond it.
 private let railLimit = 60
 
+/// The pinned filter lives in the kind-chip row without being a content
+/// category; controller navigation and presenter rendering share this id.
+let pinnedChipID = "pinned"
+
 /// Translates UI and OS events into use case invocations and hands each
 /// result to the presenter. Owns the current history, search query and
 /// keyboard selection; generic over its gateways, like the use cases it
@@ -36,6 +40,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var query = ""
     private var activeSourceKey: String?
     private var activeCategory: ContentCategory?
+    private var pinnedOnly = false
+    private var retention = RetentionPolicy.standard
     private var selectedID: UUID?
     private var focusZone: PanelZone = .cards
     private var focusedAppIndex = 0
@@ -46,6 +52,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let togglePinItem: TogglePin<Store>
     private let deleteItem: DeleteItem<Store>
     private let clearUnpinned: ClearHistory<Store>
+    private let enforceRetention: EnforceRetention<Store>
     private let filterHistory = FilterHistory()
     private let presenter: HistoryPresenter
     private let clock: Time
@@ -66,6 +73,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         togglePinItem = TogglePin(store: store)
         deleteItem = DeleteItem(store: store)
         clearUnpinned = ClearHistory(store: store)
+        enforceRetention = EnforceRetention(store: store)
         do {
             history = try LoadHistory(store: store)()
         } catch {
@@ -77,6 +85,36 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     func pollTick() {
         mutate { try capture(into: $0) }
+        guard retention.maxAge != nil else { return }
+        enforceRetentionNow()
+    }
+
+    /// Applies a new retention policy immediately and keeps enforcing it.
+    func applyRetention(_ policy: RetentionPolicy) {
+        retention = policy
+        enforceRetentionNow()
+        refresh()
+    }
+
+    private func enforceRetentionNow() {
+        let previous = history
+        do {
+            history = try enforceRetention(history, policy: retention, now: clock.now())
+        } catch {
+            NSLog("Whisk: storage failure — %@", String(describing: error))
+        }
+        guard history != previous else { return }
+        refresh()
+    }
+
+    /// Pastes the card at a rail position (⌘1…⌘9). Returns false when the
+    /// position is empty.
+    @discardableResult
+    func activate(at index: Int) -> Bool {
+        let items = visibleItems
+        guard items.indices.contains(index) else { return false }
+        select(items[index].id)
+        return true
     }
 
     func search(_ newQuery: String) {
@@ -93,9 +131,15 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         refresh()
     }
 
-    /// Filters the rail to one content category; toggling the active chip
-    /// clears it.
+    /// Filters the rail to one content category — or to pinned items when
+    /// given the pinned chip; toggling the active chip clears it.
     func toggleCategoryFilter(_ rawCategory: String) {
+        if rawCategory == pinnedChipID {
+            pinnedOnly.toggle()
+            selectedID = nil
+            refresh()
+            return
+        }
         guard let category = ContentCategory(rawValue: rawCategory) else { return }
         activeCategory = activeCategory == category ? nil : category
         selectedID = nil
@@ -143,11 +187,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         refresh()
     }
 
-    /// Moves the keyboard focus onto a specific category chip.
-    func focusCategoryChip(_ rawCategory: String) {
-        guard let category = ContentCategory(rawValue: rawCategory),
-            let index = presentCategories.firstIndex(of: category)
-        else { return }
+    /// Moves the keyboard focus onto a specific kind chip.
+    func focusCategoryChip(_ chipID: String) {
+        guard let index = kindChipIDs.firstIndex(of: chipID) else { return }
         guard focusZone != .kinds || focusedKindIndex != index else { return }
         focusZone = .kinds
         focusedKindIndex = index
@@ -163,7 +205,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         case .up:
             switch focusZone {
             case .cards:
-                focusZone = presentCategories.isEmpty ? (distinctSources.isEmpty ? .cards : .apps) : .kinds
+                focusZone = kindChipIDs.isEmpty ? (distinctSources.isEmpty ? .cards : .apps) : .kinds
             case .kinds:
                 if !distinctSources.isEmpty {
                     focusZone = .apps
@@ -175,7 +217,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         case .down:
             switch focusZone {
             case .apps:
-                focusZone = presentCategories.isEmpty ? .cards : .kinds
+                focusZone = kindChipIDs.isEmpty ? .cards : .kinds
             case .kinds:
                 focusZone = .cards
             case .cards:
@@ -193,7 +235,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             focusedAppIndex = max(0, min(focusedAppIndex + step, distinctSources.count - 1))
             refresh()
         case .kinds:
-            focusedKindIndex = max(0, min(focusedKindIndex + step, presentCategories.count - 1))
+            focusedKindIndex = max(0, min(focusedKindIndex + step, kindChipIDs.count - 1))
             refresh()
         }
     }
@@ -212,9 +254,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             toggleSourceFilter(sources[focusedAppIndex].filterKey)
             return false
         case .kinds:
-            let categories = presentCategories
-            guard categories.indices.contains(focusedKindIndex) else { return false }
-            toggleCategoryFilter(categories[focusedKindIndex].rawValue)
+            let chips = kindChipIDs
+            guard chips.indices.contains(focusedKindIndex) else { return false }
+            toggleCategoryFilter(chips[focusedKindIndex])
             return false
         }
     }
@@ -254,6 +296,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         query = ""
         activeSourceKey = nil
         activeCategory = nil
+        pinnedOnly = false
         selectedID = nil
         focusZone = .cards
         focusedAppIndex = 0
@@ -284,11 +327,22 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         return ContentCategory.allCases.filter(present.contains)
     }
 
+    private var hasPinned: Bool {
+        history.items.contains(where: \.isPinned)
+    }
+
+    // Mirrors the presenter's chip ordering — pinned first, then the
+    // categories — so keyboard indices land on what is drawn.
+    private var kindChipIDs: [String] {
+        (hasPinned ? [pinnedChipID] : []) + presentCategories.map(\.rawValue)
+    }
+
     private func currentFilter(sources: [SourceApp]) -> HistoryFilter {
         HistoryFilter(
             query: query,
             source: sources.first { $0.filterKey == activeSourceKey },
-            category: activeCategory
+            category: activeCategory,
+            pinnedOnly: pinnedOnly
         )
     }
 
@@ -317,12 +371,16 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         if let category = activeCategory, !categories.contains(category) {
             activeCategory = nil
         }
+        if pinnedOnly, !hasPinned {
+            pinnedOnly = false
+        }
+        let chips = kindChipIDs
         focusedAppIndex = max(0, min(focusedAppIndex, sources.count - 1))
-        focusedKindIndex = max(0, min(focusedKindIndex, categories.count - 1))
+        focusedKindIndex = max(0, min(focusedKindIndex, chips.count - 1))
         if focusZone == .apps, sources.isEmpty {
             focusZone = .cards
         }
-        if focusZone == .kinds, categories.isEmpty {
+        if focusZone == .kinds, chips.isEmpty {
             focusZone = .cards
         }
         let matches = filterHistory(history, filter: currentFilter(sources: sources))
@@ -343,7 +401,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                     activeSourceKey: activeSourceKey,
                     activeCategory: activeCategory,
                     focusedAppIndex: focusZone == .apps ? focusedAppIndex : nil,
-                    focusedKindIndex: focusZone == .kinds ? focusedKindIndex : nil
+                    focusedKindIndex: focusZone == .kinds ? focusedKindIndex : nil,
+                    hasPinned: hasPinned,
+                    pinnedOnly: pinnedOnly
                 )
             )
         )

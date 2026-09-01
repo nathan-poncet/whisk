@@ -1,12 +1,53 @@
 import AppKit
 import SwiftUI
 
-/// The Settings window: one recorder per keyboard action.
+/// The Settings window: general housekeeping plus one recorder per
+/// keyboard action.
 struct SettingsView: View {
     @ObservedObject var store: KeyBindingsStore
+    @ObservedObject var general: GeneralSettingsStore
+    @ObservedObject var loginItem: LoginItemManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            Text("General")
+                .font(.title3.weight(.semibold))
+
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle(
+                    "Launch Whisk at login",
+                    isOn: Binding(
+                        get: { loginItem.isEnabled },
+                        set: { loginItem.setEnabled($0) }
+                    )
+                )
+                if let error = loginItem.lastError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                Picker("Keep history for", selection: $general.retentionPeriod) {
+                    ForEach(RetentionPeriodOption.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+                Picker("History capacity", selection: $general.capacity) {
+                    ForEach(GeneralSettingsStore.capacityChoices, id: \.self) { choice in
+                        Text("\(choice) items").tag(choice)
+                    }
+                }
+                Text("Pinned items are never expired or evicted.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color(nsColor: .quaternarySystemFill))
+            )
+
+            Divider()
+
             Text("Keyboard Shortcuts")
                 .font(.title3.weight(.semibold))
             Text("Click a shortcut to record a new one — press Escape to cancel recording.")
@@ -48,6 +89,10 @@ struct SettingsView: View {
                     )
                 }
             }
+
+            Text("⌘1…⌘9 paste the matching card directly.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             HStack {
                 if !store.duplicatedActions.isEmpty {

@@ -52,6 +52,13 @@ struct History: Equatable {
         return next
     }
 
+    /// Removes unpinned items older than the cutoff.
+    func removingUnpinned(olderThan cutoff: Date) -> History {
+        var next = self
+        next.items.removeAll { !$0.isPinned && $0.copiedAt < cutoff }
+        return next
+    }
+
     /// Removes every unpinned item.
     func clearingUnpinned() -> History {
         var next = self

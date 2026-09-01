@@ -92,6 +92,7 @@ struct FilterBarView: View {
 
     private func kindSymbol(_ id: String) -> String {
         switch id {
+        case "pinned": "pin.fill"
         case "text": "text.alignleft"
         case "code": "chevron.left.forwardslash.chevron.right"
         case "color": "paintpalette"

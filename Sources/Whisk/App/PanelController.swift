@@ -38,12 +38,34 @@ final class PanelController {
             perform()
             return true
         }
+        if let index = commandDigitIndex(of: event) {
+            actions.activateCard(index)
+            return true
+        }
         // Keypad Enter always pastes, whatever Return is bound to.
         if event.specialKey == .enter {
             actions.activate()
             return true
         }
         return false
+    }
+
+    /// ⌘1…⌘9 → rail position 0…8, resolved by typed character first and by
+    /// physical ANSI position for layouts whose digits live on shift.
+    private func commandDigitIndex(of event: NSEvent) -> Int? {
+        guard event.modifierFlags.intersection([.command, .option, .control, .shift]) == .command else {
+            return nil
+        }
+        if let character = event.charactersIgnoringModifiers?.first,
+            let digit = character.wholeNumberValue, (1...9).contains(digit)
+        {
+            return digit - 1
+        }
+        let ansiDigits: [UInt16: Int] = [18: 1, 19: 2, 20: 3, 21: 4, 23: 5, 22: 6, 26: 7, 28: 8, 25: 9]
+        if let digit = ansiDigits[event.keyCode] {
+            return digit - 1
+        }
+        return nil
     }
 
     func toggle() {

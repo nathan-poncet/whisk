@@ -8,6 +8,8 @@ struct FilterContext: Equatable {
     let activeCategory: ContentCategory?
     let focusedAppIndex: Int?
     let focusedKindIndex: Int?
+    let hasPinned: Bool
+    let pinnedOnly: Bool
 
     init(
         sources: [SourceApp],
@@ -15,7 +17,9 @@ struct FilterContext: Equatable {
         activeSourceKey: String?,
         activeCategory: ContentCategory?,
         focusedAppIndex: Int? = nil,
-        focusedKindIndex: Int? = nil
+        focusedKindIndex: Int? = nil,
+        hasPinned: Bool = false,
+        pinnedOnly: Bool = false
     ) {
         self.sources = sources
         self.categories = categories
@@ -23,6 +27,8 @@ struct FilterContext: Equatable {
         self.activeCategory = activeCategory
         self.focusedAppIndex = focusedAppIndex
         self.focusedKindIndex = focusedKindIndex
+        self.hasPinned = hasPinned
+        self.pinnedOnly = pinnedOnly
     }
 
     static let empty = FilterContext(sources: [], categories: [], activeSourceKey: nil, activeCategory: nil)
@@ -118,16 +124,37 @@ struct HistoryPresenter {
                     isFocused: index == context.focusedAppIndex
                 )
             },
-            kinds: context.categories.enumerated().map { index, category in
+            kinds: kindChips(from: context)
+        )
+    }
+
+    // Pinned first, then the categories — the controller mirrors this
+    // ordering for keyboard navigation.
+    private func kindChips(from context: FilterContext) -> [FilterChip] {
+        var chips: [FilterChip] = []
+        if context.hasPinned {
+            chips.append(
+                FilterChip(
+                    id: pinnedChipID,
+                    label: "Pinned",
+                    sourceBundleID: nil,
+                    isActive: context.pinnedOnly,
+                    isFocused: chips.count == context.focusedKindIndex
+                )
+            )
+        }
+        for category in context.categories {
+            chips.append(
                 FilterChip(
                     id: category.rawValue,
                     label: category.rawValue.capitalized,
                     sourceBundleID: nil,
                     isActive: category == context.activeCategory,
-                    isFocused: index == context.focusedKindIndex
+                    isFocused: chips.count == context.focusedKindIndex
                 )
-            }
-        )
+            )
+        }
+        return chips
     }
 
     /// Sub-minute labels would churn every second and force every card to

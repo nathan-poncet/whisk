@@ -32,8 +32,11 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Filters** — a chip bar narrows the rail by source application (one chip
   per app, with its icon) and by content category (text, code, color, link,
   image, files); chips combine with each other and with the search query.
-- **Pins** — right-click a card to pin it; pinned items survive
-  *Clear* and are never evicted.
+- **Pins** — pin a card (`⌘P` or right-click) and filter to pinned items
+  with one chip; pinned items survive *Clear*, eviction and retention.
+- **Retention** — keep history forever, or auto-expire after 24 hours,
+  7 days or 30 days; capacity is configurable too (Settings).
+- **Launch at login** — one toggle in Settings.
 - **Rich previews** — copied links show the page's title, favicon and lead
   image; files show a QuickLook thumbnail; images render inline; hex codes
   become color swatches.
@@ -110,6 +113,7 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   access (System Settings → Privacy & Security → Accessibility), and until
   it is granted the card still lands on the clipboard for a manual `⌘V`.
 - **Click a card**: same as Return, for that card.
+- **⌘1…⌘9**: paste the card at that position directly.
 - **⌘P / ⌘⌫**: pin or delete the selected card.
 - **Right-click a card**: pin or delete.
 - **Esc** or click outside: close the panel.
