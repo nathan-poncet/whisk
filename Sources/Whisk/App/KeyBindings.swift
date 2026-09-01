@@ -7,6 +7,8 @@ enum KeyAction: String, CaseIterable, Identifiable {
     case togglePanel
     case pasteSelection
     case pastePlain
+    case stackSelection
+    case pasteNextFromStack
     case previousCard
     case nextCard
     case rowUp
@@ -23,6 +25,8 @@ enum KeyAction: String, CaseIterable, Identifiable {
         case .togglePanel: "Show / hide the panel"
         case .pasteSelection: "Paste the selection"
         case .pastePlain: "Paste as plain text"
+        case .stackSelection: "Add the selection to the paste stack"
+        case .pasteNextFromStack: "Paste next from the stack"
         case .previousCard: "Previous card or chip"
         case .nextCard: "Next card or chip"
         case .rowUp: "Focus the row above"
@@ -34,10 +38,9 @@ enum KeyAction: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Only the panel toggle is global; everything else acts inside the
-    /// panel.
+    /// Global shortcuts work everywhere; the rest act inside the panel.
     var isGlobal: Bool {
-        self == .togglePanel
+        self == .togglePanel || self == .pasteNextFromStack
     }
 }
 
@@ -174,6 +177,11 @@ final class KeyBindingsStore: ObservableObject {
             return KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [])
         case .pastePlain:
             return KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [.option])
+        case .stackSelection:
+            return KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [.shift])
+        case .pasteNextFromStack:
+            let keyCode = KeyboardLayout.keyCode(for: "v") ?? CGKeyCode(kVK_ANSI_V)
+            return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command, .option])
         case .previousCard:
             return KeyBinding(keyCode: UInt16(kVK_LeftArrow), modifiers: [])
         case .nextCard:

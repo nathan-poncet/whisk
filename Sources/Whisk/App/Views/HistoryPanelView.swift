@@ -43,6 +43,12 @@ struct HistoryPanelView: View {
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
             Spacer()
+            if store.state.stackCount > 0 {
+                Label("\(store.state.stackCount)", systemImage: "square.stack.3d.up.fill")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(Color.accentColor)
+                    .help("Paste stack — pop with the global shortcut")
+            }
             Text(store.state.countLabel)
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)

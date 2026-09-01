@@ -416,3 +416,31 @@ import Testing
         #expect(spy.last.cards.count == 2)
     }
 }
+
+extension ClipboardControllerBehaviour {
+    @Test func the_paste_stack_pops_in_order_and_skips_deleted_items() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("second")), anItem(.text("third"))]
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.stackSelected()
+        controller.moveSelection(.next)
+        controller.stackSelected()
+        controller.moveSelection(.next)
+        controller.stackSelected()
+        #expect(spy.last.stackCount == 3)
+
+        let secondID = spy.last.cards[1].id
+        controller.delete(secondID)
+        #expect(spy.last.stackCount == 2)
+
+        #expect(controller.popStack() == true)
+        #expect(controller.popStack() == true)
+        #expect(controller.popStack() == false)
+        #expect(pasteboard.written == [.text("first"), .text("third")])
+    }
+}

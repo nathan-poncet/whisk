@@ -8,6 +8,7 @@ struct HistoryViewState: Equatable {
     let query: String
     let selectedID: UUID?
     let hiddenCount: Int
+    let stackCount: Int
     let filters: FilterBarViewState
 
     init(
@@ -16,6 +17,7 @@ struct HistoryViewState: Equatable {
         query: String,
         selectedID: UUID?,
         hiddenCount: Int,
+        stackCount: Int = 0,
         filters: FilterBarViewState
     ) {
         self.cards = cards
@@ -23,6 +25,7 @@ struct HistoryViewState: Equatable {
         self.query = query
         self.selectedID = selectedID
         self.hiddenCount = hiddenCount
+        self.stackCount = stackCount
         self.filters = filters
     }
 

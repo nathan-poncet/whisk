@@ -52,6 +52,7 @@ final class HistoryPresenter {
         now: Date,
         selectedID: UUID? = nil,
         hiddenCount: Int = 0,
+        stackCount: Int = 0,
         filters: FilterContext = .empty
     ) -> HistoryViewState {
         HistoryViewState(
@@ -60,6 +61,7 @@ final class HistoryPresenter {
             query: query,
             selectedID: selectedID,
             hiddenCount: hiddenCount,
+            stackCount: stackCount,
             filters: filterBar(from: filters)
         )
     }
