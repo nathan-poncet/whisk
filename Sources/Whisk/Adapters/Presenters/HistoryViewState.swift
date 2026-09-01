@@ -91,6 +91,8 @@ struct CardViewState: Equatable, Identifiable {
     let sourceBundleID: String?
     let kindLabel: String
     let timeLabel: String
+    /// Extra footer fact, e.g. the character count of textual payloads.
+    let detailLabel: String?
     let isPinned: Bool
     let isSelected: Bool
     /// 1-based rank in the paste stack, nil when the card isn't queued.
@@ -103,6 +105,7 @@ struct CardViewState: Equatable, Identifiable {
         sourceBundleID: String?,
         kindLabel: String,
         timeLabel: String,
+        detailLabel: String? = nil,
         isPinned: Bool,
         isSelected: Bool,
         stackPosition: Int? = nil,
@@ -113,6 +116,7 @@ struct CardViewState: Equatable, Identifiable {
         self.sourceBundleID = sourceBundleID
         self.kindLabel = kindLabel
         self.timeLabel = timeLabel
+        self.detailLabel = detailLabel
         self.isPinned = isPinned
         self.isSelected = isSelected
         self.stackPosition = stackPosition
