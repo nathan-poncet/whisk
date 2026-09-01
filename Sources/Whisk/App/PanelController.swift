@@ -7,10 +7,12 @@ final class PanelController {
     private let panel: FloatingPanel
     private let stateStore: HistoryViewStateStore
     private let actions: PanelActions
+    private let keyBindings: KeyBindingsStore
 
-    init(stateStore: HistoryViewStateStore, actions: PanelActions) {
+    init(stateStore: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore) {
         self.stateStore = stateStore
         self.actions = actions
+        self.keyBindings = keyBindings
         panel = FloatingPanel()
         panel.contentView = NSHostingView(
             rootView: HistoryPanelView(store: stateStore, actions: actions)
@@ -20,28 +22,28 @@ final class PanelController {
         }
     }
 
-    /// Arrows step the selection and Return pastes it, even while the
-    /// search field owns the caret.
+    /// Routes panel keys through the user's bindings, intercepted ahead of
+    /// the search field's caret.
     private func handle(_ event: NSEvent) -> Bool {
-        switch event.specialKey {
-        case .some(.leftArrow):
-            actions.navigate(.left)
+        let panelActions: [(KeyAction, () -> Void)] = [
+            (.pasteSelection, { self.actions.activate() }),
+            (.previousCard, { self.actions.navigate(.left) }),
+            (.nextCard, { self.actions.navigate(.right) }),
+            (.rowUp, { self.actions.navigate(.up) }),
+            (.rowDown, { self.actions.navigate(.down) }),
+            (.pinSelection, { self.actions.togglePinSelected() }),
+            (.deleteSelection, { self.actions.deleteSelected() }),
+        ]
+        for (action, perform) in panelActions where keyBindings.binding(for: action).matches(event) {
+            perform()
             return true
-        case .some(.rightArrow):
-            actions.navigate(.right)
-            return true
-        case .some(.upArrow):
-            actions.navigate(.up)
-            return true
-        case .some(.downArrow):
-            actions.navigate(.down)
-            return true
-        case .some(.carriageReturn), .some(.enter):
+        }
+        // Keypad Enter always pastes, whatever Return is bound to.
+        if event.specialKey == .enter {
             actions.activate()
             return true
-        default:
-            return false
         }
+        return false
     }
 
     func toggle() {

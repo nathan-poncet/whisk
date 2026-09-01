@@ -94,8 +94,12 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   access (System Settings → Privacy & Security → Accessibility), and until
   it is granted the card still lands on the clipboard for a manual `⌘V`.
 - **Click a card**: same as Return, for that card.
+- **⌘P / ⌘⌫**: pin or delete the selected card.
 - **Right-click a card**: pin or delete.
 - **Esc** or click outside: close the panel.
+
+Every shortcut — including the global one — is rebindable: right-click the
+menu bar icon → **Settings…**, then click a shortcut and type a new one.
 
 You can also open `Package.swift` in Xcode and run the `Whisk` scheme.
 

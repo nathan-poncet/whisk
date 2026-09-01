@@ -1,11 +1,16 @@
 import AppKit
 import Carbon.HIToolbox
+import Combine
+import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let keyBindings = KeyBindingsStore()
     private var statusItem: NSStatusItem?
     private var panelController: PanelController?
     private var hotKey: HotKey?
     private var layoutObserver: NSObjectProtocol?
+    private var bindingsObserver: AnyCancellable?
+    private var settingsWindow: NSWindow?
     private var stateStore: HistoryViewStateStore?
     private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, FileHistoryStore>?
     private var pollTimer: Timer?
@@ -51,18 +56,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             focusCategoryChip: { clipboard.focusCategoryChip($0) },
             togglePin: { clipboard.togglePin($0) },
             delete: { clipboard.delete($0) },
+            togglePinSelected: { clipboard.togglePinSelected() },
+            deleteSelected: { clipboard.deleteSelected() },
             panelWillShow: { clipboard.panelWillShow() }
         )
-        let panelController = PanelController(stateStore: stateStore, actions: actions)
+        let panelController = PanelController(stateStore: stateStore, actions: actions, keyBindings: keyBindings)
         self.panelController = panelController
 
         configureStatusItem()
         registerHotKey()
         observeKeyboardLayoutChanges()
+        bindingsObserver = keyBindings.$overrides
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.registerHotKey()
+            }
         startPolling(clipboard)
 
         if CommandLine.arguments.contains("--show-panel") {
             panelController.show()
+        }
+        if CommandLine.arguments.contains("--show-settings") {
+            DispatchQueue.main.async { [weak self] in
+                self?.openSettings()
+            }
         }
 
         // Exercised by the release pipeline against the packaged app: the
@@ -74,12 +91,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// ⇧⌘V wherever the current layout prints a V — Dvorak, AZERTY, … —
-    /// falling back to the physical ANSI position for layouts without one.
+    /// The user's binding when one is recorded; otherwise ⇧⌘V wherever the
+    /// current layout prints a V — Dvorak, AZERTY, … Re-registered on
+    /// layout switches and on binding changes.
     private func registerHotKey() {
         hotKey = nil
-        let keyCode = KeyboardLayout.keyCode(for: "v") ?? CGKeyCode(kVK_ANSI_V)
-        hotKey = HotKey(keyCode: UInt32(keyCode), modifiers: UInt32(cmdKey | shiftKey)) { [weak self] in
+        let binding = keyBindings.binding(for: .togglePanel)
+        hotKey = HotKey(keyCode: UInt32(binding.keyCode), modifiers: binding.carbonModifiers) { [weak self] in
             self?.panelController?.toggle()
         }
     }
@@ -121,9 +139,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func presentMenu() {
         let menu = NSMenu()
-        menu.addItem(menuItem(title: "Show History (⇧⌘V)", action: #selector(showPanel)))
+        menu.addItem(
+            menuItem(title: "Show History (\(keyBindings.label(for: .togglePanel)))", action: #selector(showPanel)))
         menu.addItem(menuItem(title: "Clear Unpinned Items", action: #selector(clearHistory)))
         menu.addItem(.separator())
+        menu.addItem(menuItem(title: "Settings…", action: #selector(openSettings)))
         menu.addItem(menuItem(title: "Quit Whisk", action: #selector(quit)))
         statusItem?.menu = menu
         statusItem?.button?.performClick(nil)
@@ -138,6 +158,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showPanel() {
         panelController?.show()
+    }
+
+    @objc private func openSettings() {
+        if settingsWindow == nil {
+            let hosting = NSHostingController(rootView: SettingsView(store: keyBindings))
+            let window = NSWindow(contentViewController: hosting)
+            // SwiftUI sizing is lazy: without this the window materializes
+            // at 1×32 points and is effectively invisible.
+            window.setContentSize(hosting.view.fittingSize)
+            window.styleMask.remove([.resizable, .miniaturizable])
+            window.title = "Whisk Settings"
+            window.isReleasedWhenClosed = false
+            settingsWindow = window
+        }
+        settingsWindow?.center()
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow?.makeKeyAndOrderFront(nil)
     }
 
     @objc private func clearHistory() {
