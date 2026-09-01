@@ -8,6 +8,7 @@ final class PanelController {
     private let stateStore: HistoryViewStateStore
     private let actions: PanelActions
     private let keyBindings: KeyBindingsStore
+    private var previewPanel: NSPanel?
 
     init(stateStore: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore) {
         self.stateStore = stateStore
@@ -42,6 +43,15 @@ final class PanelController {
         }
         if let index = commandDigitIndex(of: event) {
             actions.activateCard(index)
+            return true
+        }
+        // Space previews the selection — unless a query is being typed,
+        // where a space is just a space.
+        if keyBindings.binding(for: .previewSelection).matches(event) {
+            if event.keyCode == UInt16(49), !stateStore.state.query.isEmpty {
+                return false
+            }
+            togglePreview()
             return true
         }
         // Keypad Enter always pastes, whatever Return is bound to.
@@ -94,7 +104,50 @@ final class PanelController {
     }
 
     func hide() {
+        hidePreview()
         panel.orderOut(nil)
+    }
+
+    /// Space-bar Quick-Look-style preview of the selected card, centered
+    /// above the panel.
+    private func togglePreview() {
+        if previewPanel?.isVisible == true {
+            hidePreview()
+            return
+        }
+        if previewPanel == nil {
+            let preview = NSPanel(
+                contentRect: .zero,
+                styleMask: [.borderless, .nonactivatingPanel],
+                backing: .buffered,
+                defer: false
+            )
+            preview.isFloatingPanel = true
+            preview.level = .statusBar
+            preview.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            preview.backgroundColor = .clear
+            preview.isOpaque = false
+            preview.hasShadow = false
+            preview.contentView = NSHostingView(rootView: PreviewOverlayView(store: stateStore))
+            previewPanel = preview
+        }
+        guard let preview = previewPanel, let screen = NSScreen.main else { return }
+        let size = NSSize(width: 700, height: 480)
+        let frame = screen.frame
+        preview.setFrame(
+            NSRect(
+                x: frame.midX - size.width / 2,
+                y: frame.minY + 460,
+                width: size.width,
+                height: size.height
+            ),
+            display: true
+        )
+        preview.orderFront(nil)
+    }
+
+    private func hidePreview() {
+        previewPanel?.orderOut(nil)
     }
 }
 

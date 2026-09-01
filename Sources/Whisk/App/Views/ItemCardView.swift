@@ -34,6 +34,9 @@ struct ItemCardView: View, Equatable {
         .scaleEffect(card.isSelected ? 1.04 : 1)
         .animation(.easeOut(duration: 0.16), value: card.isSelected)
         .contentShape(Self.shape)
+        .onDrag {
+            Self.dragProvider(for: card.preview)
+        }
         .onTapGesture(perform: onSelect)
         .onHover { hovering in
             if hovering {
@@ -137,6 +140,33 @@ struct ItemCardView: View, Equatable {
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 12)
+    }
+
+    /// Cards can be dragged straight into other applications.
+    private static func dragProvider(for preview: CardPreview) -> NSItemProvider {
+        switch preview {
+        case .text(let value), .code(let value, _):
+            return NSItemProvider(object: value as NSString)
+        case .color(let code, _):
+            return NSItemProvider(object: code as NSString)
+        case .link(let address):
+            if let url = URL(string: address) {
+                return NSItemProvider(object: url as NSURL)
+            }
+            return NSItemProvider(object: address as NSString)
+        case .image(let data):
+            if let image = NSImage(data: data) {
+                return NSItemProvider(object: image)
+            }
+            return NSItemProvider()
+        case .files(_, _, let thumbnailPath):
+            if let path = thumbnailPath,
+                let provider = NSItemProvider(contentsOf: URL(fileURLWithPath: path))
+            {
+                return provider
+            }
+            return NSItemProvider()
+        }
     }
 
     // Decoding image bytes on every body evaluation is visible as a flash,
