@@ -85,6 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.registerHotKey()
             }
         clipboard.applyRetention(generalSettings.policy)
+        clipboard.applyExclusions(generalSettings.excludedBundleIDs)
         // willSet semantics again: hop to the next cycle so the policy is
         // read after the setting has landed.
         settingsObserver = generalSettings.objectWillChange
@@ -92,6 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in
                 guard let self else { return }
                 self.clipboard?.applyRetention(self.generalSettings.policy)
+                self.clipboard?.applyExclusions(self.generalSettings.excludedBundleIDs)
             }
         startPolling(clipboard)
 
@@ -159,10 +161,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private var isPaused = false
+
+    @objc private func togglePause() {
+        isPaused.toggle()
+        clipboard?.setPaused(isPaused)
+        statusItem?.button?.image = NSImage(
+            systemSymbolName: isPaused ? "pause.circle" : "doc.on.clipboard",
+            accessibilityDescription: "Whisk"
+        )
+    }
+
     private func presentMenu() {
         let menu = NSMenu()
         menu.addItem(
             menuItem(title: "Show History (\(keyBindings.label(for: .togglePanel)))", action: #selector(showPanel)))
+        menu.addItem(
+            menuItem(title: isPaused ? "Resume Capture" : "Pause Capture", action: #selector(togglePause)))
         menu.addItem(menuItem(title: "Clear Unpinned Items", action: #selector(clearHistory)))
         menu.addItem(.separator())
         menu.addItem(menuItem(title: "Settings…", action: #selector(openSettings)))

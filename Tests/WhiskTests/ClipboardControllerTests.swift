@@ -290,6 +290,48 @@ import Testing
         #expect(spy.last.filters.hasActiveChip == false)
     }
 
+    @Test func pausing_consumes_changes_without_recording_them() {
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
+        )
+
+        controller.setPaused(true)
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("secret"), source: nil)]
+        controller.pollTick()
+        #expect(spy.last.cards.isEmpty)
+
+        controller.setPaused(false)
+        controller.pollTick()
+        #expect(spy.last.cards.isEmpty)
+
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("visible"), source: nil)]
+        controller.pollTick()
+        #expect(spy.last.cards.map(\.preview) == [.text("visible")])
+    }
+
+    @Test func copies_from_excluded_apps_are_never_recorded() {
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
+        )
+        controller.applyExclusions(["com.apple.keychainaccess"])
+
+        pasteboard.pendingSnapshots = [
+            PasteboardSnapshot(
+                payload: .text("hunter2"),
+                source: SourceApp(name: "Keychain Access", bundleID: "com.apple.keychainaccess")
+            ),
+            PasteboardSnapshot(payload: .text("plain"), source: SourceApp(name: "Notes", bundleID: "com.apple.Notes")),
+        ]
+        controller.pollTick()
+        controller.pollTick()
+
+        #expect(spy.last.cards.map(\.preview) == [.text("plain")])
+    }
+
     @Test func command_digits_paste_by_rail_position() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("first")), anItem(.text("second"))]
