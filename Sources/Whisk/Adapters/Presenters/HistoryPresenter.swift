@@ -1,37 +1,36 @@
 import Foundation
 
 /// What the controller knows about filtering, handed over for the chip bar.
+/// The focused index is flat across the whole row: pinned chip first, then
+/// the apps, then the categories.
 struct FilterContext: Equatable {
     let sources: [SourceApp]
     let categories: [ContentCategory]
-    let activeSourceKey: String?
-    let activeCategory: ContentCategory?
-    let focusedAppIndex: Int?
-    let focusedKindIndex: Int?
+    let activeSourceKeys: Set<String>
+    let activeCategories: Set<ContentCategory>
+    let focusedChipIndex: Int?
     let hasPinned: Bool
     let pinnedOnly: Bool
 
     init(
         sources: [SourceApp],
         categories: [ContentCategory],
-        activeSourceKey: String?,
-        activeCategory: ContentCategory?,
-        focusedAppIndex: Int? = nil,
-        focusedKindIndex: Int? = nil,
+        activeSourceKeys: Set<String> = [],
+        activeCategories: Set<ContentCategory> = [],
+        focusedChipIndex: Int? = nil,
         hasPinned: Bool = false,
         pinnedOnly: Bool = false
     ) {
         self.sources = sources
         self.categories = categories
-        self.activeSourceKey = activeSourceKey
-        self.activeCategory = activeCategory
-        self.focusedAppIndex = focusedAppIndex
-        self.focusedKindIndex = focusedKindIndex
+        self.activeSourceKeys = activeSourceKeys
+        self.activeCategories = activeCategories
+        self.focusedChipIndex = focusedChipIndex
         self.hasPinned = hasPinned
         self.pinnedOnly = pinnedOnly
     }
 
-    static let empty = FilterContext(sources: [], categories: [], activeSourceKey: nil, activeCategory: nil)
+    static let empty = FilterContext(sources: [], categories: [])
 }
 
 /// Maps kernel entities to display-ready view state. Pure in behaviour —
@@ -155,48 +154,50 @@ final class HistoryPresenter {
         )
     }
 
+    // Pinned leads its own group, then the apps, then the categories; the
+    // controller mirrors this flat ordering for keyboard navigation.
     private func filterBar(from context: FilterContext) -> FilterBarViewState {
-        FilterBarViewState(
-            apps: context.sources.enumerated().map { index, source in
-                FilterChip(
-                    id: source.filterKey,
-                    label: source.name ?? source.bundleID ?? localized("Unknown"),
-                    sourceBundleID: source.bundleID,
-                    isActive: source.filterKey == context.activeSourceKey,
-                    isFocused: index == context.focusedAppIndex
-                )
-            },
-            kinds: kindChips(from: context)
-        )
-    }
-
-    // Pinned first, then the categories — the controller mirrors this
-    // ordering for keyboard navigation.
-    private func kindChips(from context: FilterContext) -> [FilterChip] {
-        var chips: [FilterChip] = []
+        var flatIndex = 0
+        var pinned: [FilterChip] = []
         if context.hasPinned {
-            chips.append(
+            pinned.append(
                 FilterChip(
                     id: pinnedChipID,
                     label: localized("Pinned"),
                     sourceBundleID: nil,
                     isActive: context.pinnedOnly,
-                    isFocused: chips.count == context.focusedKindIndex
+                    isFocused: flatIndex == context.focusedChipIndex
                 )
             )
+            flatIndex += 1
         }
+        var apps: [FilterChip] = []
+        for source in context.sources {
+            apps.append(
+                FilterChip(
+                    id: source.filterKey,
+                    label: source.name ?? source.bundleID ?? localized("Unknown"),
+                    sourceBundleID: source.bundleID,
+                    isActive: context.activeSourceKeys.contains(source.filterKey),
+                    isFocused: flatIndex == context.focusedChipIndex
+                )
+            )
+            flatIndex += 1
+        }
+        var kinds: [FilterChip] = []
         for category in context.categories {
-            chips.append(
+            kinds.append(
                 FilterChip(
                     id: category.rawValue,
                     label: Self.kindLabel(category).capitalized,
                     sourceBundleID: nil,
-                    isActive: category == context.activeCategory,
-                    isFocused: chips.count == context.focusedKindIndex
+                    isActive: context.activeCategories.contains(category),
+                    isFocused: flatIndex == context.focusedChipIndex
                 )
             )
+            flatIndex += 1
         }
-        return chips
+        return FilterBarViewState(pinned: pinned, apps: apps, kinds: kinds)
     }
 
     /// Sub-minute labels would churn every second and force every card to
