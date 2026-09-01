@@ -114,7 +114,10 @@ struct HistoryPanelView: View {
         }
         .frame(width: 120)
         .frame(maxHeight: .infinity)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .liquidGlass(
+            in: RoundedRectangle(cornerRadius: 18, style: .continuous),
+            tint: .black.opacity(0.3)
+        )
     }
 
     private var emptyState: some View {
@@ -130,7 +133,12 @@ struct HistoryPanelView: View {
             .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        // Untinted glass blooms white over most backdrops; the neutral dark
+        // tint keeps the slab as smoky as the tinted cards.
+        .liquidGlass(
+            in: RoundedRectangle(cornerRadius: 22, style: .continuous),
+            tint: .black.opacity(0.3)
+        )
         .padding(.horizontal, 16)
     }
 }
