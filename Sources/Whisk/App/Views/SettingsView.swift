@@ -10,12 +10,12 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("General")
+            Text(localized("General"))
                 .font(.title3.weight(.semibold))
 
             VStack(alignment: .leading, spacing: 10) {
                 Toggle(
-                    "Launch Whisk at login",
+                    localized("Launch Whisk at login"),
                     isOn: Binding(
                         get: { loginItem.isEnabled },
                         set: { loginItem.setEnabled($0) }
@@ -26,32 +26,32 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
-                Picker("Keep history for", selection: $general.retentionPeriod) {
+                Picker(localized("Keep history for"), selection: $general.retentionPeriod) {
                     ForEach(RetentionPeriodOption.allCases) { option in
                         Text(option.label).tag(option)
                     }
                 }
-                Picker("History capacity", selection: $general.capacity) {
+                Picker(localized("History capacity"), selection: $general.capacity) {
                     ForEach(GeneralSettingsStore.capacityChoices, id: \.self) { choice in
                         Text(GeneralSettingsStore.capacityLabel(choice)).tag(choice)
                     }
                 }
-                Text("Pinned items are never expired or evicted.")
+                Text(localized("Pinned items are never expired or evicted."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Toggle("Check for updates at launch", isOn: $general.checkForUpdates)
+                Toggle(localized("Check for updates at launch"), isOn: $general.checkForUpdates)
 
                 Divider()
 
                 HStack {
-                    Text("Excluded apps")
+                    Text(localized("Excluded apps"))
                     Spacer()
-                    Button("Add App…") {
+                    Button(localized("Add App…")) {
                         addExcludedApp()
                     }
                 }
                 if general.excludedApps.isEmpty {
-                    Text("Copies from excluded apps are never recorded.")
+                    Text(localized("Copies from excluded apps are never recorded."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
@@ -83,9 +83,9 @@ struct SettingsView: View {
 
             Divider()
 
-            Text("Keyboard Shortcuts")
+            Text(localized("Keyboard Shortcuts"))
                 .font(.title3.weight(.semibold))
-            Text("Click a shortcut to record a new one — press Escape to cancel recording.")
+            Text(localized("Click a shortcut to record a new one — press Escape to cancel recording."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -94,7 +94,7 @@ struct SettingsView: View {
                     HStack(spacing: 10) {
                         Text(action.displayName)
                         if action.isGlobal {
-                            Text("global")
+                            Text(localized("global"))
                                 .font(.caption2)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
@@ -104,7 +104,7 @@ struct SettingsView: View {
                         if store.duplicatedActions.contains(action) {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundStyle(.yellow)
-                                .help("This shortcut is used by another action")
+                                .help(localized("This shortcut is used by another action"))
                         }
                         ShortcutRecorder(action: action, store: store)
                         Button {
@@ -114,7 +114,7 @@ struct SettingsView: View {
                         }
                         .buttonStyle(.borderless)
                         .disabled(!store.isCustomized(action))
-                        .help("Reset to default")
+                        .help(localized("Reset to default"))
                     }
                     .padding(.vertical, 6)
                     .padding(.horizontal, 10)
@@ -125,18 +125,18 @@ struct SettingsView: View {
                 }
             }
 
-            Text("⌘1…⌘9 paste the matching card directly.")
+            Text(localized("⌘1…⌘9 paste the matching card directly."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             HStack {
                 if !store.duplicatedActions.isEmpty {
-                    Label("Two actions share the same shortcut.", systemImage: "exclamationmark.triangle")
+                    Label(localized("Two actions share the same shortcut."), systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundStyle(.yellow)
                 }
                 Spacer()
-                Button("Restore Defaults") {
+                Button(localized("Restore Defaults")) {
                     store.resetAll()
                 }
             }
@@ -175,7 +175,7 @@ private struct ShortcutRecorder: View {
         Button {
             isRecording ? store.endRecording() : store.beginRecording(action)
         } label: {
-            Text(isRecording ? "Type shortcut…" : store.label(for: action))
+            Text(isRecording ? localized("Type shortcut…") : store.label(for: action))
                 .font(.system(.body, design: .rounded).weight(.medium))
                 .frame(minWidth: 76)
                 .padding(.horizontal, 8)

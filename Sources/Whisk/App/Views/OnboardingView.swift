@@ -13,32 +13,35 @@ struct OnboardingView: View {
                     .resizable()
                     .frame(width: 48, height: 48)
                 VStack(alignment: .leading) {
-                    Text("Welcome to Whisk")
+                    Text(localized("Welcome to Whisk"))
                         .font(.title2.weight(.semibold))
-                    Text("Your clipboard, remembered.")
+                    Text(localized("Your clipboard, remembered."))
                         .foregroundStyle(.secondary)
                 }
             }
 
             step(
                 symbol: "keyboard",
-                title: "Press ⇧⌘V",
-                text: "A panel slides up with everything you copied — search it, filter it, arrow through it."
+                title: localized("Press ⇧⌘V"),
+                text: localized(
+                    "A panel slides up with everything you copied — search it, filter it, arrow through it.")
             )
             step(
                 symbol: "hand.raised",
-                title: "Everything stays local",
-                text: "History lives on this Mac. Concealed content from password managers is never recorded."
+                title: localized("Everything stays local"),
+                text: localized(
+                    "History lives on this Mac. Concealed content from password managers is never recorded.")
             )
             step(
                 symbol: "accessibility",
-                title: "Paste in place (optional)",
-                text: "To paste straight into the field you were typing in, Whisk needs Accessibility access. "
-                    + "Without it, a selection still lands on the clipboard for a manual ⌘V."
+                title: localized("Paste in place (optional)"),
+                text: localized(
+                    "To paste straight into the field you were typing in, Whisk needs Accessibility access.")
+                    + " " + localized("Without it, a selection still lands on the clipboard for a manual ⌘V.")
             )
 
             HStack {
-                Button("Open Accessibility Settings") {
+                Button(localized("Open Accessibility Settings")) {
                     if let url = URL(
                         string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
                     {
@@ -46,7 +49,7 @@ struct OnboardingView: View {
                     }
                 }
                 Spacer()
-                Button("Get Started") {
+                Button(localized("Get Started")) {
                     onContinue()
                 }
                 .keyboardShortcut(.defaultAction)

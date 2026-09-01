@@ -14,10 +14,10 @@ enum RetentionPeriodOption: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .forever: "Forever"
-        case .day: "24 hours"
-        case .week: "7 days"
-        case .month: "30 days"
+        case .forever: localized("Forever")
+        case .day: localized("24 hours")
+        case .week: localized("7 days")
+        case .month: localized("30 days")
         }
     }
 
@@ -46,7 +46,7 @@ final class GeneralSettingsStore: ObservableObject {
     static let capacityChoices = [100, 250, 500, 1000, 0]
 
     static func capacityLabel(_ choice: Int) -> String {
-        choice == 0 ? "Unlimited" : "\(choice) items"
+        choice == 0 ? localized("Unlimited") : localized("\(choice) items")
     }
 
     @Published var retentionPeriod: RetentionPeriodOption {

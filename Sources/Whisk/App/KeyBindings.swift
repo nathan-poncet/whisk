@@ -22,19 +22,19 @@ enum KeyAction: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .togglePanel: "Show / hide the panel"
-        case .pasteSelection: "Paste the selection"
-        case .pastePlain: "Paste as plain text"
-        case .stackSelection: "Add the selection to the paste stack"
-        case .pasteNextFromStack: "Paste next from the stack"
-        case .previousCard: "Previous card or chip"
-        case .nextCard: "Next card or chip"
-        case .rowUp: "Focus the row above"
-        case .rowDown: "Focus the row below"
-        case .switchChipGroup: "Switch filter group"
-        case .previewSelection: "Preview the selection"
-        case .pinSelection: "Pin / unpin the selection"
-        case .deleteSelection: "Delete the selection"
+        case .togglePanel: localized("Show / hide the panel")
+        case .pasteSelection: localized("Paste the selection")
+        case .pastePlain: localized("Paste as plain text")
+        case .stackSelection: localized("Add the selection to the paste stack")
+        case .pasteNextFromStack: localized("Paste next from the stack")
+        case .previousCard: localized("Previous card or chip")
+        case .nextCard: localized("Next card or chip")
+        case .rowUp: localized("Focus the row above")
+        case .rowDown: localized("Focus the row below")
+        case .switchChipGroup: localized("Switch filter group")
+        case .previewSelection: localized("Preview the selection")
+        case .pinSelection: localized("Pin / unpin the selection")
+        case .deleteSelection: localized("Delete the selection")
         }
     }
 

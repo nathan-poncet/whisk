@@ -67,16 +67,28 @@ final class HistoryPresenter {
     }
 
     private func card(for item: ClipboardItem, now: Date, isSelected: Bool) -> CardViewState {
-        CardViewState(
+        let kind = Self.kindLabel(item.category)
+        return CardViewState(
             id: item.id,
-            sourceLabel: item.source?.name ?? item.source?.bundleID ?? item.category.rawValue.capitalized,
+            sourceLabel: item.source?.name ?? item.source?.bundleID ?? kind.capitalized,
             sourceBundleID: item.source?.bundleID,
-            kindLabel: item.category.rawValue,
+            kindLabel: kind,
             timeLabel: timeLabel(for: item, now: now),
             isPinned: item.isPinned,
             isSelected: isSelected,
             preview: preview(for: item)
         )
+    }
+
+    private static func kindLabel(_ category: ContentCategory) -> String {
+        switch category {
+        case .text: localized("text")
+        case .code: localized("code")
+        case .color: localized("color")
+        case .link: localized("link")
+        case .image: localized("image")
+        case .files: localized("files")
+        }
     }
 
     private func preview(for item: ClipboardItem) -> CardPreview {
@@ -138,7 +150,7 @@ final class HistoryPresenter {
             apps: context.sources.enumerated().map { index, source in
                 FilterChip(
                     id: source.filterKey,
-                    label: source.name ?? source.bundleID ?? "Unknown",
+                    label: source.name ?? source.bundleID ?? localized("Unknown"),
                     sourceBundleID: source.bundleID,
                     isActive: source.filterKey == context.activeSourceKey,
                     isFocused: index == context.focusedAppIndex
@@ -156,7 +168,7 @@ final class HistoryPresenter {
             chips.append(
                 FilterChip(
                     id: pinnedChipID,
-                    label: "Pinned",
+                    label: localized("Pinned"),
                     sourceBundleID: nil,
                     isActive: context.pinnedOnly,
                     isFocused: chips.count == context.focusedKindIndex
@@ -167,7 +179,7 @@ final class HistoryPresenter {
             chips.append(
                 FilterChip(
                     id: category.rawValue,
-                    label: category.rawValue.capitalized,
+                    label: Self.kindLabel(category).capitalized,
                     sourceBundleID: nil,
                     isActive: category == context.activeCategory,
                     isFocused: chips.count == context.focusedKindIndex
@@ -182,7 +194,7 @@ final class HistoryPresenter {
     /// beyond it the formatter only runs when the minute bucket moves.
     private func timeLabel(for item: ClipboardItem, now: Date) -> String {
         let age = now.timeIntervalSince(item.copiedAt)
-        guard age >= 60 else { return "now" }
+        guard age >= 60 else { return localized("now") }
         let bucket = Int(age / 60)
         if let cached = timeCache[item.id], cached.bucket == bucket {
             return cached.label
@@ -196,7 +208,7 @@ final class HistoryPresenter {
     }
 
     private func countLabel(_ count: Int) -> String {
-        count == 1 ? "1 item" : "\(count) items"
+        count == 1 ? localized("1 item") : localized("\(count) items")
     }
 
     private static let relativeFormatter: RelativeDateTimeFormatter = {
