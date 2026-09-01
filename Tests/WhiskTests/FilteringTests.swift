@@ -60,6 +60,33 @@ import Testing
         #expect(matches.map(\.payload) == [.text("let x = api.compute(1)")])
     }
 
+    @Test func free_words_also_match_the_source_application() {
+        let matches = filter(seededHistory(), filter: HistoryFilter(query: "ghostty"))
+
+        #expect(matches.map(\.payload) == [.text("let x = api.compute(1)")])
+    }
+
+    @Test func the_app_operator_restricts_to_one_application() {
+        let matches = filter(seededHistory(), filter: HistoryFilter(query: "app:slack"))
+
+        #expect(matches.count == 2)
+        #expect(matches.allSatisfy { $0.source?.name == "Slack" })
+    }
+
+    @Test func the_type_operator_restricts_to_a_category() {
+        let matches = filter(seededHistory(), filter: HistoryFilter(query: "type:code"))
+
+        #expect(matches.map(\.payload) == [.text("let x = api.compute(1)")])
+    }
+
+    @Test func operators_and_free_words_combine_with_and_semantics() {
+        let none = filter(seededHistory(), filter: HistoryFilter(query: "app:slack type:code"))
+        #expect(none.isEmpty)
+
+        let one = filter(seededHistory(), filter: HistoryFilter(query: "app:slack plain"))
+        #expect(one.map(\.payload) == [.text("plain words")])
+    }
+
     @Test func the_pinned_filter_keeps_only_pinned_items() {
         let history = History()
             .recording(.text("loose"), from: nil, at: clock.now())
