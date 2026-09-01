@@ -46,20 +46,18 @@ jobs:
             --title "$GITHUB_REF_NAME" \
             --generate-notes
 
-      - name: Bump Homebrew formula
+      - name: Bump Homebrew cask
         if: env.TAP_TOKEN != ''
         run: |
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
-          TARBALL_URL="https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/${GITHUB_REF_NAME}.tar.gz"
-          curl -sL "$TARBALL_URL" -o source.tar.gz
-          SHA=$(shasum -a 256 source.tar.gz | cut -d' ' -f1)
+          SHA=$(shasum -a 256 dist/Whisk.dmg | cut -d' ' -f1)
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/nathan-poncet/homebrew-tap.git" tap
           cd tap
           sed -i '' \
-            -e "s|^  url .*|  url \"${TARBALL_URL}\"|" \
+            -e "s|^  version .*|  version \"${VERSION}\"|" \
             -e "s|^  sha256 .*|  sha256 \"${SHA}\"|" \
-            Formula/whisk.rb
+            Casks/whisk.rb
           git config user.name "Nathan Poncet"
           git config user.email "112613712+nathan-poncet@users.noreply.github.com"
           git commit -am "whisk ${VERSION}"
