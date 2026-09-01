@@ -39,7 +39,7 @@ check_ring "Sources/Whisk/Entities" Foundation
 check_ring "Sources/Whisk/UseCases" Foundation
 check_ring "Sources/Whisk/Adapters/Controllers" Foundation
 check_ring "Sources/Whisk/Adapters/Presenters" Foundation
-check_ring "Sources/Whisk/Adapters/Gateways" Foundation AppKit
+check_ring "Sources/Whisk/Adapters/Gateways" Foundation AppKit SQLite3
 
 if [ "$violations" -ne 0 ]; then
   echo "The Dependency Rule is broken. Arrows point inward only."
