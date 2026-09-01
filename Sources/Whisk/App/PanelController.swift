@@ -26,6 +26,7 @@ final class PanelController {
     /// the search field's caret.
     private func handle(_ event: NSEvent) -> Bool {
         let panelActions: [(KeyAction, () -> Void)] = [
+            (.pastePlain, { self.actions.activatePlain() }),
             (.pasteSelection, { self.actions.activate() }),
             (.previousCard, { self.actions.navigate(.left) }),
             (.nextCard, { self.actions.navigate(.right) }),

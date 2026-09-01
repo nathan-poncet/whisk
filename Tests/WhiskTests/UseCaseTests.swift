@@ -86,3 +86,25 @@ import Testing
         #expect(store.saveCount == 3)
     }
 }
+
+@Suite struct RichTextBehaviour {
+    let pasteboard = ScriptedPasteboard()
+    let clock = FakeClock()
+    let store = InMemoryHistoryStore()
+
+    @Test func capture_keeps_the_rich_bytes_and_selection_writes_them_back() throws {
+        let rtf = Data("rich".utf8)
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("hello"), source: nil, rtf: rtf)]
+        let capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
+        let select = SelectItem(pasteboard: pasteboard, clock: clock, store: store)
+
+        let history = try capture(into: History())
+        #expect(history.items[0].rtf == rtf)
+
+        _ = try select(history.items[0].id, in: history)
+        #expect(pasteboard.writtenRTF == [rtf])
+
+        _ = try select(history.items[0].id, in: history, plain: true)
+        #expect(pasteboard.writtenRTF == [rtf, nil])
+    }
+}

@@ -48,7 +48,8 @@ final class FileHistoryStore: HistoryStore {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             let data = try encoder.encode(stored)
             try data.write(to: indexFile, options: .atomic)
-            try removeOrphanedBlobs(keeping: Set(stored.compactMap(\.imageFile)))
+            let referenced = Set(stored.compactMap(\.imageFile)).union(stored.compactMap(\.rtfFile))
+            try removeOrphanedBlobs(keeping: referenced)
         } catch let error as HistoryStoreError {
             throw error
         } catch {
@@ -68,6 +69,7 @@ final class FileHistoryStore: HistoryStore {
         var files: [String]?
         var sourceApp: String?
         var sourceBundleID: String?
+        var rtfFile: String?
         var copiedAtMs: Int64
         var isPinned: Bool
     }
@@ -95,17 +97,25 @@ final class FileHistoryStore: HistoryStore {
             stored.kind = "files"
             stored.files = paths
         }
+        if let rtf = item.rtf {
+            stored.rtfFile = try writeBlob(rtf, named: "\(item.id.uuidString).rtf")
+        }
         return stored
     }
 
     private func item(from stored: StoredItem) -> ClipboardItem? {
         guard let payload = payload(from: stored) else { return nil }
+        var rtf: Data?
+        if let name = stored.rtfFile {
+            rtf = try? Data(contentsOf: blobsDirectory.appendingPathComponent(name))
+        }
         return ClipboardItem(
             id: stored.id,
             payload: payload,
             source: SourceApp(name: stored.sourceApp, bundleID: stored.sourceBundleID),
             copiedAt: Date(timeIntervalSince1970: Double(stored.copiedAtMs) / 1000),
-            isPinned: stored.isPinned
+            isPinned: stored.isPinned,
+            rtf: rtf
         )
     }
 
@@ -131,7 +141,10 @@ final class FileHistoryStore: HistoryStore {
     }
 
     private func writeBlob(_ data: Data, for id: UUID) throws -> String {
-        let name = "\(id.uuidString).png"
+        try writeBlob(data, named: "\(id.uuidString).png")
+    }
+
+    private func writeBlob(_ data: Data, named name: String) throws -> String {
         let destination = blobsDirectory.appendingPathComponent(name)
         if !fileManager.fileExists(atPath: destination.path) {
             try data.write(to: destination, options: .atomic)

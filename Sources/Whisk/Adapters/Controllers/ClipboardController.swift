@@ -166,8 +166,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         refresh()
     }
 
-    func select(_ id: UUID) {
-        mutate { try selectItem(id, in: $0) }
+    func select(_ id: UUID, plain: Bool = false) {
+        mutate { try selectItem(id, in: $0, plain: plain) }
     }
 
     /// Moves the keyboard selection through the visible cards, clamped at
@@ -284,10 +284,10 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// card was put back on the pasteboard — the caller closes the panel
     /// then, and stays open for chip toggles.
     @discardableResult
-    func activateFocused() -> Bool {
+    func activateFocused(plain: Bool = false) -> Bool {
         switch focusZone {
         case .cards:
-            return activateSelected()
+            return activateSelected(plain: plain)
         case .apps:
             let sources = distinctSources
             guard sources.indices.contains(focusedAppIndex) else { return false }
@@ -304,9 +304,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// Puts the highlighted card back on the pasteboard; the first visible
     /// card counts as highlighted until the selection is stepped.
     @discardableResult
-    func activateSelected() -> Bool {
+    func activateSelected(plain: Bool = false) -> Bool {
         guard let id = selectedID ?? visibleItems.first?.id else { return false }
-        select(id)
+        select(id, plain: plain)
         return true
     }
 

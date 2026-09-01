@@ -54,6 +54,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
+            activatePlain: { [weak self] in
+                guard clipboard.activateFocused(plain: true) else { return }
+                self?.panelController?.hide()
+                PasteSimulator.paste()
+            },
             activateCard: { [weak self] index in
                 guard clipboard.activate(at: index) else { return }
                 self?.panelController?.hide()

@@ -17,7 +17,7 @@ struct CaptureClipboardChange<Board: Pasteboard, Time: Clock, Store: HistoryStor
         if let bundleID = snapshot.source?.bundleID, excludedBundleIDs.contains(bundleID) {
             return history
         }
-        let next = history.recording(snapshot.payload, from: snapshot.source, at: clock.now())
+        let next = history.recording(snapshot.payload, from: snapshot.source, rtf: snapshot.rtf, at: clock.now())
         try store.save(next.items)
         return next
     }
