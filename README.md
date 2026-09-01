@@ -142,8 +142,10 @@ directory. The Dependency Rule is linted by
 ## CI & releases
 
 Every push runs the Dependency Rule lint, `swift format lint --strict`,
-the build, and the tests ([ci.yml](.github/workflows/ci.yml)). Renovate
-keeps the GitHub Actions (and any future package dependencies) up to date.
+the build, and the tests ([ci.yml](.github/workflows/ci.yml)). Dependabot
+keeps the GitHub Actions (and any future Swift package dependencies) up to
+date and raises security alerts with automated fixes; CodeQL scans the
+Swift code itself on every push and weekly.
 
 Pushing a tag `v*` runs [release.yml](.github/workflows/release.yml): it
 tests, builds a universal (arm64 + x86_64) `Whisk.app`, attaches the zip to

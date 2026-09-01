@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # GitHub Actions pinned in workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies"]
+
+  # Swift package dependencies — none today (kept deliberately at zero),
+  # ready the day one lands in Package.swift.
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies"]
