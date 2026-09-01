@@ -6,12 +6,13 @@ import SwiftUI
 struct CodeTextView: View {
     let text: String
     let tokens: [CodeToken]
+    var lineLimit: Int? = 8
 
     var body: some View {
         Text(attributed)
             .font(.system(size: 11, design: .monospaced))
             .lineSpacing(1.5)
-            .lineLimit(8)
+            .lineLimit(lineLimit)
     }
 
     private var attributed: AttributedString {
