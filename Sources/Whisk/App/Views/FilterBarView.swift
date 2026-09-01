@@ -137,7 +137,17 @@ private struct FilterChipStyle: ButtonStyle {
             .foregroundStyle(isActive ? Color.accentColor : .primary)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .liquidGlass(in: Capsule(), tint: isActive ? Color.accentColor.opacity(0.28) : nil)
+            // A system material, not adaptive glass: glassEffect samples
+            // the pixels behind each chip, so neighboring chips diverged
+            // over contrasted backdrops. The material keeps every chip
+            // identical.
+            .background {
+                if isActive {
+                    Capsule().fill(Color.accentColor.opacity(0.30))
+                } else {
+                    Capsule().fill(.regularMaterial)
+                }
+            }
             .overlay(
                 Capsule().strokeBorder(borderColor, lineWidth: isFocused ? 2 : 1)
             )
