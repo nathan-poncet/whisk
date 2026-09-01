@@ -66,8 +66,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         configureStatusItem()
         registerHotKey()
         observeKeyboardLayoutChanges()
+        // @Published emits on willSet: hop to the next main-queue cycle so
+        // registerHotKey reads the binding after it has actually landed —
+        // otherwise every recording applies the previous shortcut.
         bindingsObserver = keyBindings.$overrides
             .dropFirst()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.registerHotKey()
             }

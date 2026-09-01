@@ -66,17 +66,19 @@ struct SettingsView: View {
     }
 }
 
-/// Click to arm, then the next key press becomes the binding.
+/// Click to arm, then the next key press becomes the binding. Recording
+/// state lives in the store, so at most one recorder is armed at a time.
 private struct ShortcutRecorder: View {
     let action: KeyAction
     @ObservedObject var store: KeyBindingsStore
 
-    @State private var isRecording = false
-    @State private var monitor: Any?
+    private var isRecording: Bool {
+        store.recordingAction == action
+    }
 
     var body: some View {
         Button {
-            isRecording ? stopRecording() : startRecording()
+            isRecording ? store.endRecording() : store.beginRecording(action)
         } label: {
             Text(isRecording ? "Type shortcut…" : store.label(for: action))
                 .font(.system(.body, design: .rounded).weight(.medium))
@@ -94,26 +96,9 @@ private struct ShortcutRecorder: View {
         }
         .buttonStyle(.plain)
         .onDisappear {
-            stopRecording()
-        }
-    }
-
-    private func startRecording() {
-        isRecording = true
-        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            defer { stopRecording() }
-            if event.keyCode != UInt16(53) {
-                store.set(KeyBinding(event: event), for: action)
+            if isRecording {
+                store.endRecording()
             }
-            return nil
         }
-    }
-
-    private func stopRecording() {
-        if let monitor {
-            NSEvent.removeMonitor(monitor)
-        }
-        monitor = nil
-        isRecording = false
     }
 }

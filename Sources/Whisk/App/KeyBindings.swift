@@ -75,7 +75,9 @@ struct KeyBinding: Equatable, Codable {
 /// the user records something explicit.
 final class KeyBindingsStore: ObservableObject {
     @Published private(set) var overrides: [String: KeyBinding] = [:]
+    @Published private(set) var recordingAction: KeyAction?
 
+    private var recordingMonitor: Any?
     private let defaults: UserDefaults
     private static let storageKey = "keyBindings"
 
@@ -99,6 +101,29 @@ final class KeyBindingsStore: ObservableObject {
     func set(_ binding: KeyBinding, for action: KeyAction) {
         overrides[action.rawValue] = binding
         persist()
+    }
+
+    /// One recorder at most: arming an action disarms any other, so a
+    /// stray key monitor can never capture for a stale row.
+    func beginRecording(_ action: KeyAction) {
+        endRecording()
+        recordingAction = action
+        recordingMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, let target = self.recordingAction else { return event }
+            if event.keyCode != UInt16(kVK_Escape) {
+                self.set(KeyBinding(event: event), for: target)
+            }
+            self.endRecording()
+            return nil
+        }
+    }
+
+    func endRecording() {
+        if let recordingMonitor {
+            NSEvent.removeMonitor(recordingMonitor)
+        }
+        recordingMonitor = nil
+        recordingAction = nil
     }
 
     func reset(_ action: KeyAction) {
