@@ -21,6 +21,12 @@ final class PanelController {
         panel.keyHandler = { [weak self] event in
             self?.handle(event) ?? false
         }
+        // The panel also closes behind the controller's back — Esc and
+        // resignKey order it out directly — and the preview must never
+        // outlive it.
+        panel.onClose = { [weak self] in
+            self?.hidePreview()
+        }
     }
 
     /// Routes panel keys through the user's bindings, intercepted ahead of
@@ -105,12 +111,11 @@ final class PanelController {
     }
 
     func hide() {
-        hidePreview()
         panel.orderOut(nil)
     }
 
-    /// Space-bar Quick-Look-style preview of the selected card, centered
-    /// above the panel.
+    /// Quick-Look-style preview of the selected card, centered above the
+    /// panel.
     private func togglePreview() {
         if previewPanel?.isVisible == true {
             hidePreview()
@@ -154,6 +159,7 @@ final class PanelController {
 
 final class FloatingPanel: NSPanel {
     var keyHandler: ((NSEvent) -> Bool)?
+    var onClose: (() -> Void)?
 
     init() {
         super.init(
@@ -181,6 +187,11 @@ final class FloatingPanel: NSPanel {
             return
         }
         super.sendEvent(event)
+    }
+
+    override func orderOut(_ sender: Any?) {
+        super.orderOut(sender)
+        onClose?()
     }
 
     override func cancelOperation(_ sender: Any?) {

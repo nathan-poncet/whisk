@@ -6,7 +6,7 @@
 "7 days" = "7 jours";
 "A panel slides up with everything you copied — search it, filter it, arrow through it." = "Un panneau apparaît avec tout ce que vous avez copié — cherchez, filtrez, naviguez aux flèches.";
 "Add App…" = "Ajouter une app…";
-"Add the selection to the paste stack" = "Ajouter la sélection à la pile de collage";
+"Toggle the selection in the paste stack" = "Ajouter / retirer la sélection de la pile de collage";
 "Check for updates at launch" = "Rechercher les mises à jour au lancement";
 "Clear Unpinned Items" = "Effacer les éléments non épinglés";
 "Click a shortcut to record a new one — press Escape to cancel recording." = "Cliquez sur un raccourci pour en enregistrer un nouveau — appuyez sur Échap pour annuler.";
