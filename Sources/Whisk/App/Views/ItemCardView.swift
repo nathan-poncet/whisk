@@ -38,8 +38,11 @@ struct ItemCardView: View, Equatable {
             Self.dragProvider(for: card.preview)
         }
         .onTapGesture(perform: onSelect)
-        .onHover { hovering in
-            if hovering, MouseActivity.movedRecently {
+        // Continuous, not enter/exit: after a keyboard scroll parks a card
+        // under the pointer, the very first real movement inside it must
+        // reclaim the selection — without crossing a card edge first.
+        .onContinuousHover { phase in
+            if case .active = phase, MouseActivity.movedRecently {
                 onHighlight()
             }
         }
