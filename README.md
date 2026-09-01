@@ -103,10 +103,11 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
 
 - **Left-click** the menu bar icon (or `⇧⌘V`): toggle the panel.
 - **Right-click** the icon: menu (show, clear, quit).
-- **Arrow keys**: `←`/`→` move within the focused zone; `↑`/`↓` jump
-  between the card rail, the category chips, and the app chips. `Return`
-  toggles the focused chip (the panel stays open) or pastes the selected
-  card.
+- **Arrow keys**: `←`/`→` move within the focused zone — the chip row is
+  one line (apps | categories) and arrows cross the separator; `↑`/`↓`
+  jump between the chip row and the card rail; `⌃⇥` jumps straight to the
+  other chip group. `Return` toggles the focused chip (the panel stays
+  open) or pastes the selected card.
 - **Return**: paste the selected card into the text field that had focus
   before the panel opened. The panel never steals focus, so the caret is
   exactly where you left it; the first use prompts for Accessibility

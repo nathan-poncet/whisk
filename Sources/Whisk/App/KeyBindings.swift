@@ -10,6 +10,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
     case nextCard
     case rowUp
     case rowDown
+    case switchChipGroup
     case pinSelection
     case deleteSelection
 
@@ -23,6 +24,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
         case .nextCard: "Next card or chip"
         case .rowUp: "Focus the row above"
         case .rowDown: "Focus the row below"
+        case .switchChipGroup: "Switch filter group"
         case .pinSelection: "Pin / unpin the selection"
         case .deleteSelection: "Delete the selection"
         }
@@ -174,6 +176,8 @@ final class KeyBindingsStore: ObservableObject {
             return KeyBinding(keyCode: UInt16(kVK_UpArrow), modifiers: [])
         case .rowDown:
             return KeyBinding(keyCode: UInt16(kVK_DownArrow), modifiers: [])
+        case .switchChipGroup:
+            return KeyBinding(keyCode: UInt16(kVK_Tab), modifiers: [.control])
         case .pinSelection:
             let keyCode = KeyboardLayout.keyCode(for: "p") ?? CGKeyCode(kVK_ANSI_P)
             return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command])
