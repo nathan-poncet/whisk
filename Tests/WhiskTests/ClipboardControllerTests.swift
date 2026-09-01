@@ -443,4 +443,44 @@ extension ClipboardControllerBehaviour {
         #expect(controller.popStack() == false)
         #expect(pasteboard.written == [.text("first"), .text("third")])
     }
+
+    @Test func stacking_the_same_card_again_removes_it_from_the_stack() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("second"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.stackSelected()
+        #expect(spy.last.stackCount == 1)
+
+        controller.stackSelected()
+        #expect(spy.last.stackCount == 0)
+        #expect(spy.last.cards[0].stackPosition == nil)
+    }
+
+    @Test func stacked_cards_carry_their_one_based_queue_position() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("second")), anItem(.text("third"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.moveSelection(.next)
+        controller.stackSelected()
+        controller.moveSelection(.previous)
+        controller.stackSelected()
+
+        #expect(spy.last.cards[1].stackPosition == 1)
+        #expect(spy.last.cards[0].stackPosition == 2)
+        #expect(spy.last.cards[2].stackPosition == nil)
+
+        // Removing the first queued card promotes the ranks behind it.
+        controller.moveSelection(.next)
+        controller.stackSelected()
+        #expect(spy.last.cards[0].stackPosition == 1)
+        #expect(spy.last.cards[1].stackPosition == nil)
+    }
 }

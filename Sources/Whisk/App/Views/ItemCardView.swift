@@ -78,6 +78,18 @@ struct ItemCardView: View, Equatable {
                 .font(.caption.weight(.semibold))
                 .lineLimit(1)
             Spacer()
+            if let position = card.stackPosition {
+                HStack(spacing: 3) {
+                    Image(systemName: "square.stack.3d.up.fill")
+                        .font(.system(size: 8))
+                    Text("\(position)")
+                        .font(.caption2.weight(.bold).monospacedDigit())
+                }
+                .foregroundStyle(Color.accentColor)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.accentColor.opacity(0.18)))
+            }
             if card.isPinned {
                 Image(systemName: "pin.fill")
                     .font(.system(size: 9))
