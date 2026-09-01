@@ -7,6 +7,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let keyBindings = KeyBindingsStore()
     private let generalSettings = GeneralSettingsStore()
     private let loginItem = LoginItemManager()
+    private let updateChecker = UpdateChecker()
+    private var onboardingWindow: NSWindow?
     private var settingsObserver: AnyCancellable?
     private var statusItem: NSStatusItem?
     private var panelController: PanelController?
@@ -97,6 +99,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         startPolling(clipboard)
 
+        if generalSettings.checkForUpdates {
+            updateChecker.checkNow()
+        }
+        if !UserDefaults.standard.bool(forKey: "didShowOnboarding"),
+            !CommandLine.arguments.contains("--smoke-test")
+        {
+            showOnboarding()
+        }
+
         if CommandLine.arguments.contains("--show-panel") {
             panelController.show()
         }
@@ -179,6 +190,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(
             menuItem(title: isPaused ? "Resume Capture" : "Pause Capture", action: #selector(togglePause)))
         menu.addItem(menuItem(title: "Clear Unpinned Items", action: #selector(clearHistory)))
+        if let version = updateChecker.availableVersion {
+            menu.addItem(.separator())
+            menu.addItem(menuItem(title: "Update Available (v\(version))…", action: #selector(openReleasesPage)))
+        }
         menu.addItem(.separator())
         menu.addItem(menuItem(title: "Settings…", action: #selector(openSettings)))
         menu.addItem(menuItem(title: "Quit Whisk", action: #selector(quit)))
@@ -195,6 +210,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showPanel() {
         panelController?.show()
+    }
+
+    @objc private func openReleasesPage() {
+        if let url = UpdateChecker.releasesPage {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    private func showOnboarding() {
+        let hosting = NSHostingController(
+            rootView: OnboardingView { [weak self] in
+                UserDefaults.standard.set(true, forKey: "didShowOnboarding")
+                self?.onboardingWindow?.close()
+                self?.onboardingWindow = nil
+            }
+        )
+        let window = NSWindow(contentViewController: hosting)
+        window.setContentSize(hosting.view.fittingSize)
+        window.styleMask.remove([.resizable, .miniaturizable])
+        window.title = "Welcome"
+        window.isReleasedWhenClosed = false
+        onboardingWindow = window
+        window.center()
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
     }
 
     @objc private func openSettings() {

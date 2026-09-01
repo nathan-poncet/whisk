@@ -145,3 +145,13 @@ import Testing
         #expect(none.isEmpty)
     }
 }
+
+@Suite struct VersionComparison {
+    @Test func semantic_versions_compare_componentwise() {
+        #expect(UpdateChecker.isNewer("0.6.0", than: "0.5.1"))
+        #expect(UpdateChecker.isNewer("1.0.0", than: "0.9.9"))
+        #expect(UpdateChecker.isNewer("0.5.10", than: "0.5.9"))
+        #expect(!UpdateChecker.isNewer("0.5.0", than: "0.5.0"))
+        #expect(!UpdateChecker.isNewer("0.4.9", than: "0.5.0"))
+    }
+}
