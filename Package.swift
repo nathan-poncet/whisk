@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Whisk",
+    defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(

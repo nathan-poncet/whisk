@@ -39,7 +39,7 @@ struct HistoryPanelView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField("Search clipboard history", text: queryBinding)
+            TextField(localized("Search clipboard history"), text: queryBinding)
                 .textFieldStyle(.plain)
                 .focused($searchFocused)
             Spacer()
@@ -47,7 +47,7 @@ struct HistoryPanelView: View {
                 Label("\(store.state.stackCount)", systemImage: "square.stack.3d.up.fill")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(Color.accentColor)
-                    .help("Paste stack — pop with the global shortcut")
+                    .help(localized("Paste stack — pop with the global shortcut"))
             }
             Text(store.state.countLabel)
                 .font(.caption.monospacedDigit())
@@ -107,7 +107,7 @@ struct HistoryPanelView: View {
         VStack(spacing: 6) {
             Text("+\(store.state.hiddenCount)")
                 .font(.title3.weight(.semibold))
-            Text("older items\nsearch to find them")
+            Text(localized("older items\nsearch to find them"))
                 .font(.caption2)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
@@ -124,8 +124,8 @@ struct HistoryPanelView: View {
                 .foregroundStyle(.secondary)
             Text(
                 store.state.query.isEmpty && !store.state.filters.hasActiveChip
-                    ? "Copy something to get started"
-                    : "No matches"
+                    ? localized("Copy something to get started")
+                    : localized("No matches")
             )
             .foregroundStyle(.secondary)
         }

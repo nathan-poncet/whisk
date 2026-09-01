@@ -220,17 +220,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func presentMenu() {
         let menu = NSMenu()
         menu.addItem(
-            menuItem(title: "Show History (\(keyBindings.label(for: .togglePanel)))", action: #selector(showPanel)))
+            menuItem(
+                title: String(format: localized("Show History (%@)"), keyBindings.label(for: .togglePanel)),
+                action: #selector(showPanel)))
         menu.addItem(
-            menuItem(title: isPaused ? "Resume Capture" : "Pause Capture", action: #selector(togglePause)))
-        menu.addItem(menuItem(title: "Clear Unpinned Items", action: #selector(clearHistory)))
+            menuItem(
+                title: isPaused ? localized("Resume Capture") : localized("Pause Capture"),
+                action: #selector(togglePause)))
+        menu.addItem(menuItem(title: localized("Clear Unpinned Items"), action: #selector(clearHistory)))
         if let version = updateChecker.availableVersion {
             menu.addItem(.separator())
-            menu.addItem(menuItem(title: "Update Available (v\(version))…", action: #selector(openReleasesPage)))
+            menu.addItem(
+                menuItem(
+                    title: String(format: localized("Update Available (v%@)…"), version),
+                    action: #selector(openReleasesPage)))
         }
         menu.addItem(.separator())
-        menu.addItem(menuItem(title: "Settings…", action: #selector(openSettings)))
-        menu.addItem(menuItem(title: "Quit Whisk", action: #selector(quit)))
+        menu.addItem(menuItem(title: localized("Settings…"), action: #selector(openSettings)))
+        menu.addItem(menuItem(title: localized("Quit Whisk"), action: #selector(quit)))
         statusItem?.menu = menu
         statusItem?.button?.performClick(nil)
         statusItem?.menu = nil
@@ -263,7 +270,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let window = NSWindow(contentViewController: hosting)
         window.setContentSize(hosting.view.fittingSize)
         window.styleMask.remove([.resizable, .miniaturizable])
-        window.title = "Welcome"
+        window.title = localized("Welcome")
         window.isReleasedWhenClosed = false
         onboardingWindow = window
         window.center()
@@ -281,7 +288,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // at 1×32 points and is effectively invisible.
             window.setContentSize(hosting.view.fittingSize)
             window.styleMask.remove([.resizable, .miniaturizable])
-            window.title = "Whisk Settings"
+            window.title = localized("Whisk Settings")
             window.isReleasedWhenClosed = false
             settingsWindow = window
         }

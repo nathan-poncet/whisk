@@ -44,8 +44,8 @@ struct ItemCardView: View, Equatable {
             }
         }
         .contextMenu {
-            Button(card.isPinned ? "Unpin" : "Pin", action: onTogglePin)
-            Button("Delete", role: .destructive, action: onDelete)
+            Button(card.isPinned ? localized("Unpin") : localized("Pin"), action: onTogglePin)
+            Button(localized("Delete"), role: .destructive, action: onDelete)
         }
     }
 
@@ -119,7 +119,7 @@ struct ItemCardView: View, Equatable {
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .padding(.horizontal, 14)
             } else {
-                Text("Image")
+                Text(localized("Image"))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 14)
             }
@@ -288,7 +288,7 @@ private struct FileCardPreview: View {
                 }
             }
             if overflow > 0 {
-                Text("+ \(overflow) more")
+                Text(localized("+ \(overflow) more"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
