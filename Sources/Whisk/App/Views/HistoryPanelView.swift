@@ -114,10 +114,7 @@ struct HistoryPanelView: View {
         }
         .frame(width: 120)
         .frame(maxHeight: .infinity)
-        .liquidGlass(
-            in: RoundedRectangle(cornerRadius: 18, style: .continuous),
-            tint: .black.opacity(0.3)
-        )
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var emptyState: some View {
@@ -132,13 +129,11 @@ struct HistoryPanelView: View {
             )
             .foregroundStyle(.secondary)
         }
+        // A compact pill like the toolbar, not a full-width slab: every
+        // other element in the panel floats, the empty state should too.
+        .padding(.horizontal, 28)
+        .padding(.vertical, 20)
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Untinted glass blooms white over most backdrops; the neutral dark
-        // tint keeps the slab as smoky as the tinted cards.
-        .liquidGlass(
-            in: RoundedRectangle(cornerRadius: 22, style: .continuous),
-            tint: .black.opacity(0.3)
-        )
-        .padding(.horizontal, 16)
     }
 }
