@@ -129,8 +129,8 @@ private struct ChipButton<Label: View>: View {
         .scaleEffect(chip.isFocused || chip.isActive ? 1.06 : 1)
         .animation(.easeOut(duration: 0.14), value: chip.isFocused)
         .animation(.easeOut(duration: 0.14), value: chip.isActive)
-        .onHover { hovering in
-            if hovering, MouseActivity.movedRecently {
+        .onContinuousHover { phase in
+            if case .active = phase, MouseActivity.movedRecently {
                 onFocus()
             }
         }
