@@ -5,6 +5,9 @@ import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let keyBindings = KeyBindingsStore()
+    private let generalSettings = GeneralSettingsStore()
+    private let loginItem = LoginItemManager()
+    private var settingsObserver: AnyCancellable?
     private var statusItem: NSStatusItem?
     private var panelController: PanelController?
     private var hotKey: HotKey?
@@ -49,6 +52,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
+            activateCard: { [weak self] index in
+                guard clipboard.activate(at: index) else { return }
+                self?.panelController?.hide()
+                PasteSimulator.paste()
+            },
             navigate: { clipboard.navigate($0) },
             toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
             toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
@@ -74,6 +82,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.registerHotKey()
+            }
+        clipboard.applyRetention(generalSettings.policy)
+        // willSet semantics again: hop to the next cycle so the policy is
+        // read after the setting has landed.
+        settingsObserver = generalSettings.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.clipboard?.applyRetention(self.generalSettings.policy)
             }
         startPolling(clipboard)
 
@@ -166,7 +183,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         if settingsWindow == nil {
-            let hosting = NSHostingController(rootView: SettingsView(store: keyBindings))
+            let hosting = NSHostingController(
+                rootView: SettingsView(store: keyBindings, general: generalSettings, loginItem: loginItem)
+            )
             let window = NSWindow(contentViewController: hosting)
             // SwiftUI sizing is lazy: without this the window materializes
             // at 1×32 points and is effectively invisible.

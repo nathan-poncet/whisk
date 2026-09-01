@@ -60,6 +60,54 @@ import Testing
         #expect(matches.map(\.payload) == [.text("let x = api.compute(1)")])
     }
 
+    @Test func the_pinned_filter_keeps_only_pinned_items() {
+        let history = History()
+            .recording(.text("loose"), from: nil, at: clock.now())
+            .recording(.text("kept"), from: nil, at: clock.now())
+        let pinnedID = history.items[0].id
+        let pinned = history.togglingPin(pinnedID)
+
+        let matches = filter(pinned, filter: HistoryFilter(pinnedOnly: true))
+
+        #expect(matches.map(\.payload) == [.text("kept")])
+    }
+
+    @Test func retention_purges_old_unpinned_items_and_persists() throws {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        let enforce = EnforceRetention(store: store)
+        var history = History()
+            .recording(.text("ancient"), from: nil, at: clock.now())
+        history = history.togglingPin(history.items[0].id)
+        history = history.recording(.text("old unpinned"), from: nil, at: clock.now())
+        clock.advance(by: 100_000)
+        history = history.recording(.text("fresh"), from: nil, at: clock.now())
+
+        let policy = RetentionPolicy(maxAge: 86_400)
+        let purged = try enforce(history, policy: policy, now: clock.now())
+
+        #expect(purged.items.map(\.payload) == [.text("fresh"), .text("ancient")])
+        #expect(store.stored == purged.items)
+
+        let unchanged = try enforce(purged, policy: policy, now: clock.now())
+        #expect(unchanged == purged)
+        #expect(store.saveCount == 1)
+    }
+
+    @Test func retention_reapplies_a_smaller_capacity() throws {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        let enforce = EnforceRetention(store: store)
+        let history = History()
+            .recording(.text("oldest"), from: nil, at: clock.now())
+            .recording(.text("newest"), from: nil, at: clock.now())
+
+        let capacity = try #require(HistoryCapacity(1))
+        let bounded = try enforce(history, policy: RetentionPolicy(capacity: capacity), now: clock.now())
+
+        #expect(bounded.items.map(\.payload) == [.text("newest")])
+    }
+
     @Test func source_category_and_query_combine() {
         let slack = SourceApp(name: "Slack", bundleID: "com.slack")
 

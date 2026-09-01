@@ -23,6 +23,7 @@ struct PanelActions {
     let select: (UUID) -> Void
     let highlight: (UUID) -> Void
     let activate: () -> Void
+    let activateCard: (Int) -> Void
     let navigate: (ArrowDirection) -> Void
     let toggleSourceFilter: (String) -> Void
     let toggleCategoryFilter: (String) -> Void

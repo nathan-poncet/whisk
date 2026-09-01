@@ -271,6 +271,58 @@ import Testing
         #expect(spy.last.filters.hasActiveChip == false)
     }
 
+    @Test func command_digits_paste_by_rail_position() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("second"))]
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: store, clock: FakeClock(), present: spy.record
+        )
+
+        #expect(controller.activate(at: 1) == true)
+        #expect(pasteboard.written == [.text("second")])
+        #expect(controller.activate(at: 9) == false)
+    }
+
+    @Test func the_pinned_chip_appears_with_a_pin_and_filters_the_rail() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("loose")), anItem(.text("kept"), pinned: true)]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        #expect(spy.last.filters.kinds.first?.id == "pinned")
+
+        controller.navigate(.up)
+        #expect(spy.last.filters.kinds.first?.isFocused == true)
+        controller.activateFocused()
+        #expect(spy.last.cards.map(\.preview) == [.text("kept")])
+        #expect(spy.last.filters.kinds.first?.isActive == true)
+
+        controller.toggleCategoryFilter("pinned")
+        #expect(spy.last.cards.count == 2)
+    }
+
+    @Test func applying_retention_purges_expired_items_live() {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("fresh"), at: clock.now()),
+            anItem(.text("stale"), at: clock.now().addingTimeInterval(-172_800)),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: clock, present: spy.record
+        )
+        #expect(spy.last.cards.count == 2)
+
+        controller.applyRetention(RetentionPolicy(maxAge: 86_400))
+
+        #expect(spy.last.cards.map(\.preview) == [.text("fresh")])
+        #expect(store.stored.count == 1)
+    }
+
     @Test func pin_and_delete_act_on_the_current_selection() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("first")), anItem(.text("second"))]

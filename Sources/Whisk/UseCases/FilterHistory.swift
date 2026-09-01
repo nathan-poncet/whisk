@@ -5,11 +5,18 @@ struct HistoryFilter: Equatable {
     var query: String
     var source: SourceApp?
     var category: ContentCategory?
+    var pinnedOnly: Bool
 
-    init(query: String = "", source: SourceApp? = nil, category: ContentCategory? = nil) {
+    init(
+        query: String = "",
+        source: SourceApp? = nil,
+        category: ContentCategory? = nil,
+        pinnedOnly: Bool = false
+    ) {
         self.query = query
         self.source = source
         self.category = category
+        self.pinnedOnly = pinnedOnly
     }
 
     static let none = HistoryFilter()
@@ -23,6 +30,9 @@ struct FilterHistory {
     func callAsFunction(_ history: History, filter: HistoryFilter) -> [ClipboardItem] {
         let query = filter.query.trimmingCharacters(in: .whitespacesAndNewlines)
         return history.items.filter { item in
+            if filter.pinnedOnly, !item.isPinned {
+                return false
+            }
             if let source = filter.source, !(item.source?.matches(source) ?? false) {
                 return false
             }
