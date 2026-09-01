@@ -109,7 +109,7 @@ private struct ChipButton<Label: View>: View {
         .animation(.easeOut(duration: 0.14), value: chip.isFocused)
         .animation(.easeOut(duration: 0.14), value: chip.isActive)
         .onHover { hovering in
-            if hovering {
+            if hovering, MouseActivity.movedRecently {
                 onFocus()
             }
         }

@@ -27,7 +27,16 @@ final class PanelController {
         panel.onClose = { [weak self] in
             self?.hidePreview()
         }
+        // Hover-selection listens to this: only real pointer movement may
+        // steal the keyboard selection (see MouseActivity).
+        panel.acceptsMouseMovedEvents = true
+        mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in
+            MouseActivity.lastMove = Date()
+            return event
+        }
     }
+
+    private var mouseMonitor: Any?
 
     /// Routes panel keys through the user's bindings, intercepted ahead of
     /// the search field's caret.
