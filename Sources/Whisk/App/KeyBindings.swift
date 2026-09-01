@@ -6,6 +6,7 @@ import Combine
 enum KeyAction: String, CaseIterable, Identifiable {
     case togglePanel
     case pasteSelection
+    case pastePlain
     case previousCard
     case nextCard
     case rowUp
@@ -20,6 +21,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
         switch self {
         case .togglePanel: "Show / hide the panel"
         case .pasteSelection: "Paste the selection"
+        case .pastePlain: "Paste as plain text"
         case .previousCard: "Previous card or chip"
         case .nextCard: "Next card or chip"
         case .rowUp: "Focus the row above"
@@ -168,6 +170,8 @@ final class KeyBindingsStore: ObservableObject {
             return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command, .shift])
         case .pasteSelection:
             return KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [])
+        case .pastePlain:
+            return KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [.option])
         case .previousCard:
             return KeyBinding(keyCode: UInt16(kVK_LeftArrow), modifiers: [])
         case .nextCard:

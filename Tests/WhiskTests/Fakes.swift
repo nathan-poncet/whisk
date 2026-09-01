@@ -47,6 +47,7 @@ final class FailingHistoryStore: HistoryStore {
 final class ScriptedPasteboard: Pasteboard {
     var pendingSnapshots: [PasteboardSnapshot] = []
     private(set) var written: [Payload] = []
+    private(set) var writtenRTF: [Data?] = []
 
     init() {}
 
@@ -54,8 +55,9 @@ final class ScriptedPasteboard: Pasteboard {
         pendingSnapshots.isEmpty ? nil : pendingSnapshots.removeFirst()
     }
 
-    func write(_ payload: Payload) {
+    func write(_ payload: Payload, rtf: Data?) {
         written.append(payload)
+        writtenRTF.append(rtf)
     }
 }
 

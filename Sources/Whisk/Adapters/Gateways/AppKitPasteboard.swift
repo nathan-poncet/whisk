@@ -24,17 +24,25 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         lastChangeCount = count
         guard !holdsConcealedContent(), let payload = readPayload() else { return nil }
         let app = NSWorkspace.shared.frontmostApplication
+        var rtf: Data?
+        if case .text = payload {
+            rtf = board.data(forType: .rtf)
+        }
         return PasteboardSnapshot(
             payload: payload,
-            source: SourceApp(name: app?.localizedName, bundleID: app?.bundleIdentifier)
+            source: SourceApp(name: app?.localizedName, bundleID: app?.bundleIdentifier),
+            rtf: rtf
         )
     }
 
-    func write(_ payload: Payload) {
+    func write(_ payload: Payload, rtf: Data?) {
         board.clearContents()
         switch payload {
         case .text(let value):
             board.setString(value, forType: .string)
+            if let rtf {
+                board.setData(rtf, forType: .rtf)
+            }
         case .link(let url):
             board.setString(url.absoluteString, forType: .string)
         case .image(let data):
