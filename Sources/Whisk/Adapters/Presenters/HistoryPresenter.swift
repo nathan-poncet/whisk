@@ -82,11 +82,22 @@ final class HistoryPresenter {
             sourceBundleID: item.source?.bundleID,
             kindLabel: kind,
             timeLabel: timeLabel(for: item, now: now),
+            detailLabel: Self.detailLabel(for: item),
             isPinned: item.isPinned,
             isSelected: isSelected,
             stackPosition: stackPosition,
             preview: preview(for: item)
         )
+    }
+
+    /// Textual payloads carry their size in the footer, whether or not the
+    /// preview had to fade out.
+    private static func detailLabel(for item: ClipboardItem) -> String? {
+        guard case .text(let value) = item.payload,
+            item.category == .text || item.category == .code
+        else { return nil }
+        let count = value.count
+        return count == 1 ? localized("1 character") : localized("\(count) characters")
     }
 
     private static func kindLabel(_ category: ContentCategory) -> String {

@@ -108,8 +108,9 @@ struct ItemCardView: View, Equatable {
         case .text(let value):
             Text(value)
                 .font(.callout)
-                .lineLimit(6)
                 .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .mask(bottomFade)
         case .color(let code, let rgb):
             VStack(alignment: .leading, spacing: 8) {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -121,8 +122,10 @@ struct ItemCardView: View, Equatable {
             }
             .padding(.horizontal, 14)
         case .code(let text, let tokens):
-            CodeTextView(text: text, tokens: tokens)
+            CodeTextView(text: text, tokens: tokens, lineLimit: nil)
                 .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .mask(bottomFade)
         case .link(let address):
             LinkCardPreview(address: address)
                 .padding(.horizontal, 14)
@@ -145,14 +148,30 @@ struct ItemCardView: View, Equatable {
         }
     }
 
+    /// Overflowing text melts into the card's bottom edge instead of being
+    /// chopped: full opacity everywhere but the last stretch, which fades
+    /// to nothing. Short content never reaches the fade zone.
+    private var bottomFade: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+            LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 26)
+        }
+    }
+
     private var footer: some View {
-        HStack {
+        HStack(spacing: 6) {
             Text(card.timeLabel)
             Spacer()
+            if let detail = card.detailLabel {
+                Text(detail)
+                Text("·")
+            }
             Text(card.kindLabel)
         }
         .font(.caption2)
         .foregroundStyle(.secondary)
+        .lineLimit(1)
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 12)
