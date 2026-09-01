@@ -271,6 +271,22 @@ import Testing
         #expect(spy.last.filters.hasActiveChip == false)
     }
 
+    @Test func pin_and_delete_act_on_the_current_selection() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("second"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.moveSelection(.next)
+        controller.togglePinSelected()
+        #expect(spy.last.cards[1].isPinned == true)
+
+        controller.deleteSelected()
+        #expect(spy.last.cards.map(\.preview) == [.text("first")])
+    }
+
     @Test func the_panel_reset_clears_the_query() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("alpha")), anItem(.text("beta"))]

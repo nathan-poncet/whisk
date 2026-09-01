@@ -10,6 +10,19 @@ enum KeyboardLayout {
         return characterMap()[wanted]
     }
 
+    /// The character a virtual key code prints under the current layout,
+    /// for displaying recorded shortcuts.
+    static func character(for keyCode: UInt16) -> Character? {
+        guard let source = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
+            let layoutPointer = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData)
+        else { return nil }
+        let layoutData = Unmanaged<CFData>.fromOpaque(layoutPointer).takeUnretainedValue() as Data
+        return layoutData.withUnsafeBytes { (buffer: UnsafeRawBufferPointer) -> Character? in
+            guard let base = buffer.baseAddress else { return nil }
+            return character(for: keyCode, in: base.assumingMemoryBound(to: UCKeyboardLayout.self))
+        }
+    }
+
     private static func characterMap() -> [Character: CGKeyCode] {
         guard let source = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
             let layoutPointer = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData)

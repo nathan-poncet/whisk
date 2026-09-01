@@ -232,8 +232,18 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         mutate { try togglePinItem(id, in: $0) }
     }
 
+    func togglePinSelected() {
+        guard let id = selectedID else { return }
+        togglePin(id)
+    }
+
     func delete(_ id: UUID) {
         mutate { try deleteItem(id, in: $0) }
+    }
+
+    func deleteSelected() {
+        guard let id = selectedID else { return }
+        delete(id)
     }
 
     func clear() {
