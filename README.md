@@ -78,7 +78,8 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 **Homebrew** (recommended — installs the prebuilt app into /Applications):
 
 ```sh
-brew install --cask --no-quarantine nathan-poncet/tap/whisk
+brew install --cask nathan-poncet/tap/whisk
+xattr -d com.apple.quarantine /Applications/Whisk.app
 ```
 
 **Direct download** — grab the latest DMG and drag Whisk into
@@ -88,9 +89,9 @@ Applications:
 
 ⚠️ Whisk is not notarized yet (that requires an Apple Developer
 membership), so macOS quarantines downloaded copies and refuses to open
-them on first launch. `--no-quarantine` above handles it for Homebrew;
-for the DMG, allow it in **System Settings → Privacy & Security → "Open
-Anyway"**, or clear the quarantine flag yourself:
+them on first launch — hence the `xattr` step above. Alternatively,
+allow the app in **System Settings → Privacy & Security → "Open
+Anyway"**:
 
 ```sh
 xattr -d com.apple.quarantine /Applications/Whisk.app

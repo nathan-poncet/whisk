@@ -155,7 +155,7 @@
     </div>
     <div class="brew">
       <span class="dollar">$</span>
-      <span id="brew-cmd">brew install --cask --no-quarantine nathan-poncet/tap/whisk</span>
+      <span id="brew-cmd">brew install --cask nathan-poncet/tap/whisk</span>
       <button onclick="navigator.clipboard.writeText(document.getElementById('brew-cmd').textContent).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 1400); })">Copy</button>
     </div>
     <p class="requires">macOS 14+ · Liquid Glass on macOS 26 · GPL-3.0</p>
@@ -208,8 +208,8 @@
     <div class="options grid">
       <div class="card option">
         <h3>🍺 Homebrew</h3>
-        <p style="margin-top: 8px"><code>brew install --cask --no-quarantine nathan-poncet/tap/whisk</code></p>
-        <p class="note">Installs the prebuilt app straight into /Applications. <code>--no-quarantine</code> skips the Gatekeeper block — needed until Whisk ships notarized.</p>
+        <p style="margin-top: 8px"><code>brew install --cask nathan-poncet/tap/whisk</code></p>
+        <p class="note">Installs the prebuilt app straight into /Applications. Until Whisk ships notarized, clear Gatekeeper's quarantine once: <code>xattr -d com.apple.quarantine /Applications/Whisk.app</code>.</p>
       </div>
       <div class="card option">
         <h3>💿 DMG</h3>
