@@ -17,15 +17,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var bindingsObserver: AnyCancellable?
     private var settingsWindow: NSWindow?
     private var stateStore: HistoryViewStateStore?
-    private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, FileHistoryStore>?
+    private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, SQLiteHistoryStore>?
     private var pollTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let store: FileHistoryStore
+        let store: SQLiteHistoryStore
         do {
-            store = FileHistoryStore(directory: try FileHistoryStore.defaultDirectory())
+            store = try Self.openStore()
         } catch {
-            fputs("Whisk: cannot open storage directory — \(error)\n", stderr)
+            fputs("Whisk: cannot open storage — \(error)\n", stderr)
             NSApp.terminate(nil)
             return
         }
@@ -131,6 +131,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Opens the SQLite store, importing the legacy JSON history on first
+    /// run after the upgrade.
+    private static func openStore() throws -> SQLiteHistoryStore {
+        let directory = try FileHistoryStore.defaultDirectory()
+        let databaseURL = directory.appendingPathComponent("history.sqlite")
+        let legacyIndex = directory.appendingPathComponent("history.json")
+        let needsMigration =
+            !FileManager.default.fileExists(atPath: databaseURL.path)
+            && FileManager.default.fileExists(atPath: legacyIndex.path)
+        let store = try SQLiteHistoryStore(databaseURL: databaseURL)
+        if needsMigration {
+            let legacy = FileHistoryStore(directory: directory)
+            if let items = try? legacy.load(), !items.isEmpty {
+                try? store.save(items)
+            }
+            try? FileManager.default.moveItem(
+                at: legacyIndex, to: directory.appendingPathComponent("history.json.migrated"))
+        }
+        return store
+    }
+
     /// The user's binding when one is recorded; otherwise ⇧⌘V wherever the
     /// current layout prints a V — Dvorak, AZERTY, … Re-registered on
     /// layout switches and on binding changes.
@@ -152,7 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func startPolling(_ clipboard: ClipboardController<AppKitPasteboard, SystemClock, FileHistoryStore>) {
+    private func startPolling(_ clipboard: ClipboardController<AppKitPasteboard, SystemClock, SQLiteHistoryStore>) {
         let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
             clipboard.pollTick()
         }
