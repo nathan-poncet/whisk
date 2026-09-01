@@ -38,13 +38,14 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   image, files); chips combine with each other and with the search query.
 - **Pins** — pin a card (`⌘P` or right-click) and filter to pinned items
   with one chip; pinned items survive *Clear*, eviction and retention.
-- **Paste stack** — queue several cards with `⇧⏎`, then pop them one by
-  one anywhere with `⌥⌘V` (global, rebindable): collect once, paste in
-  order.
+- **Paste stack** — queue several cards with `⇧⏎` (press again to
+  unqueue; stacked cards wear a numbered badge showing their rank), then
+  pop them one by one anywhere with `⌥⌘V` (global, rebindable): collect
+  once, paste in order.
 - **Rich text** — formatting (RTF) is captured and pasted back; `⌥⏎`
   pastes as plain text instead.
-- **Space preview** — `Space` opens a large preview of the selected card
-  (full text, full-size image, file list).
+- **Quick Look-style preview** — `⌘Y` opens a large preview of the
+  selected card (full text, full-size image, file list).
 - **Drag & drop** — drag any card straight into another application.
 - **Retention** — keep history forever, or auto-expire after 24 hours,
   7 days or 30 days; capacity is configurable up to unlimited (Settings).
@@ -127,10 +128,11 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   access (System Settings → Privacy & Security → Accessibility), and until
   it is granted the card still lands on the clipboard for a manual `⌘V`.
 - **⌥⏎**: paste as plain text (formatting stripped).
-- **⇧⏎**: add the selected card to the paste stack; **⌥⌘V** (global) pops
-  the next stacked card wherever you are typing.
-- **Space**: large preview of the selected card (when the search field is
-  empty); `Space` again or `Esc` closes it.
+- **⇧⏎**: toggle the selected card in and out of the paste stack — queued
+  cards show a numbered badge; **⌥⌘V** (global) pops the next stacked card
+  wherever you are typing.
+- **⌘Y**: large preview of the selected card (Finder's Quick Look
+  shortcut); `⌘Y` again or `Esc` closes it.
 - **Click a card**: same as Return, for that card.
 - **⌘1…⌘9**: paste the card at that position directly — the digit you
   actually type, so shifted-digit layouts (Programmer Dvorak, AZERTY) use

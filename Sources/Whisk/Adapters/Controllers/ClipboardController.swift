@@ -311,11 +311,15 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         return true
     }
 
-    /// Queues the highlighted card; the global paste-next shortcut then
-    /// pops the queue one item per press.
+    /// Queues the highlighted card, or removes it when already queued; the
+    /// global paste-next shortcut then pops the queue one item per press.
     func stackSelected() {
-        guard let id = selectedID, !pasteStack.contains(id) else { return }
-        pasteStack.append(id)
+        guard let id = selectedID else { return }
+        if let index = pasteStack.firstIndex(of: id) {
+            pasteStack.remove(at: index)
+        } else {
+            pasteStack.append(id)
+        }
         refresh()
     }
 
@@ -461,7 +465,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 now: clock.now(),
                 selectedID: selectedID,
                 hiddenCount: matches.count - visible.count,
-                stackCount: pasteStack.count,
+                stack: pasteStack,
                 filters: FilterContext(
                     sources: sources,
                     categories: categories,

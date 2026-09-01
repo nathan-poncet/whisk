@@ -46,8 +46,8 @@ final class PanelController {
             actions.activateCard(index)
             return true
         }
-        // Space previews the selection — unless a query is being typed,
-        // where a space is just a space.
+        // If the user rebinds preview to the bare space bar, a space while
+        // a query is being typed must stay a space.
         if keyBindings.binding(for: .previewSelection).matches(event) {
             if event.keyCode == UInt16(49), !stateStore.state.query.isEmpty {
                 return false

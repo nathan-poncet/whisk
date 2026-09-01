@@ -193,7 +193,10 @@ final class KeyBindingsStore: ObservableObject {
         case .switchChipGroup:
             return KeyBinding(keyCode: UInt16(kVK_Tab), modifiers: [.control])
         case .previewSelection:
-            return KeyBinding(keyCode: UInt16(kVK_Space), modifiers: [])
+            // Finder's Quick Look shortcut — the bare space bar would fight
+            // with typing in the search field.
+            let keyCode = KeyboardLayout.keyCode(for: "y") ?? CGKeyCode(kVK_ANSI_Y)
+            return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command])
         case .pinSelection:
             let keyCode = KeyboardLayout.keyCode(for: "p") ?? CGKeyCode(kVK_ANSI_P)
             return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command])

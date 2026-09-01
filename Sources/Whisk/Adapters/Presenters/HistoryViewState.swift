@@ -90,6 +90,8 @@ struct CardViewState: Equatable, Identifiable {
     let timeLabel: String
     let isPinned: Bool
     let isSelected: Bool
+    /// 1-based rank in the paste stack, nil when the card isn't queued.
+    let stackPosition: Int?
     let preview: CardPreview
 
     init(
@@ -100,6 +102,7 @@ struct CardViewState: Equatable, Identifiable {
         timeLabel: String,
         isPinned: Bool,
         isSelected: Bool,
+        stackPosition: Int? = nil,
         preview: CardPreview
     ) {
         self.id = id
@@ -109,6 +112,7 @@ struct CardViewState: Equatable, Identifiable {
         self.timeLabel = timeLabel
         self.isPinned = isPinned
         self.isSelected = isSelected
+        self.stackPosition = stackPosition
         self.preview = preview
     }
 }

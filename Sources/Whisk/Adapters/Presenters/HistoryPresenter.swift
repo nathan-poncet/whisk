@@ -52,21 +52,30 @@ final class HistoryPresenter {
         now: Date,
         selectedID: UUID? = nil,
         hiddenCount: Int = 0,
-        stackCount: Int = 0,
+        stack: [UUID] = [],
         filters: FilterContext = .empty
     ) -> HistoryViewState {
         HistoryViewState(
-            cards: items.map { card(for: $0, now: now, isSelected: $0.id == selectedID) },
+            cards: items.map {
+                card(
+                    for: $0,
+                    now: now,
+                    isSelected: $0.id == selectedID,
+                    stackPosition: stack.firstIndex(of: $0.id).map { $0 + 1 }
+                )
+            },
             countLabel: countLabel(items.count + hiddenCount),
             query: query,
             selectedID: selectedID,
             hiddenCount: hiddenCount,
-            stackCount: stackCount,
+            stackCount: stack.count,
             filters: filterBar(from: filters)
         )
     }
 
-    private func card(for item: ClipboardItem, now: Date, isSelected: Bool) -> CardViewState {
+    private func card(
+        for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?
+    ) -> CardViewState {
         let kind = Self.kindLabel(item.category)
         return CardViewState(
             id: item.id,
@@ -76,6 +85,7 @@ final class HistoryPresenter {
             timeLabel: timeLabel(for: item, now: now),
             isPinned: item.isPinned,
             isSelected: isSelected,
+            stackPosition: stackPosition,
             preview: preview(for: item)
         )
     }
