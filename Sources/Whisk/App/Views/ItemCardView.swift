@@ -131,10 +131,15 @@ struct ItemCardView: View, Equatable {
                 .padding(.horizontal, 14)
         case .image(let data):
             if let image = Self.decodedImage(for: card.id, data: data) {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Color.clear takes exactly the offered space; the filling
+                // image lives in an overlay so its ideal size can never
+                // inflate the layout, and the clip keeps it inside.
+                Color.clear
+                    .overlay(
+                        Image(nsImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .padding(.horizontal, 14)
             } else {

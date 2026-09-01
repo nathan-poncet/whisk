@@ -23,7 +23,7 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count
         guard !holdsConcealedContent(), let payload = readPayload() else { return nil }
-        let app = NSWorkspace.shared.frontmostApplication
+        let app = Self.sourceApplication()
         var rtf: Data?
         if case .text = payload {
             rtf = board.data(forType: .rtf)
@@ -51,6 +51,19 @@ final class AppKitPasteboard: Whisk.Pasteboard {
             board.writeObjects(paths.map { NSURL(fileURLWithPath: $0) })
         }
         lastChangeCount = board.changeCount
+    }
+
+    /// The application the user attributes the copy to. During a screenshot
+    /// to the clipboard the frontmost "app" is loginwindow (the capture HUD
+    /// runs under it) — an accessory agent, not what the user was looking
+    /// at. When the frontmost application isn't a regular one, the menu bar
+    /// owner is.
+    private static func sourceApplication() -> NSRunningApplication? {
+        let frontmost = NSWorkspace.shared.frontmostApplication
+        if let frontmost, frontmost.activationPolicy == .regular {
+            return frontmost
+        }
+        return NSWorkspace.shared.menuBarOwningApplication ?? frontmost
     }
 
     private func holdsConcealedContent() -> Bool {
