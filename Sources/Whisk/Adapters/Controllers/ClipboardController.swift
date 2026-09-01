@@ -44,6 +44,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var retention = RetentionPolicy.standard
     private var isPaused = false
     private var excludedBundleIDs: Set<String> = []
+    private var pasteStack: [UUID] = []
     private var selectedID: UUID?
     private var focusZone: PanelZone = .cards
     private var focusedAppIndex = 0
@@ -310,6 +311,30 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         return true
     }
 
+    /// Queues the highlighted card; the global paste-next shortcut then
+    /// pops the queue one item per press.
+    func stackSelected() {
+        guard let id = selectedID, !pasteStack.contains(id) else { return }
+        pasteStack.append(id)
+        refresh()
+    }
+
+    /// Writes the next queued payload to the pasteboard. Deleted items are
+    /// skipped; returns false once the queue is exhausted.
+    @discardableResult
+    func popStack() -> Bool {
+        while !pasteStack.isEmpty {
+            let id = pasteStack.removeFirst()
+            if let item = history.items.first(where: { $0.id == id }) {
+                pasteboard.write(item.payload, rtf: item.rtf)
+                refresh()
+                return true
+            }
+        }
+        refresh()
+        return false
+    }
+
     func togglePin(_ id: UUID) {
         mutate { try togglePinItem(id, in: $0) }
     }
@@ -428,6 +453,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         if selectedID == nil || !visible.contains(where: { $0.id == selectedID }) {
             selectedID = visible.first?.id
         }
+        pasteStack.removeAll { id in !history.items.contains(where: { $0.id == id }) }
         present(
             presenter.present(
                 items: visible,
@@ -435,6 +461,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 now: clock.now(),
                 selectedID: selectedID,
                 hiddenCount: matches.count - visible.count,
+                stackCount: pasteStack.count,
                 filters: FilterContext(
                     sources: sources,
                     categories: categories,

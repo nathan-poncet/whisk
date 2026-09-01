@@ -35,5 +35,6 @@ struct PanelActions {
     let delete: (UUID) -> Void
     let togglePinSelected: () -> Void
     let deleteSelected: () -> Void
+    let stackSelected: () -> Void
     let panelWillShow: () -> Void
 }

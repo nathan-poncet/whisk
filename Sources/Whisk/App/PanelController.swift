@@ -36,6 +36,7 @@ final class PanelController {
             (.switchChipGroup, { self.actions.switchChipGroup() }),
             (.pinSelection, { self.actions.togglePinSelected() }),
             (.deleteSelection, { self.actions.deleteSelected() }),
+            (.stackSelection, { self.actions.stackSelected() }),
         ]
         for (action, perform) in panelActions where keyBindings.binding(for: action).matches(event) {
             perform()

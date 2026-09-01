@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var panelController: PanelController?
     private var hotKey: HotKey?
+    private var stackHotKey: HotKey?
     private var layoutObserver: NSObjectProtocol?
     private var bindingsObserver: AnyCancellable?
     private var settingsWindow: NSWindow?
@@ -74,6 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             delete: { clipboard.delete($0) },
             togglePinSelected: { clipboard.togglePinSelected() },
             deleteSelected: { clipboard.deleteSelected() },
+            stackSelected: { clipboard.stackSelected() },
             panelWillShow: { clipboard.panelWillShow() }
         )
         let panelController = PanelController(stateStore: stateStore, actions: actions, keyBindings: keyBindings)
@@ -157,9 +159,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// layout switches and on binding changes.
     private func registerHotKey() {
         hotKey = nil
-        let binding = keyBindings.binding(for: .togglePanel)
-        hotKey = HotKey(keyCode: UInt32(binding.keyCode), modifiers: binding.carbonModifiers) { [weak self] in
+        stackHotKey = nil
+        let toggle = keyBindings.binding(for: .togglePanel)
+        hotKey = HotKey(keyCode: UInt32(toggle.keyCode), modifiers: toggle.carbonModifiers) { [weak self] in
             self?.panelController?.toggle()
+        }
+        let stack = keyBindings.binding(for: .pasteNextFromStack)
+        stackHotKey = HotKey(keyCode: UInt32(stack.keyCode), modifiers: stack.carbonModifiers) { [weak self] in
+            guard self?.clipboard?.popStack() == true else { return }
+            PasteSimulator.paste()
         }
     }
 
