@@ -17,6 +17,10 @@ struct ItemCardView: View, Equatable {
 
     private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
 
+    private var selectedSide: CGFloat {
+        card.isSelected ? 240 : 230
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
@@ -24,16 +28,24 @@ struct ItemCardView: View, Equatable {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             footer
         }
-        // Square on purpose — and neutral glass pinned to the OS theme;
-        // the app's color lives in its icon.
+        // The selection zoom needs both mechanisms at once: scaleEffect
+        // grows the SwiftUI-drawn content (text, icons, ring), while the
+        // frosted backdrop — an AppKit view that ignores transforms —
+        // grows geometrically to the same size. Same factor, same curve:
+        // they track. The outer slot stays constant so neighbors never
+        // shift.
         .frame(width: 230, height: 230)
-        .liquidGlass(in: Self.shape, cornerRadius: 18)
         .overlay(selectionRing)
-        // The scale sits below contentShape, so the selected card's hit
-        // area grows with it — natural hysteresis for hover selection.
-        .scaleEffect(card.isSelected ? 1.04 : 1)
+        .scaleEffect(card.isSelected ? 240.0 / 230.0 : 1)
         .animation(.easeOut(duration: 0.16), value: card.isSelected)
-        .contentShape(Self.shape)
+        .frame(width: 240, height: 240)
+        .background {
+            Color.clear
+                .frame(width: selectedSide, height: selectedSide)
+                .liquidGlass(in: Self.shape, cornerRadius: 18)
+                .animation(.easeOut(duration: 0.16), value: card.isSelected)
+        }
+        .contentShape(Rectangle())
         .onDrag {
             Self.dragProvider(for: card.preview)
         }
@@ -76,7 +88,7 @@ struct ItemCardView: View, Equatable {
                     .foregroundStyle(.secondary)
             }
             Text(card.sourceLabel)
-                .font(.callout.weight(.semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .lineLimit(1)
             Spacer()
             if let position = card.stackPosition {
@@ -105,7 +117,7 @@ struct ItemCardView: View, Equatable {
         switch card.preview {
         case .text(let value):
             Text(value)
-                .font(.callout)
+                .font(.system(size: 13))
                 .padding(.horizontal, 14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .mask(bottomFade)
