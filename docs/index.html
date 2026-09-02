@@ -246,7 +246,9 @@
     .tryit-stick .screen {
       flex: 1 1 auto; min-height: 0;
       margin-top: 22px;
-      max-height: calc(500px + 2000px * var(--p, 0));
+      /* --maxh is measured by the script: the exact height available
+         under the pinned heading, so width and height complete together. */
+      max-height: calc(500px + (var(--maxh, 100vh) - 500px) * var(--p, 0));
       width: calc(100% + (100vw - 100%) * var(--p, 0));
       margin-left: calc((100% - 100vw) / 2 * var(--p, 0));
       border-radius: calc(18px * (1 - var(--p, 0)));
@@ -506,6 +508,14 @@
   const zoom = document.querySelector(".tryit-zoom");
   const section = document.getElementById("try");
   const screen = el("try-screen");
+  const stick = document.querySelector(".tryit-stick");
+  const measure = () => {
+    // The height the screen may reach under the pinned heading — both
+    // axes interpolate on the same progress and land together.
+    const styles = getComputedStyle(stick);
+    const target = stick.clientHeight - parseFloat(styles.paddingBottom) - screen.offsetTop;
+    screen.style.setProperty("--maxh", `${Math.max(320, target)}px`);
+  };
   const onScroll = () => {
     // Growth only begins once the section itself reaches the top of the
     // viewport — before that, the demo is plainly a demo.
@@ -515,7 +525,8 @@
     screen.style.setProperty("--p", p.toFixed(3));
   };
   addEventListener("scroll", onScroll, { passive: true });
-  addEventListener("resize", onScroll, { passive: true });
+  addEventListener("resize", () => { measure(); onScroll(); }, { passive: true });
+  measure();
   onScroll();
 
   // Feature clips: cards advertise a video only when the file exists.
