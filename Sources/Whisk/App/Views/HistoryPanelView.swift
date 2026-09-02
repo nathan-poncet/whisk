@@ -54,9 +54,10 @@ struct HistoryPanelView: View {
             }
             content
         }
-        .padding(.top, 12)
+        .padding(.top, 58)
         .padding(.bottom, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(backdrop)
         .onChange(of: store.focusRevision) {
             searchFocused = true
             searchText = store.state.query
@@ -67,6 +68,29 @@ struct HistoryPanelView: View {
         .onChange(of: store.state.cards) { _, cards in
             ItemCardView.prewarm(cards)
         }
+    }
+
+    /// A light veil rising from the bottom edge: enough to quiet whatever
+    /// sits behind the panel, not enough to hide it.
+    private var backdrop: some View {
+        Rectangle()
+            .fill(.ultraThinMaterial)
+            // The material's light variant washes the backdrop white; the
+            // dark variant reads as plain blur.
+            .environment(\.colorScheme, .dark)
+            .mask(
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: .black.opacity(0.3), location: 0.2),
+                        .init(color: .black.opacity(0.8), location: 0.55),
+                        .init(color: .black.opacity(0.8), location: 1),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .allowsHitTesting(false)
     }
 
     private var toolbar: some View {
