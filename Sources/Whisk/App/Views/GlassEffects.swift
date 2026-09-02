@@ -22,6 +22,7 @@ private struct LiquidGlassModifier: ViewModifier {
             .background {
                 ZStack {
                     shape.fill(.thinMaterial)
+                        .opacity(0.96)
                     if let tint {
                         shape.fill(tint)
                     }
