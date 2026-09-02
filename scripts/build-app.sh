@@ -57,10 +57,18 @@ cat > "$APP/Contents/Info.plist" << PLIST
     <key>LSUIElement</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>© Nathan Poncet — MIT License</string>
+    <string>© Nathan Poncet — GPL-3.0-or-later</string>
 </dict>
 </plist>
 PLIST
 
-codesign --force --sign - "$APP"
-echo "built $APP (version $VERSION, $ARCH)"
+# Ad-hoc by default; a real Developer ID identity (CODESIGN_IDENTITY)
+# signs with the hardened runtime and a secure timestamp, as notarization
+# requires.
+IDENTITY="${CODESIGN_IDENTITY:--}"
+if [ "$IDENTITY" = "-" ]; then
+  codesign --force --sign - "$APP"
+else
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
+fi
+echo "built $APP (version $VERSION, $ARCH, identity: $IDENTITY)"
