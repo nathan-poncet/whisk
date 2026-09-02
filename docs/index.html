@@ -236,12 +236,19 @@
     }
 
     .tryit-zoom { height: 190vh; }
-    .tryit-zoom .screen {
-      position: sticky;
-      top: calc(14px * (1 - var(--p, 0)));
+    /* The heading stays pinned above the growing screen: even at full
+       size, the demo is visibly labeled a demo. */
+    .tryit-stick {
+      position: sticky; top: 0; height: 100vh;
+      display: flex; flex-direction: column;
+      padding: 16px 0 14px; box-sizing: border-box;
+    }
+    .tryit-stick .screen {
+      flex: 1 1 auto; min-height: 0;
+      margin-top: 22px;
+      max-height: calc(500px + 2000px * var(--p, 0));
       width: calc(100% + (100vw - 100%) * var(--p, 0));
       margin-left: calc((100% - 100vw) / 2 * var(--p, 0));
-      height: calc(500px + (100vh - 514px) * var(--p, 0));
       border-radius: calc(18px * (1 - var(--p, 0)));
       display: flex; flex-direction: column;
       padding: 0;
@@ -281,14 +288,15 @@
 
 
   <section id="try" class="tryit">
-    <h2>Try it right here</h2>
-    <p class="sub" style="color: var(--muted); max-width: 560px; margin: 10px auto 0">
-      A faithful little simulation of the panel. Type to filter, tap the chips,
-      tap a card to paste it into the note — and keep scrolling: it grows to
-      the real thing.
-    </p>
     <div class="tryit-zoom">
-      <div class="screen" id="try-screen">
+      <div class="tryit-stick">
+        <h2>Try it right here</h2>
+        <p class="sub" style="color: var(--muted); max-width: 560px; margin: 10px auto 0">
+          A faithful little simulation of the panel. Type to filter, tap the chips,
+          tap a card to paste it into the note — and keep scrolling: it grows to
+          the real thing.
+        </p>
+        <div class="screen" id="try-screen">
         <div class="note" id="try-note" title="Click to clear">
           <div class="bar">
             <span class="dot" style="background:#f56"></span>
@@ -308,6 +316,7 @@
           <div class="chips" id="try-chips"></div>
           <div class="railwrap"><div class="rail" id="try-rail"></div></div>
           <p class="hint">The real panel floats over everything you do — <kbd>&#8679;&#8984;V</kbd> from any app.</p>
+        </div>
         </div>
       </div>
     </div>
