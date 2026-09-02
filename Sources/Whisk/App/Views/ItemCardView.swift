@@ -117,7 +117,7 @@ struct ItemCardView: View, Equatable {
         switch card.preview {
         case .text(let value):
             Text(value)
-                .font(.system(size: 13))
+                .font(.system(size: 12))
                 .padding(.horizontal, 14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .mask(bottomFade)
