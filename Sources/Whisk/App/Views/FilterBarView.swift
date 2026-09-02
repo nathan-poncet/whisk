@@ -43,7 +43,7 @@ struct FilterBarView: View {
                                 if let icon = SourceAppStyle.resolve(bundleID: chip.sourceBundleID).icon {
                                     Image(nsImage: icon)
                                         .resizable()
-                                        .frame(width: 14, height: 14)
+                                        .frame(width: 17, height: 17)
                                 }
                                 Text(chip.label)
                             }
@@ -94,10 +94,10 @@ struct FilterBarView: View {
         if id == "code", let neovim = CategoryIcons.neovim {
             Image(nsImage: neovim)
                 .resizable()
-                .frame(width: 13, height: 13)
+                .frame(width: 16, height: 16)
         } else {
             Image(systemName: kindSymbol(id))
-                .font(.system(size: 10))
+                .font(.system(size: 12))
                 .foregroundStyle(.secondary)
         }
     }
@@ -146,10 +146,10 @@ private struct FilterChipStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.caption.weight(isActive ? .semibold : .regular))
+            .font(.callout.weight(isActive ? .semibold : .regular))
             .foregroundStyle(isActive ? Color.accentColor : .primary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .liquidGlass(in: Capsule(), tint: isActive ? Color.accentColor.opacity(0.28) : nil)
             .overlay(
                 Capsule().strokeBorder(borderColor, lineWidth: isFocused ? 2 : 1)

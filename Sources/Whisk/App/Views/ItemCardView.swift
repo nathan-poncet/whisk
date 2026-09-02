@@ -72,14 +72,14 @@ struct ItemCardView: View, Equatable {
             if let icon = SourceAppStyle.resolve(bundleID: card.sourceBundleID).icon {
                 Image(nsImage: icon)
                     .resizable()
-                    .frame(width: 16, height: 16)
+                    .frame(width: 20, height: 20)
             } else {
                 Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: 11))
+                    .font(.system(size: 13))
                     .foregroundStyle(.secondary)
             }
             Text(card.sourceLabel)
-                .font(.caption.weight(.semibold))
+                .font(.callout.weight(.semibold))
                 .lineLimit(1)
             Spacer()
             if let position = card.stackPosition {
