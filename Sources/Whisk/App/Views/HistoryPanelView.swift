@@ -5,17 +5,6 @@ struct HistoryPanelView: View {
     let actions: PanelActions
     @FocusState private var searchFocused: Bool
 
-    /// Every glass card costs several milliseconds to rasterize when the
-    /// panel appears; mounting all sixty up front made ⇧⌘V feel sluggish.
-    /// The panel opens with a screenful and the rest mounts in small
-    /// batches between run-loop turns, while the user can already type.
-    @State private var mountedCards = HistoryPanelView.initialBatch
-    /// Bumped on every open and close: in-flight batch steps from the
-    /// previous phase compare against it and cancel themselves.
-    @State private var railGeneration = 0
-    private static let initialBatch = 14
-    private static let batchStep = 10
-
     private var queryBinding: Binding<String> {
         Binding(
             get: { store.state.query },
@@ -43,45 +32,6 @@ struct HistoryPanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: store.focusRevision) {
             searchFocused = true
-            railGeneration += 1
-            mountNextBatch(generation: railGeneration)
-        }
-        .onChange(of: store.closeRevision) {
-            railGeneration += 1
-            unmountNextBatch(generation: railGeneration)
-        }
-        .onChange(of: store.state.cards.count) {
-            mountNextBatch(generation: railGeneration)
-        }
-        .onChange(of: store.state.selectedID) { _, selectedID in
-            // Keyboard navigation may outrun the mounting: reveal up to the
-            // selection immediately.
-            guard let selectedID,
-                let index = store.state.cards.firstIndex(where: { $0.id == selectedID }),
-                index >= mountedCards
-            else { return }
-            mountedCards = index + Self.batchStep
-        }
-    }
-
-    private func mountNextBatch(generation: Int) {
-        guard generation == railGeneration, mountedCards < store.state.cards.count else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
-            guard generation == railGeneration, mountedCards < store.state.cards.count else { return }
-            mountedCards = min(mountedCards + Self.batchStep, store.state.cards.count)
-            mountNextBatch(generation: generation)
-        }
-    }
-
-    /// Tearing all the cards down at once would stall the close: the first
-    /// step waits for the window's disappearance to commit, then the rail
-    /// shrinks batch by batch while nobody can see it.
-    private func unmountNextBatch(generation: Int) {
-        guard generation == railGeneration, mountedCards > Self.initialBatch else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-            guard generation == railGeneration, mountedCards > Self.initialBatch else { return }
-            mountedCards = max(mountedCards - Self.batchStep, Self.initialBatch)
-            unmountNextBatch(generation: generation)
         }
     }
 
@@ -116,9 +66,12 @@ struct HistoryPanelView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     // Eager on purpose: a lazy stack materializes cards at
                     // the viewport's edge, which pops them in during fast
-                    // scrolls. The controller bounds the rail instead.
+                    // scrolls. The controller bounds the rail instead — and
+                    // keeps the bound tight: every mounted glass card costs
+                    // real milliseconds each time the panel orders on or
+                    // off screen.
                     HStack(spacing: 14) {
-                        ForEach(store.state.cards.prefix(mountedCards)) { card in
+                        ForEach(store.state.cards) { card in
                             ItemCardView(
                                 card: card,
                                 onSelect: { actions.select(card.id) },

@@ -118,6 +118,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if CommandLine.arguments.contains("--show-panel") {
             panelController.show()
         }
+        if CommandLine.arguments.contains("--exercise-panel") {
+            exercisePanel(cycle: 0)
+        }
         if CommandLine.arguments.contains("--show-settings") {
             DispatchQueue.main.async { [weak self] in
                 self?.openSettings()
@@ -130,6 +133,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if CommandLine.arguments.contains("--smoke-test") {
             print("smoke test passed")
             NSApp.terminate(nil)
+        }
+    }
+
+    /// Temporary diagnostics: opens and closes the panel in a loop with
+    /// timing logs, no synthetic input needed.
+    private func exercisePanel(cycle: Int) {
+        guard cycle < 4 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            let s0 = CACurrentMediaTime()
+            self?.panelController?.show()
+            let s1 = CACurrentMediaTime()
+            DispatchQueue.main.async {
+                NSLog(
+                    "WHISK-PERF exercise open %d: show=%.1fms turn=+%.1fms",
+                    cycle, (s1 - s0) * 1000, (CACurrentMediaTime() - s0) * 1000)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                let t0 = CACurrentMediaTime()
+                self?.panelController?.hide()
+                let t1 = CACurrentMediaTime()
+                DispatchQueue.main.async {
+                    NSLog(
+                        "WHISK-PERF exercise close %d: hide=%.1fms turn=+%.1fms",
+                        cycle, (t1 - t0) * 1000, (CACurrentMediaTime() - t0) * 1000)
+                }
+                self?.exercisePanel(cycle: cycle + 1)
+            }
         }
     }
 
