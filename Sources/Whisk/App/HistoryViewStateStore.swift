@@ -6,6 +6,7 @@ import Foundation
 final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var state: HistoryViewState = .empty
     @Published private(set) var focusRevision = 0
+    @Published private(set) var closeRevision = 0
 
     func update(_ newState: HistoryViewState) {
         state = newState
@@ -13,6 +14,13 @@ final class HistoryViewStateStore: ObservableObject {
 
     func requestSearchFocus() {
         focusRevision += 1
+    }
+
+    /// The panel just went away: the rail rewinds to its leading edge
+    /// while nobody is looking, so every open starts at position zero
+    /// with no visible travel.
+    func panelDidClose() {
+        closeRevision += 1
     }
 }
 

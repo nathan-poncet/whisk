@@ -26,6 +26,7 @@ final class PanelController {
         // outlive it.
         panel.onClose = { [weak self] in
             self?.hidePreview()
+            self?.stateStore.panelDidClose()
         }
         // Hover-selection listens to this: only real pointer movement may
         // steal the keyboard selection (see MouseActivity).

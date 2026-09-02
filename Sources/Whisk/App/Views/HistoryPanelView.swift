@@ -100,6 +100,16 @@ struct HistoryPanelView: View {
                             proxy.scrollTo(selectedID)
                         }
                     }
+                    .onChange(of: store.closeRevision) {
+                        // Rewind while hidden: the next open starts at zero,
+                        // never showing the carousel travel back.
+                        guard let first = store.state.cards.first?.id else { return }
+                        var transaction = Transaction()
+                        transaction.disablesAnimations = true
+                        withTransaction(transaction) {
+                            proxy.scrollTo(first, anchor: .leading)
+                        }
+                    }
             }
         }
     }
