@@ -35,14 +35,22 @@ struct HistoryPanelView: View {
         )
     }
 
+    /// The capsule stays folded while it has nothing to show: it stretches
+    /// on the first typed character — or the moment vim's search mode
+    /// engages, even empty.
+    private var searchExpanded: Bool {
+        !searchText.isEmpty || (store.vimEnabled && store.searchActive)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // The landing page's layout, mirrored: a centered search capsule
             // of bounded width, the filter chips centered right below it.
             toolbar
-                .frame(maxWidth: 680)
+                .frame(maxWidth: searchExpanded ? 680 : 320)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: searchExpanded)
             if !store.state.filters.isEmpty {
                 FilterBarView(
                     filters: store.state.filters,
@@ -58,8 +66,22 @@ struct HistoryPanelView: View {
         .padding(.bottom, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .onChange(of: store.focusRevision) {
-            searchFocused = true
+            searchFocused = store.searchActive
             searchText = store.state.query
+        }
+        .onChange(of: store.searchActive) { _, active in
+            // One beat later: entering search mode swaps the hint for the
+            // field, which must exist before it can take focus.
+            DispatchQueue.main.async {
+                searchFocused = active
+            }
+        }
+        .onChange(of: store.state.query) { _, query in
+            // NORMAL-mode clears (the c command) land in the controller
+            // first; the local echo follows once nobody is typing.
+            if !searchFocused {
+                searchText = query
+            }
         }
         .onAppear {
             ItemCardView.prewarm(store.state.cards)
@@ -73,11 +95,23 @@ struct HistoryPanelView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField(localized("Search clipboard history"), text: queryBinding)
+            if store.vimEnabled && !store.searchActive {
+                // NORMAL mode: the letters are commands, the field is out
+                // of the loop — the persisted query stays readable.
+                Text(searchText.isEmpty ? localized("Press s to search") : searchText)
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            } else {
+                TextField(
+                    searchExpanded ? localized("Search clipboard history") : localized("Search"),
+                    text: queryBinding
+                )
                 .textFieldStyle(.plain)
                 .font(.system(size: 14))
                 .focused($searchFocused)
-            Spacer()
+            }
+            Spacer(minLength: 0)
             if store.state.stackCount > 0 {
                 Label("\(store.state.stackCount)", systemImage: "square.stack.3d.up.fill")
                     .font(.caption.monospacedDigit())
@@ -87,10 +121,24 @@ struct HistoryPanelView: View {
             Text(store.state.countLabel)
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
+            if store.vimEnabled {
+                Text(store.searchActive ? "SEARCH" : "NORMAL")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .overlay(Capsule().strokeBorder(.secondary.opacity(0.4), lineWidth: 1))
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .liquidGlass(in: Capsule())
+        .contentShape(Capsule())
+        .onTapGesture {
+            if store.vimEnabled, !store.searchActive {
+                store.setSearchActive(true)
+            }
+        }
     }
 
     @ViewBuilder private var content: some View {

@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import SwiftUI
 
 /// Paste-style panel pinned to the bottom of the main screen. Non-activating,
@@ -10,10 +11,18 @@ final class PanelController {
     private let keyBindings: KeyBindingsStore
     private var previewPanel: NSPanel?
 
-    init(stateStore: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore) {
+    private let vimMode: () -> Bool
+    private let vimBindings: VimBindingsStore
+
+    init(
+        stateStore: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore,
+        vimBindings: VimBindingsStore, vimMode: @escaping () -> Bool
+    ) {
         self.stateStore = stateStore
         self.actions = actions
         self.keyBindings = keyBindings
+        self.vimBindings = vimBindings
+        self.vimMode = vimMode
         panel = FloatingPanel()
         panel.contentView = NSHostingView(
             rootView: HistoryPanelView(store: stateStore, actions: actions)
@@ -28,6 +37,15 @@ final class PanelController {
             self?.hidePreview()
             self?.stateStore.panelDidClose()
         }
+        // In vim navigation Esc walks back one mode — SEARCH to NORMAL —
+        // before it may close anything, and abandons the query on the way
+        // out, exactly like Esc during a / search.
+        panel.onCancel = { [weak self] in
+            guard let self, stateStore.vimEnabled, stateStore.searchActive else { return false }
+            actions.search("")
+            stateStore.setSearchActive(false)
+            return true
+        }
         // Hover-selection listens to this: only real pointer movement may
         // steal the keyboard selection (see MouseActivity).
         panel.acceptsMouseMovedEvents = true
@@ -39,9 +57,89 @@ final class PanelController {
 
     private var mouseMonitor: Any?
 
+    /// A two-key vim sequence in flight (gg, dd) and when it started.
+    private var vimPendingKey: (key: String, at: Date)?
+
+    /// The vim layer: active only in normal mode, only for bare keys —
+    /// chords fall through to the user's bindings. Bindings come from the
+    /// editable keymap and are matched by what the keys type, so any
+    /// layout works; digits ride the same rule (AZERTY reaches them with
+    /// Shift, which stays allowed).
+    private func handleVimNormal(_ event: NSEvent) -> Bool {
+        guard stateStore.vimEnabled, !stateStore.searchActive else { return false }
+        guard event.modifierFlags.intersection([.command, .option, .control]).isEmpty else {
+            return false
+        }
+        guard let typed = event.charactersIgnoringModifiers, !typed.isEmpty else { return false }
+        if event.keyCode == UInt16(kVK_Tab) {
+            actions.switchChipGroup()
+            return true
+        }
+        let pending = vimPendingKey
+        vimPendingKey = nil
+        let prefix = pending.flatMap { Date().timeIntervalSince($0.at) < 0.8 ? $0.key : nil }
+        // The sequence first (gd is nothing, gg jumps), then the bare key,
+        // then a fresh sequence start.
+        if let prefix, let action = vimBindings.action(for: prefix + typed) {
+            perform(action)
+            return true
+        }
+        if let action = vimBindings.action(for: typed) {
+            perform(action)
+            return true
+        }
+        if vimBindings.isSequencePrefix(typed) {
+            vimPendingKey = (typed, Date())
+            return true
+        }
+        if typed == "/" {
+            stateStore.setSearchActive(true)
+            return true
+        }
+        if typed.count == 1, let digit = typed.first?.wholeNumberValue, (1...9).contains(digit) {
+            actions.activateCard(digit - 1)
+            return true
+        }
+        // Unmapped printable keys die silently, vim-style; control and
+        // function keys continue to the user's bindings.
+        guard let scalar = typed.unicodeScalars.first else { return false }
+        return scalar.value >= 0x20 && scalar.value < 0xF700
+    }
+
+    private func perform(_ action: VimAction) {
+        switch action {
+        case .previousCard: actions.navigate(.left)
+        case .nextCard: actions.navigate(.right)
+        case .rowUp: actions.navigate(.up)
+        case .rowDown: actions.navigate(.down)
+        case .firstCard: actions.jumpToEdge(.start)
+        case .lastCard: actions.jumpToEdge(.end)
+        case .paste: actions.activate()
+        case .pastePlain: actions.activatePlain()
+        case .preview: togglePreview()
+        case .stackToggle: actions.stackSelected()
+        case .pinToggle: actions.togglePinSelected()
+        case .deleteSelection: actions.deleteSelected()
+        case .search: stateStore.setSearchActive(true)
+        case .clearSearch: actions.search("")
+        case .closePanel: hide()
+        }
+    }
+
     /// Routes panel keys through the user's bindings, intercepted ahead of
     /// the search field's caret.
     private func handle(_ event: NSEvent) -> Bool {
+        // Vim's search commits like /: Return keeps the query and filter
+        // and returns to normal mode — the paste stays one p away.
+        if stateStore.vimEnabled, stateStore.searchActive,
+            event.specialKey == .carriageReturn || event.specialKey == .enter
+        {
+            stateStore.setSearchActive(false)
+            return true
+        }
+        if handleVimNormal(event) {
+            return true
+        }
         let panelActions: [(KeyAction, () -> Void)] = [
             (.pastePlain, { self.actions.activatePlain() }),
             (.pasteSelection, { self.actions.activate() }),
@@ -117,6 +215,7 @@ final class PanelController {
             display: true
         )
         actions.panelWillShow()
+        stateStore.configureInput(vim: vimMode())
         stateStore.requestSearchFocus()
         panel.makeKeyAndOrderFront(nil)
     }
@@ -223,6 +322,8 @@ final class PanelController {
 final class FloatingPanel: NSPanel {
     var keyHandler: ((NSEvent) -> Bool)?
     var onClose: (() -> Void)?
+    /// Gets the first shot at Esc; returning true keeps the panel open.
+    var onCancel: (() -> Bool)?
 
     init() {
         super.init(
@@ -263,6 +364,9 @@ final class FloatingPanel: NSPanel {
     }
 
     override func cancelOperation(_ sender: Any?) {
+        if onCancel?() == true {
+            return
+        }
         orderOut(nil)
     }
 

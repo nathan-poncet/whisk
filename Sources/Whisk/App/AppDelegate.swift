@@ -6,6 +6,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let keyBindings = KeyBindingsStore()
     private let generalSettings = GeneralSettingsStore()
+    private let vimKeymap = VimBindingsStore()
     private let loginItem = LoginItemManager()
     private let updateChecker = UpdateChecker()
     private var onboardingWindow: NSWindow?
@@ -80,6 +81,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 searchDebounce.flush()
                 clipboard.navigate(direction)
             },
+            jumpToEdge: { edge in
+                searchDebounce.flush()
+                clipboard.jumpSelection(to: edge)
+            },
             switchChipGroup: { clipboard.switchChipGroup() },
             toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
             toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
@@ -102,7 +107,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 clipboard.panelWillShow()
             }
         )
-        let panelController = PanelController(stateStore: stateStore, actions: actions, keyBindings: keyBindings)
+        let panelController = PanelController(
+            stateStore: stateStore, actions: actions, keyBindings: keyBindings,
+            vimBindings: vimKeymap,
+            vimMode: { [weak self] in self?.generalSettings.vimNavigation ?? false }
+        )
         self.panelController = panelController
 
         configureStatusItem()
@@ -335,7 +344,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openSettings() {
         if settingsWindow == nil {
             let hosting = NSHostingController(
-                rootView: SettingsView(store: keyBindings, general: generalSettings, loginItem: loginItem)
+                rootView: SettingsView(
+                    store: keyBindings, general: generalSettings, loginItem: loginItem,
+                    vimBindings: vimKeymap)
             )
             let window = NSWindow(contentViewController: hosting)
             // SwiftUI sizing is lazy: without this the window materializes

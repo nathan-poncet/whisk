@@ -76,3 +76,16 @@
 "now" = "now";
 "text" = "text";
 "⌘1…⌘9 paste the matching card directly." = "⌘1…⌘9 paste the matching card directly.";
+
+"Press s to search" = "Press s to search";
+"Search" = "Search";
+"Vim navigation in the panel" = "Vim navigation in the panel";
+"The panel opens with letters as commands: s to search, hjkl to move, p to paste, v to preview, q to close." = "The panel opens with letters as commands: s to search, hjkl to move, p to paste, v to preview, q to close.";
+
+"First card" = "First card";
+"Last card" = "Last card";
+"Start a search" = "Start a search";
+"Clear the search" = "Clear the search";
+"Close the panel" = "Close the panel";
+"Vim Keybindings" = "Vim Keybindings";
+"One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed." = "One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.";
