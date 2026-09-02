@@ -309,6 +309,28 @@ import Testing
         #expect(spy.last.cards.count == 2)
     }
 
+    @Test func the_focus_follows_its_chip_when_the_row_reshapes() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Spotify", bundle: "com.spotify.client"),
+            anItem(.text("release notes"), from: "Notes", bundle: "com.apple.notes"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        // Focus the code chip, toggle it: the app row shrinks and every
+        // flat index shifts — the cursor must stay on the code chip.
+        controller.focusCategoryChip("code")
+        controller.activateFocused()
+
+        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty"])
+        #expect(spy.last.filters.kinds.first { $0.id == "code" }?.isFocused == true)
+        #expect(spy.last.filters.kinds.first { $0.id == "code" }?.isActive == true)
+    }
+
     @Test func facets_narrow_each_other_without_dropping_selections() {
         let store = InMemoryHistoryStore()
         store.stored = [
