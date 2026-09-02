@@ -24,11 +24,10 @@ struct ItemCardView: View, Equatable {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             footer
         }
-        .frame(width: 230)
-        .liquidGlass(
-            in: Self.shape,
-            tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID).tint.opacity(0.32)
-        )
+        // Square on purpose — and neutral glass pinned to the OS theme;
+        // the app's color lives in its icon.
+        .frame(width: 230, height: 230)
+        .liquidGlass(in: Self.shape)
         .overlay(selectionRing)
         // The scale sits below contentShape, so the selected card's hit
         // area grows with it — natural hysteresis for hover selection.
@@ -62,8 +61,6 @@ struct ItemCardView: View, Equatable {
                 Self.shape
                     .strokeBorder(Color.accentColor, lineWidth: 3)
             }
-        } else {
-            Self.shape.strokeBorder(.white.opacity(0.10), lineWidth: 1)
         }
     }
 

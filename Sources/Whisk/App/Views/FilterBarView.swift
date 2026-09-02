@@ -164,6 +164,6 @@ private struct FilterChipStyle: ButtonStyle {
         if isActive {
             return .accentColor.opacity(0.8)
         }
-        return .white.opacity(0.10)
+        return .clear
     }
 }
