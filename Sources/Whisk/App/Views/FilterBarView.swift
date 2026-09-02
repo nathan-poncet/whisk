@@ -124,12 +124,33 @@ private struct ChipButton<Label: View>: View {
     let onFocus: () -> Void
     @ViewBuilder let label: () -> Label
 
+    private var zoomed: Bool {
+        chip.isFocused || chip.isActive
+    }
+
     var body: some View {
         Button(action: onToggle) {
             label()
         }
         .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: chip.isFocused))
-        .scaleEffect(chip.isFocused || chip.isActive ? 1.06 : 1)
+        .scaleEffect(zoomed ? 1.06 : 1)
+        // The frosted capsule is an AppKit view and ignores transforms, so
+        // it grows geometrically in a measured background — oversize does
+        // not push neighbors — while the content scales above it.
+        .background {
+            GeometryReader { proxy in
+                Color.clear
+                    .liquidGlass(
+                        in: Capsule(),
+                        tint: chip.isActive ? Color.accentColor.opacity(0.28) : nil
+                    )
+                    .frame(
+                        width: proxy.size.width * (zoomed ? 1.06 : 1),
+                        height: proxy.size.height * (zoomed ? 1.06 : 1)
+                    )
+                    .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            }
+        }
         .animation(.easeOut(duration: 0.14), value: chip.isFocused)
         .animation(.easeOut(duration: 0.14), value: chip.isActive)
         .onContinuousHover { phase in
@@ -150,7 +171,6 @@ private struct FilterChipStyle: ButtonStyle {
             .foregroundStyle(isActive ? Color.accentColor : .primary)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .liquidGlass(in: Capsule(), tint: isActive ? Color.accentColor.opacity(0.28) : nil)
             .overlay(
                 Capsule().strokeBorder(borderColor, lineWidth: isFocused ? 2 : 1)
             )

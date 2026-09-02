@@ -10,7 +10,7 @@ struct CodeTextView: View {
 
     var body: some View {
         Text(attributed)
-            .font(.system(size: 11, design: .monospaced))
+            .font(.system(size: 12, design: .monospaced))
             .lineSpacing(1.5)
             .lineLimit(lineLimit)
     }

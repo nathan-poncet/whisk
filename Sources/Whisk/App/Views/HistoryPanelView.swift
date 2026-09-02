@@ -18,7 +18,7 @@ struct HistoryPanelView: View {
     /// their size but render nothing, and everything is preloaded so a
     /// card entering the delta arrives fully formed.
     @State private var railWindow = RailWindow()
-    private static let cardStride: CGFloat = 244
+    private static let cardStride: CGFloat = 254
     private static let mountDelta = 8
 
     /// The field echoes keystrokes instantly; the controller's query only
@@ -181,7 +181,7 @@ struct HistoryPanelView: View {
     // extent steady.
     private var railPlaceholder: some View {
         Color.clear
-            .frame(width: 230, height: 230)
+            .frame(width: 240, height: 240)
     }
 
     private var emptyState: some View {
