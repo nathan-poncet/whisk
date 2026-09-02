@@ -153,7 +153,8 @@
     .tryit .note {
       /* Grows gently with the scroll progress, like the screen around it. */
       width: calc(min(430px, 86%) + 110px * var(--p, 0));
-      margin: 0 auto 22px; text-align: left;
+      flex-shrink: 0;
+      margin: 24px auto 22px; text-align: left;
       border-radius: 10px; overflow: hidden;
       background: #f5f2ea; color: #333;
       font-size: calc(13px + 1.5px * var(--p, 0));
@@ -171,10 +172,13 @@
     }
     @keyframes blink { 50% { opacity: 0; } }
 
+    .tryit .chipswrap { overflow-x: auto; scrollbar-width: none; margin-bottom: 10px; }
+    .tryit .chipswrap::-webkit-scrollbar { display: none; }
     .tryit .chips {
-      display: flex; gap: 7px; justify-content: center; flex-wrap: wrap;
-      padding: 0 16px; margin-bottom: 10px;
+      display: flex; gap: 7px; width: max-content; margin: 0 auto;
+      padding: 2px 16px;
     }
+    .tryit .chip { flex-shrink: 0; }
     .tryit .chip {
       display: inline-flex; align-items: center; gap: 5px;
       font-size: 11.5px; padding: 4px 10px; border-radius: 999px;
@@ -258,13 +262,13 @@
       display: flex; flex-direction: column;
       padding: 0;
     }
-    .tryit .note { margin: 34px auto 0; position: relative; }
+    .tryit .note { margin: 34px auto 22px; position: relative; flex-shrink: 0; }
     .tryit .note .bar button {
       margin-left: auto; border: none; background: none; cursor: pointer;
       color: #8a8578; font-size: 10px;
     }
     .tryit .note .bar button:hover { color: #555; }
-    .tryit .panelblock { margin-top: auto; padding-bottom: 16px; }
+    .tryit .panelblock { margin-top: auto; padding-top: 14px; padding-bottom: 16px; }
     .tryit .chip img, .tryit .chip svg { display: block; }
   </style>
 </head>
@@ -318,7 +322,7 @@
             <input id="try-input" type="text" placeholder="Search clipboard history" autocomplete="off">
             <span class="count" id="try-count"></span>
           </div>
-          <div class="chips" id="try-chips"></div>
+          <div class="chipswrap"><div class="chips" id="try-chips"></div></div>
           <div class="railwrap"><div class="rail" id="try-rail"></div></div>
           <p class="hint">The real panel floats over everything you do — <kbd>&#8679;&#8984;V</kbd> from any app.</p>
         </div>
