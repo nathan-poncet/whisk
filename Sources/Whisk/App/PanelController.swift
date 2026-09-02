@@ -107,6 +107,7 @@ final class PanelController {
 
     func show() {
         guard let screen = NSScreen.main else { return }
+        resetDragGhost()
         // The full frame, not visibleFrame: the panel floats above the
         // Dock, flush with the physical bottom edge of the screen.
         let frame = screen.frame
@@ -122,6 +123,58 @@ final class PanelController {
 
     func hide() {
         panel.orderOut(nil)
+    }
+
+    private var ghostFadeTimer: Timer?
+    private var dragEndWatcher: Timer?
+
+    /// A drag needs the whole screen: the panel fades out and lets events
+    /// through, so the item can land on whatever it was covering. The
+    /// window itself must survive — ordering it out would kill the drag
+    /// session it hosts — so it only closes for real once the button is
+    /// released. Timers ride the .common run-loop modes because a drag
+    /// session runs the tracking mode, where default-mode timers stall.
+    func dragDidBegin() {
+        guard panel.isVisible, dragEndWatcher == nil else { return }
+        hidePreview()
+        // One beat after session start, so the system has already
+        // snapshotted the drag image from the still-opaque card.
+        let fade = Timer(timeInterval: 0.03, repeats: false) { [weak self] _ in
+            guard let self else { return }
+            panel.ignoresMouseEvents = true
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.18
+                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                self.panel.animator().alphaValue = 0
+            }
+        }
+        ghostFadeTimer = fade
+        RunLoop.main.add(fade, forMode: .common)
+        // SwiftUI's onDrag never reports the session's end; the mouse
+        // button is the signal — released means dropped or cancelled.
+        let watcher = Timer(timeInterval: 0.08, repeats: true) { [weak self] _ in
+            if NSEvent.pressedMouseButtons & 1 == 0 {
+                self?.dragDidEnd()
+            }
+        }
+        dragEndWatcher = watcher
+        RunLoop.main.add(watcher, forMode: .common)
+    }
+
+    /// Dropping consumes the selection like Return does: the panel closes
+    /// rather than reappearing over the freshly dropped item.
+    private func dragDidEnd() {
+        panel.orderOut(nil)
+        resetDragGhost()
+    }
+
+    private func resetDragGhost() {
+        ghostFadeTimer?.invalidate()
+        ghostFadeTimer = nil
+        dragEndWatcher?.invalidate()
+        dragEndWatcher = nil
+        panel.alphaValue = 1
+        panel.ignoresMouseEvents = false
     }
 
     /// Quick-Look-style preview of the selected card, centered above the

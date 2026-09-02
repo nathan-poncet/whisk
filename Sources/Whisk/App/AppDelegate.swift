@@ -87,6 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             focusCategoryChip: { clipboard.focusCategoryChip($0) },
             togglePin: { clipboard.togglePin($0) },
             delete: { clipboard.delete($0) },
+            dragBegan: { [weak self] in self?.panelController?.dragDidBegin() },
             togglePinSelected: { clipboard.togglePinSelected() },
             deleteSelected: {
                 searchDebounce.flush()

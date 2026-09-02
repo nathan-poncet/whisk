@@ -10,6 +10,7 @@ struct ItemCardView: View, Equatable {
     let onHighlight: () -> Void
     let onTogglePin: () -> Void
     let onDelete: () -> Void
+    let onDragBegin: () -> Void
 
     static func == (lhs: ItemCardView, rhs: ItemCardView) -> Bool {
         lhs.card == rhs.card
@@ -54,7 +55,8 @@ struct ItemCardView: View, Equatable {
         }
         .contentShape(Rectangle())
         .onDrag {
-            Self.dragProvider(for: card.preview)
+            onDragBegin()
+            return Self.dragProvider(for: card.preview)
         }
         .onTapGesture(perform: onSelect)
         // Continuous, not enter/exit: after a keyboard scroll parks a card
