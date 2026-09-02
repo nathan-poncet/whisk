@@ -200,8 +200,13 @@ final class FloatingPanel: NSPanel {
     }
 
     override func orderOut(_ sender: Any?) {
+        // resignKey and cancelOperation both funnel here: only a window
+        // that was actually visible notifies, once.
+        let wasVisible = isVisible
         super.orderOut(sender)
-        onClose?()
+        if wasVisible {
+            onClose?()
+        }
     }
 
     override func cancelOperation(_ sender: Any?) {
