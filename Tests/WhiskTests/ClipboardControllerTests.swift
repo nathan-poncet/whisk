@@ -184,8 +184,8 @@ import Testing
             pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
         )
 
-        #expect(spy.last.cards.count == 16)
-        #expect(spy.last.hiddenCount == 54)
+        #expect(spy.last.cards.count == 60)
+        #expect(spy.last.hiddenCount == 10)
         #expect(spy.last.countLabel == "70 items")
 
         controller.search("item 7")
