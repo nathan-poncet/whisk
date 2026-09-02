@@ -153,6 +153,8 @@
     .tryit .note {
       /* Grows gently with the scroll progress, like the screen around it. */
       width: calc(min(430px, 86%) + 110px * var(--p, 0));
+      /* Phones: the growth must never push the note against the edges. */
+      max-width: calc(100% - 32px);
       flex-shrink: 0;
       margin: 24px auto 22px; text-align: left;
       border-radius: 10px; overflow: hidden;
