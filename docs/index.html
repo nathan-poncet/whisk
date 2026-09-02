@@ -234,6 +234,26 @@
       max-width: min(1000px, 92vw); max-height: 82vh; border-radius: 14px;
       border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
     }
+
+    .tryit-zoom { height: 190vh; }
+    .tryit-zoom .screen {
+      position: sticky;
+      top: calc(14px * (1 - var(--p, 0)));
+      width: calc(100% + (100vw - 100%) * var(--p, 0));
+      margin-left: calc((100% - 100vw) / 2 * var(--p, 0));
+      height: calc(500px + (100vh - 514px) * var(--p, 0));
+      border-radius: calc(18px * (1 - var(--p, 0)));
+      display: flex; flex-direction: column;
+      padding: 0;
+    }
+    .tryit .note { margin: 34px auto 0; position: relative; }
+    .tryit .note .bar button {
+      margin-left: auto; border: none; background: none; cursor: pointer;
+      color: #8a8578; font-size: 10px;
+    }
+    .tryit .note .bar button:hover { color: #555; }
+    .tryit .panelblock { margin-top: auto; padding-bottom: 16px; }
+    .tryit .chip img, .tryit .chip svg { display: block; }
   </style>
 </head>
 <body>
@@ -257,11 +277,6 @@
     </div>
     <p class="requires">macOS 14+ · Liquid Glass on macOS 26 · GPL-3.0</p>
 
-    <div class="demo">
-      <video autoplay loop muted playsinline poster="media/screenshot.png">
-        <source src="media/demo.mp4" type="video/mp4">
-      </video>
-    </div>
   </div>
 
 
@@ -269,26 +284,32 @@
     <h2>Try it right here</h2>
     <p class="sub" style="color: var(--muted); max-width: 560px; margin: 10px auto 0">
       A faithful little simulation of the panel. Type to filter, click the chips,
-      use <kbd>←</kbd> <kbd>→</kbd> and <kbd>⏎</kbd> to paste into the note.
+      use <kbd>&larr;</kbd> <kbd>&rarr;</kbd> and <kbd>&#9166;</kbd> to paste into the note —
+      and keep scrolling: it grows to the real thing.
     </p>
-    <div class="screen">
-      <div class="note">
-        <div class="bar">
-          <span class="dot" style="background:#f56"></span>
-          <span class="dot" style="background:#fb5"></span>
-          <span class="dot" style="background:#5c5"></span>
-          &nbsp;Untitled — your note
+    <div class="tryit-zoom">
+      <div class="screen" id="try-screen">
+        <div class="note" id="try-note" title="Click to clear">
+          <div class="bar">
+            <span class="dot" style="background:#f56"></span>
+            <span class="dot" style="background:#fb5"></span>
+            <span class="dot" style="background:#5c5"></span>
+            &nbsp;Untitled — your note
+            <button id="note-clear">&#9003; clear</button>
+          </div>
+          <div class="body"><span id="note-text"></span><span class="cursor"></span></div>
         </div>
-        <div class="body"><span id="note-text"></span><span class="cursor"></span></div>
+        <div class="panelblock">
+          <div class="search">
+            <span style="color: var(--muted)">&#128269;</span>
+            <input id="try-input" type="text" placeholder="Search clipboard history" autocomplete="off">
+            <span class="count" id="try-count"></span>
+          </div>
+          <div class="chips" id="try-chips"></div>
+          <div class="railwrap"><div class="rail" id="try-rail"></div></div>
+          <p class="hint">The real panel floats over everything you do — <kbd>&#8679;&#8984;V</kbd> from any app.</p>
+        </div>
       </div>
-      <div class="chips" id="try-chips"></div>
-      <div class="search">
-        <span style="color: var(--muted)">🔍</span>
-        <input id="try-input" type="text" placeholder="Search clipboard history" autocomplete="off">
-        <span class="count" id="try-count"></span>
-      </div>
-      <div class="railwrap"><div class="rail" id="try-rail"></div></div>
-      <p class="hint">The real panel floats over everything you do — <kbd>⇧⌘V</kbd> from any app.</p>
     </div>
   </section>
 
@@ -385,6 +406,13 @@
     Notes:   "#e8c548", Ghostty: "#4c9ee8", Figma:  "#a259ff",
     Safari:  "#1f8fff", Slack:   "#e0447b", Finder: "#59b0f2", Arc: "#f0546c",
   };
+  const ICONS = {
+    text: `<svg width="11" height="11" viewBox="0 0 12 12"><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="1" y1="2.5" x2="11" y2="2.5"/><line x1="1" y1="6" x2="8" y2="6"/><line x1="1" y1="9.5" x2="10" y2="9.5"/></g></svg>`,
+    code: `<img src="media/nvim.png" width="12" height="12" alt="">`,
+    color: `<span class="dot" style="background:conic-gradient(#f66,#fc6,#7d6,#6cc,#66f,#c6c,#f66)"></span>`,
+    link: `<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4.5 7.5 L7.5 4.5"/><path d="M5.2 3.2 L6.5 2 a2.2 2.2 0 0 1 3.4 3.4 L8.8 6.8"/><path d="M6.8 8.8 L5.5 10 a2.2 2.2 0 0 1 -3.4 -3.4 L3.2 5.2"/></svg>`,
+    files: `<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 3.2 a1 1 0 0 1 1 -1 h2.3 l1.2 1.4 h4 a1 1 0 0 1 1 1 V9 a1 1 0 0 1 -1 1 h-7.5 a1 1 0 0 1 -1 -1 z"/></svg>`,
+  };
   const ITEMS = [
     { app: "Arc",     kind: "text",  text: "Your clipboard, remembered.", time: "now" },
     { app: "Ghostty", kind: "code",  text: "git rebase -i origin/main", time: "1m" },
@@ -415,7 +443,6 @@
   const render = () => {
     const found = ITEMS.filter(matches);
     state.sel = Math.min(state.sel, Math.max(0, found.length - 1));
-    // Adaptive facets: kinds shrink to what the selected apps contain.
     const inAppScope = ITEMS.filter((i) => !state.apps.size || state.apps.has(i.app));
     const kindsAvail = [...new Set(inAppScope.map((i) => i.kind))];
     [...state.kinds].forEach((k) => { if (!kindsAvail.includes(k)) state.kinds.delete(k); });
@@ -425,7 +452,7 @@
         `<span class="dot" style="background:${APPS[a]}"></span>${a}</span>`).join("") +
       `<span style="width:1px;background:rgba(255,255,255,.25);margin:2px 3px"></span>` +
       kindsAvail.map((k) =>
-        `<span class="chip ${state.kinds.has(k) ? "active" : ""}" data-kind="${k}">${k}</span>`).join("");
+        `<span class="chip ${state.kinds.has(k) ? "active" : ""}" data-kind="${k}">${ICONS[k] || ""}${k}</span>`).join("");
     el("try-rail").innerHTML = found.map((i, n) => {
       const body = i.kind === "color"
         ? `<div class="swatch" style="background:${swatch(i.text)}"></div><div class="body mono">${i.text}</div>`
@@ -435,7 +462,6 @@
         body + `<div class="foot"><span>${i.time}</span><span>${i.kind}</span></div></div>`;
     }).join("") || `<div style="color:var(--muted);font-size:13px;padding:30px 60px">No matches</div>`;
     el("try-count").textContent = `${found.length} item${found.length === 1 ? "" : "s"}`;
-    return found;
   };
   const paste = () => {
     const found = ITEMS.filter(matches);
@@ -443,6 +469,9 @@
     if (!item) return;
     el("note-text").textContent += (el("note-text").textContent ? " " : "") + item.text;
   };
+  const clearNote = () => { el("note-text").textContent = ""; };
+  el("note-clear").addEventListener("click", (e) => { clearNote(); e.stopPropagation(); });
+  el("try-note").addEventListener("click", clearNote);
   el("try-input").addEventListener("input", (e) => { state.q = e.target.value; state.sel = 0; render(); });
   el("try-input").addEventListener("keydown", (e) => {
     const found = ITEMS.filter(matches);
@@ -464,6 +493,19 @@
     if (card) { state.sel = Number(card.dataset.n); render(); paste(); }
   });
   render();
+
+  // Scrolling grows the mock screen to the full viewport.
+  const zoom = document.querySelector(".tryit-zoom");
+  const screen = el("try-screen");
+  const onScroll = () => {
+    const rect = zoom.getBoundingClientRect();
+    const total = Math.max(1, zoom.offsetHeight - window.innerHeight);
+    const p = Math.min(1, Math.max(0, -rect.top / total));
+    screen.style.setProperty("--p", p.toFixed(3));
+  };
+  addEventListener("scroll", onScroll, { passive: true });
+  addEventListener("resize", onScroll, { passive: true });
+  onScroll();
 
   // Feature clips: cards advertise a video only when the file exists.
   document.querySelectorAll(".card[data-clip]").forEach((card) => {

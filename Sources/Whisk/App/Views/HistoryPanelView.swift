@@ -37,6 +37,12 @@ struct HistoryPanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // The landing page's layout, mirrored: a centered search capsule
+            // of bounded width, the filter chips centered right below it.
+            toolbar
+                .frame(maxWidth: 640)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
             if !store.state.filters.isEmpty {
                 FilterBarView(
                     filters: store.state.filters,
@@ -46,8 +52,6 @@ struct HistoryPanelView: View {
                     onFocusKind: actions.focusCategoryChip
                 )
             }
-            toolbar
-                .padding(.horizontal, 16)
             content
         }
         .padding(.top, 12)

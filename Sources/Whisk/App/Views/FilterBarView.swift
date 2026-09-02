@@ -71,6 +71,9 @@ struct FilterBarView: View {
             }
             .contentMargins(.horizontal, 16, for: .scrollContent)
             .scrollClipDisabled()
+            // Centered under the search capsule while the chips fit; the
+            // anchor only matters when they don't scroll.
+            .defaultScrollAnchor(.center)
             .onChange(of: filters.focusedChipID) { _, id in
                 guard let id else { return }
                 withAnimation(.easeOut(duration: 0.12)) {
