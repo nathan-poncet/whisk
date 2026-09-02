@@ -41,7 +41,6 @@
 "Pin" = "Pin";
 "Pinned items are never expired or evicted." = "Pinned items are never expired or evicted.";
 "Pinned" = "Pinned";
-"Press ⇧⌘V" = "Press ⇧⌘V";
 "Preview the selection" = "Preview the selection";
 "Previous card or chip" = "Previous card or chip";
 "Quit Whisk" = "Quit Whisk";
@@ -77,10 +76,8 @@
 "text" = "text";
 "⌘1…⌘9 paste the matching card directly." = "⌘1…⌘9 paste the matching card directly.";
 
-"Press s to search" = "Press s to search";
 "Search" = "Search";
 "Vim navigation in the panel" = "Vim navigation in the panel";
-"The panel opens with letters as commands: s to search, hjkl to move, p to paste, v to preview, q to close." = "The panel opens with letters as commands: s to search, hjkl to move, p to paste, v to preview, q to close.";
 
 "First card" = "First card";
 "Last card" = "Last card";
@@ -89,3 +86,7 @@
 "Close the panel" = "Close the panel";
 "Vim Keybindings" = "Vim Keybindings";
 "One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed." = "One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.";
+
+"Press %@ to search" = "Press %@ to search";
+"Press %@" = "Press %@";
+"The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close." = "The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.";

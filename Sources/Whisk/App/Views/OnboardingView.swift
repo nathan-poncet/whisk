@@ -4,6 +4,7 @@ import SwiftUI
 /// First-run walkthrough: what Whisk does and why it asks for
 /// Accessibility access, instead of a bare system prompt.
 struct OnboardingView: View {
+    let toggleShortcut: String
     let onContinue: () -> Void
 
     var body: some View {
@@ -22,7 +23,7 @@ struct OnboardingView: View {
 
             step(
                 symbol: "keyboard",
-                title: localized("Press ⇧⌘V"),
+                title: String(format: localized("Press %@"), toggleShortcut),
                 text: localized(
                     "A panel slides up with everything you copied — search it, filter it, arrow through it.")
             )

@@ -324,7 +324,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showOnboarding() {
         let hosting = NSHostingController(
-            rootView: OnboardingView { [weak self] in
+            rootView: OnboardingView(toggleShortcut: keyBindings.label(for: .togglePanel)) { [weak self] in
                 UserDefaults.standard.set(true, forKey: "didShowOnboarding")
                 self?.onboardingWindow?.close()
                 self?.onboardingWindow = nil

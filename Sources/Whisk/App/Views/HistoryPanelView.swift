@@ -98,10 +98,14 @@ struct HistoryPanelView: View {
             if store.vimEnabled && !store.searchActive {
                 // NORMAL mode: the letters are commands, the field is out
                 // of the loop — the persisted query stays readable.
-                Text(searchText.isEmpty ? localized("Press s to search") : searchText)
-                    .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                Text(
+                    searchText.isEmpty
+                        ? String(format: localized("Press %@ to search"), store.vimSearchKey)
+                        : searchText
+                )
+                .font(.system(size: 14))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
             } else {
                 TextField(
                     searchExpanded ? localized("Search clipboard history") : localized("Search"),
