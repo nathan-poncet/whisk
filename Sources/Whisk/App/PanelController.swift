@@ -110,7 +110,9 @@ final class PanelController {
         // The full frame, not visibleFrame: the panel floats above the
         // Dock, flush with the physical bottom edge of the screen.
         let frame = screen.frame
-        let height: CGFloat = 414
+        // Taller than the content: the top band is empty backdrop, so the
+        // blur veil begins above the chips instead of at their edge.
+        let height: CGFloat = 460
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true
@@ -153,7 +155,7 @@ final class PanelController {
         preview.setFrame(
             NSRect(
                 x: frame.midX - size.width / 2,
-                y: frame.minY + 460,
+                y: frame.minY + 506,
                 width: size.width,
                 height: size.height
             ),
