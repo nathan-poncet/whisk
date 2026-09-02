@@ -4,8 +4,8 @@ import AppKit
 
 let masterSize: CGFloat = 1024
 
-// A chasen — the bamboo matcha whisk the app is named after: handle on
-// top, thread binding, tines fanning down into a bell.
+// The same mark as the landing page: the matcha bowl emoji on the
+// site's dark ground, lit by its green glow.
 func drawMaster() -> NSImage {
     let image = NSImage(size: NSSize(width: masterSize, height: masterSize))
     image.lockFocus()
@@ -14,41 +14,37 @@ func drawMaster() -> NSImage {
     let inset: CGFloat = 100
     let plate = NSRect(x: inset, y: inset, width: masterSize - inset * 2, height: masterSize - inset * 2)
     let platePath = NSBezierPath(roundedRect: plate, xRadius: 185, yRadius: 185)
+    NSColor(srgbRed: 0.043, green: 0.059, blue: 0.051, alpha: 1).set()
+    platePath.fill()
+
+    NSGraphicsContext.current?.saveGraphicsState()
+    platePath.addClip()
     NSGradient(
-        starting: NSColor(srgbRed: 0.58, green: 0.74, blue: 0.44, alpha: 1),
-        ending: NSColor(srgbRed: 0.25, green: 0.42, blue: 0.22, alpha: 1)
-    )?.draw(in: platePath, angle: -70)
-
-    let cx = masterSize / 2
-    NSColor.white.set()
-
-    for i in -4...4 {
-        let offset = CGFloat(i)
-        let tine = NSBezierPath()
-        tine.lineWidth = 16
-        tine.lineCapStyle = .round
-        tine.move(to: NSPoint(x: cx + offset * 11, y: 520))
-        tine.curve(
-            to: NSPoint(x: cx + offset * 41, y: 240 + abs(offset) * 10),
-            controlPoint1: NSPoint(x: cx + offset * 17, y: 460),
-            controlPoint2: NSPoint(x: cx + offset * 38, y: 320)
-        )
-        tine.stroke()
-    }
-
-    let binding = NSBezierPath(
-        roundedRect: NSRect(x: cx - 68, y: 500, width: 136, height: 58),
-        xRadius: 24,
-        yRadius: 24
+        starting: NSColor(srgbRed: 0.498, green: 0.847, blue: 0.643, alpha: 0.38),
+        ending: NSColor(srgbRed: 0.498, green: 0.847, blue: 0.643, alpha: 0)
+    )?.draw(
+        fromCenter: NSPoint(x: masterSize * 0.32, y: masterSize * 0.72), radius: 0,
+        toCenter: NSPoint(x: masterSize * 0.32, y: masterSize * 0.72), radius: masterSize * 0.62,
+        options: []
     )
-    binding.fill()
-
-    let handle = NSBezierPath(
-        roundedRect: NSRect(x: cx - 47, y: 540, width: 94, height: 230),
-        xRadius: 42,
-        yRadius: 42
+    NSGradient(
+        starting: NSColor(srgbRed: 0.247, green: 0.616, blue: 0.408, alpha: 0.30),
+        ending: NSColor(srgbRed: 0.247, green: 0.616, blue: 0.408, alpha: 0)
+    )?.draw(
+        fromCenter: NSPoint(x: masterSize * 0.74, y: masterSize * 0.30), radius: 0,
+        toCenter: NSPoint(x: masterSize * 0.74, y: masterSize * 0.30), radius: masterSize * 0.55,
+        options: []
     )
-    handle.fill()
+    NSGraphicsContext.current?.restoreGraphicsState()
+
+    let glyph = NSAttributedString(
+        string: "\u{1F375}",
+        attributes: [.font: NSFont.systemFont(ofSize: 560)]
+    )
+    let size = glyph.size()
+    glyph.draw(
+        at: NSPoint(x: (masterSize - size.width) / 2, y: (masterSize - size.height) / 2)
+    )
 
     image.unlockFocus()
     return image
