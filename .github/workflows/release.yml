@@ -12,6 +12,11 @@ jobs:
     runs-on: macos-26
     env:
       TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+      SIGN_P12: ${{ secrets.DEVELOPER_ID_P12 }}
+      SIGN_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+      NOTARY_KEY: ${{ secrets.NOTARY_API_KEY_P8 }}
+      NOTARY_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
+      NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
     steps:
       - uses: actions/checkout@v7
 
@@ -24,17 +29,54 @@ jobs:
       - name: Test
         run: swift test
 
+      # Inert until the Developer ID secrets exist: without them the build
+      # stays ad-hoc signed, exactly as before.
+      - name: Import signing certificate
+        if: env.SIGN_P12 != ''
+        run: |
+          set -euo pipefail
+          echo "$SIGN_P12" | base64 --decode > signing.p12
+          security create-keychain -p ci-keychain build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p ci-keychain build.keychain
+          security import signing.p12 -k build.keychain -P "$SIGN_P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k ci-keychain build.keychain > /dev/null
+          rm signing.p12
+          echo "CODESIGN_IDENTITY=Developer ID Application" >> "$GITHUB_ENV"
+
       - name: Build app bundle
         run: ./scripts/build-app.sh "${GITHUB_REF_NAME#v}" universal
 
       - name: Smoke test the packaged app
         run: ./dist/Whisk.app/Contents/MacOS/Whisk --smoke-test | grep -q "smoke test passed"
 
+      - name: Notarize and staple the app
+        if: env.NOTARY_KEY != ''
+        run: |
+          set -euo pipefail
+          echo "$NOTARY_KEY" | base64 --decode > notary.p8
+          ditto -c -k --keepParent dist/Whisk.app notarize-app.zip
+          xcrun notarytool submit notarize-app.zip \
+            --key notary.p8 --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" \
+            --wait
+          xcrun stapler staple dist/Whisk.app
+          rm notarize-app.zip
+
       - name: Zip app
         run: ditto -c -k --keepParent dist/Whisk.app "dist/Whisk-${GITHUB_REF_NAME}.zip"
 
       - name: Build DMG
         run: ./scripts/make-dmg.sh
+
+      - name: Notarize and staple the DMG
+        if: env.NOTARY_KEY != ''
+        run: |
+          set -euo pipefail
+          xcrun notarytool submit dist/Whisk.dmg \
+            --key notary.p8 --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" \
+            --wait
+          xcrun stapler staple dist/Whisk.dmg
+          rm notary.p8
 
       - name: Create GitHub release
         env:
