@@ -98,6 +98,15 @@ final class VimBindingsStore: ObservableObject {
         persist()
     }
 
+    func resetAll() {
+        var map: [VimAction: String] = [:]
+        for action in VimAction.allCases {
+            map[action] = action.defaultKey
+        }
+        keys = map
+        persist()
+    }
+
     func isCustomized(_ action: VimAction) -> Bool {
         key(for: action) != action.defaultKey
     }

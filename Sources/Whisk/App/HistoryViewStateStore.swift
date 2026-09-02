@@ -10,9 +10,11 @@ final class HistoryViewStateStore: ObservableObject {
 
     /// Vim navigation splits the panel into two input modes: SEARCH is the
     /// field with focus, NORMAL frees the letters to act as commands. With
-    /// vim off the panel simply never leaves SEARCH.
+    /// vim off the panel simply never leaves SEARCH. The search key rides
+    /// along so hints always show the actual binding.
     @Published private(set) var vimEnabled = false
     @Published private(set) var searchActive = true
+    @Published private(set) var vimSearchKey = "s"
 
     func update(_ newState: HistoryViewState) {
         state = newState
@@ -22,9 +24,10 @@ final class HistoryViewStateStore: ObservableObject {
         focusRevision += 1
     }
 
-    func configureInput(vim: Bool) {
+    func configureInput(vim: Bool, searchKey: String) {
         vimEnabled = vim
         searchActive = !vim
+        vimSearchKey = searchKey
     }
 
     func setSearchActive(_ active: Bool) {

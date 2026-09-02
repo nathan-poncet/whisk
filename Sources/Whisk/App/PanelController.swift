@@ -215,7 +215,7 @@ final class PanelController {
             display: true
         )
         actions.panelWillShow()
-        stateStore.configureInput(vim: vimMode())
+        stateStore.configureInput(vim: vimMode(), searchKey: vimBindings.key(for: .search))
         stateStore.requestSearchFocus()
         panel.makeKeyAndOrderFront(nil)
     }

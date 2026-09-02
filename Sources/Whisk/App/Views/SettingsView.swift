@@ -52,8 +52,16 @@ struct SettingsView: View {
                 Toggle(localized("Check for updates at launch"), isOn: $general.checkForUpdates)
                 Toggle(localized("Vim navigation in the panel"), isOn: $general.vimNavigation)
                 Text(
-                    localized(
-                        "The panel opens with letters as commands: s to search, hjkl to move, p to paste, v to preview, q to close."
+                    String(
+                        format: localized(
+                            "The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close."
+                        ),
+                        vimBindings.key(for: .search),
+                        vimBindings.key(for: .previousCard) + vimBindings.key(for: .rowDown)
+                            + vimBindings.key(for: .rowUp) + vimBindings.key(for: .nextCard),
+                        vimBindings.key(for: .paste),
+                        vimBindings.key(for: .preview),
+                        vimBindings.key(for: .closePanel)
                     )
                 )
                 .font(.caption)
@@ -199,6 +207,7 @@ struct SettingsView: View {
                 Spacer()
                 Button(localized("Restore Defaults")) {
                     store.resetAll()
+                    vimBindings.resetAll()
                 }
             }
         }
