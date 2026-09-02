@@ -75,6 +75,10 @@
     .btn.primary { background: linear-gradient(120deg, var(--accent), var(--accent-deep)); color: #06130b; border-color: transparent; }
     .btn.ghost { background: var(--panel); color: var(--text); backdrop-filter: blur(12px); }
     .btn.ghost:hover { background: rgba(255, 255, 255, 0.09); }
+    .btn .starcount {
+      background: rgba(255, 255, 255, 0.12); border-radius: 999px;
+      padding: 2px 9px; font-size: 12.5px; font-variant-numeric: tabular-nums;
+    }
 
     .brew {
       display: inline-flex; align-items: center; gap: 12px;
@@ -294,7 +298,7 @@
     </p>
     <div class="cta">
       <a class="btn primary" href="https://github.com/nathan-poncet/whisk/releases/latest/download/Whisk.dmg">⬇︎ Download for macOS</a>
-      <a class="btn ghost" href="https://github.com/nathan-poncet/whisk">View on GitHub</a>
+      <a class="btn ghost" href="https://github.com/nathan-poncet/whisk" target="_blank" rel="noopener">&#9733; Star on GitHub<span class="starcount" id="gh-stars" hidden></span></a>
     </div>
     <div class="brew">
       <span class="dollar">$</span>
@@ -549,6 +553,17 @@
   addEventListener("resize", () => { measure(); onScroll(); }, { passive: true });
   measure();
   onScroll();
+
+  // Live star count on the hero button; silence on any failure.
+  fetch("https://api.github.com/repos/nathan-poncet/whisk")
+    .then((r) => (r.ok ? r.json() : null))
+    .then((repo) => {
+      if (!repo || typeof repo.stargazers_count !== "number") return;
+      const badge = el("gh-stars");
+      badge.textContent = repo.stargazers_count.toLocaleString("en-US");
+      badge.hidden = false;
+    })
+    .catch(() => {});
 
   // Feature clips: cards advertise a video only when the file exists.
   document.querySelectorAll(".card[data-clip]").forEach((card) => {
