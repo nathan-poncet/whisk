@@ -8,10 +8,19 @@ enum SourceAppStyle {
     struct Resolved {
         let icon: NSImage?
         let tint: Color
+        let darkSurfaceTint: Color
+        let lightSurfaceTint: Color
+
+        /// The frosted-surface wash: the app color leaning darker on the
+        /// dark theme, lighter and softer on the light one, translucent so
+        /// the behind-window blur still reads through.
+        func surfaceTint(dark: Bool) -> Color {
+            dark ? darkSurfaceTint : lightSurfaceTint
+        }
     }
 
     private static var cache: [String: Resolved] = [:]
-    private static let fallback = Resolved(icon: nil, tint: Color(nsColor: .systemGray))
+    private static let fallback = resolved(icon: nil, base: .systemGray)
 
     static func resolve(bundleID: String?) -> Resolved {
         guard let bundleID else { return fallback }
@@ -28,8 +37,26 @@ enum SourceAppStyle {
             return fallback
         }
         let icon = NSWorkspace.shared.icon(forFile: url.path)
-        let tint = dominantColor(of: icon).map { Color(nsColor: $0) } ?? fallback.tint
-        return Resolved(icon: icon, tint: tint)
+        return resolved(icon: icon, base: dominantColor(of: icon) ?? .systemGray)
+    }
+
+    private static func resolved(icon: NSImage?, base: NSColor) -> Resolved {
+        Resolved(
+            icon: icon,
+            tint: Color(nsColor: base),
+            darkSurfaceTint: Color(nsColor: shifted(base, saturation: 1, brightness: 0.6)).opacity(0.38),
+            lightSurfaceTint: Color(nsColor: shifted(base, saturation: 0.55, brightness: 1.55)).opacity(0.45)
+        )
+    }
+
+    private static func shifted(_ color: NSColor, saturation: CGFloat, brightness: CGFloat) -> NSColor {
+        let base = color.usingColorSpace(.sRGB) ?? color
+        return NSColor(
+            hue: base.hueComponent,
+            saturation: min(1, base.saturationComponent * saturation),
+            brightness: min(1, base.brightnessComponent * brightness),
+            alpha: 1
+        )
     }
 
     private static func dominantColor(of image: NSImage) -> NSColor? {
