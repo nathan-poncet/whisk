@@ -309,7 +309,7 @@ import Testing
         #expect(spy.last.cards.count == 2)
     }
 
-    @Test func facets_adapt_to_the_selection_and_impossible_ones_are_dropped() {
+    @Test func facets_narrow_each_other_without_dropping_selections() {
         let store = InMemoryHistoryStore()
         store.stored = [
             anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
@@ -319,23 +319,27 @@ import Testing
         let controller = ClipboardController(
             pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
         )
-        #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
-
-        // Selecting a category never shrinks the app row: apps are the
-        // primary facet.
-        controller.toggleCategoryFilter("code")
         #expect(spy.last.filters.apps.map(\.label) == ["Ghostty", "Spotify"])
-
-        // Selecting Spotify (text only): the code chip disappears — that
-        // category cannot match anything from the selected app — and the
-        // stale code selection is dropped with it.
-        controller.toggleSourceFilter("com.spotify.client")
-        #expect(spy.last.filters.kinds.map(\.id) == ["text"])
-        #expect(spy.last.cards.map(\.sourceLabel) == ["Spotify"])
-
-        // Widening back with a second app widens the categories again.
-        controller.toggleSourceFilter("dev.ghostty")
         #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
+
+        // Selecting a category narrows the app row to apps that have it.
+        controller.toggleCategoryFilter("code")
+        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty"])
+
+        // Selecting the app narrows the kinds right back — and neither
+        // active chip is ever hidden or dropped by ricochet.
+        controller.toggleSourceFilter("dev.ghostty")
+        #expect(spy.last.filters.kinds.map(\.id) == ["code"])
+        #expect(spy.last.filters.apps.map(\.isActive) == [true])
+        #expect(spy.last.filters.kinds.map(\.isActive) == [true])
+        #expect(spy.last.cards.map(\.sourceLabel) == ["Ghostty"])
+
+        // Deselecting the category leaves the app filter intact; kinds
+        // stay scoped by the still-active app.
+        controller.toggleCategoryFilter("code")
+        #expect(spy.last.filters.kinds.map(\.id) == ["code"])
+        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty", "Spotify"])
+        #expect(spy.last.cards.count == 1)
     }
 
     @Test func pausing_consumes_changes_without_recording_them() {

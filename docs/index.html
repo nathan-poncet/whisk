@@ -459,11 +459,15 @@
   const render = () => {
     const found = ITEMS.filter(matches);
     state.sel = Math.min(state.sel, Math.max(0, found.length - 1));
+    // Facets narrow each other, but an active chip is never hidden.
     const inAppScope = ITEMS.filter((i) => !state.apps.size || state.apps.has(i.app));
     const kindsAvail = [...new Set(inAppScope.map((i) => i.kind))];
-    [...state.kinds].forEach((k) => { if (!kindsAvail.includes(k)) state.kinds.delete(k); });
+    state.kinds.forEach((k) => { if (!kindsAvail.includes(k)) kindsAvail.push(k); });
+    const inKindScope = ITEMS.filter((i) => !state.kinds.size || state.kinds.has(i.kind));
+    const appsAvail = new Set(inKindScope.map((i) => i.app));
+    state.apps.forEach((a) => appsAvail.add(a));
     el("try-chips").innerHTML =
-      Object.keys(APPS).map((a) =>
+      Object.keys(APPS).filter((a) => appsAvail.has(a)).map((a) =>
         `<span class="chip ${state.apps.has(a) ? "active" : ""}" data-app="${a}">` +
         `${APPS[a]}${a}</span>`).join("") +
       `<span style="width:1px;background:rgba(255,255,255,.25);margin:2px 3px"></span>` +
