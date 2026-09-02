@@ -61,6 +61,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var pasteStack: [UUID] = []
     private var selectedID: UUID?
     private var focusZone: PanelZone = .cards
+    /// Focus anchors to the chip's identity: toggling a filter reshapes
+    /// the row, and an index would land the cursor on a different chip.
+    private var focusedChipID: String?
     private var focusedChipIndex = 0
 
     private let capture: CaptureClipboardChange<Board, Time, Store>
@@ -228,11 +231,20 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private func focusChip(id: String) {
-        guard let index = chipEntries.firstIndex(where: { $0.id == id }) else { return }
-        guard focusZone != .chips || focusedChipIndex != index else { return }
+        guard chipEntries.contains(where: { $0.id == id }) else { return }
+        guard focusZone != .chips || focusedChipID != id else { return }
         focusZone = .chips
-        focusedChipIndex = index
+        focusedChipID = id
         refresh()
+    }
+
+    /// The focused chip's current position, resolved by identity first and
+    /// by the last known index when the chip vanished.
+    private func resolvedChipIndex(in chips: [ChipEntry]) -> Int {
+        if let id = focusedChipID, let index = chips.firstIndex(where: { $0.id == id }) {
+            return index
+        }
+        return max(0, min(focusedChipIndex, chips.count - 1))
     }
 
     /// Up and down move between the chip row and the rail; left and right
@@ -256,14 +268,16 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// categories, cyclically) — the fast lane next to arrowing across
     /// the separators.
     func switchChipGroup() {
+        let chips = chipEntries
         let starts = chipGroupStarts
-        guard !starts.isEmpty else { return }
+        guard !starts.isEmpty, !chips.isEmpty else { return }
         if focusZone != .chips {
             focusZone = .chips
-            focusedChipIndex = starts[0]
+            focusedChipID = chips[starts[0]].id
         } else {
-            let current = starts.lastIndex { $0 <= focusedChipIndex } ?? 0
-            focusedChipIndex = starts[(current + 1) % starts.count]
+            let index = resolvedChipIndex(in: chips)
+            let current = starts.lastIndex { $0 <= index } ?? 0
+            focusedChipID = chips[starts[(current + 1) % starts.count]].id
         }
         refresh()
     }
@@ -277,7 +291,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         case .chips:
             let chips = chipEntries
             guard !chips.isEmpty else { return }
-            focusedChipIndex = max(0, min(focusedChipIndex + step, chips.count - 1))
+            let destination = max(0, min(resolvedChipIndex(in: chips) + step, chips.count - 1))
+            focusedChipID = chips[destination].id
             refresh()
         }
     }
@@ -292,8 +307,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             return activateSelected(plain: plain)
         case .chips:
             let chips = chipEntries
-            guard chips.indices.contains(focusedChipIndex) else { return false }
-            switch chips[focusedChipIndex] {
+            guard !chips.isEmpty else { return false }
+            switch chips[resolvedChipIndex(in: chips)] {
             case .pinned:
                 toggleCategoryFilter(pinnedChipID)
             case .app(let source):
@@ -371,6 +386,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         pinnedOnly = false
         selectedID = nil
         focusZone = .cards
+        focusedChipID = nil
         focusedChipIndex = 0
         refresh()
     }
@@ -505,7 +521,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             pinnedOnly = false
         }
         let chips = chipEntries
-        focusedChipIndex = max(0, min(focusedChipIndex, chips.count - 1))
+        focusedChipIndex = resolvedChipIndex(in: chips)
+        focusedChipID = chips.indices.contains(focusedChipIndex) ? chips[focusedChipIndex].id : nil
         if focusZone == .chips, chips.isEmpty {
             focusZone = .cards
         }
