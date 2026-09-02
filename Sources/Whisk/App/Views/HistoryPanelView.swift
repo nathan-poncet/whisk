@@ -40,7 +40,7 @@ struct HistoryPanelView: View {
             // The landing page's layout, mirrored: a centered search capsule
             // of bounded width, the filter chips centered right below it.
             toolbar
-                .frame(maxWidth: 640)
+                .frame(maxWidth: 680)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
             if !store.state.filters.isEmpty {
@@ -75,6 +75,7 @@ struct HistoryPanelView: View {
                 .foregroundStyle(.secondary)
             TextField(localized("Search clipboard history"), text: queryBinding)
                 .textFieldStyle(.plain)
+                .font(.system(size: 14))
                 .focused($searchFocused)
             Spacer()
             if store.state.stackCount > 0 {
@@ -87,8 +88,8 @@ struct HistoryPanelView: View {
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 11)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
         .liquidGlass(in: Capsule())
     }
 
