@@ -76,3 +76,16 @@
 "now" = "maintenant";
 "text" = "texte";
 "⌘1…⌘9 paste the matching card directly." = "⌘1…⌘9 collent directement la carte correspondante.";
+
+"Press s to search" = "Appuyez sur s pour rechercher";
+"Search" = "Rechercher";
+"Vim navigation in the panel" = "Navigation Vim dans le panneau";
+"The panel opens with letters as commands: s to search, hjkl to move, p to paste, v to preview, q to close." = "Le panneau s'ouvre avec les lettres comme commandes : s pour rechercher, hjkl pour se déplacer, p pour coller, v pour prévisualiser, q pour fermer.";
+
+"First card" = "Première carte";
+"Last card" = "Dernière carte";
+"Start a search" = "Démarrer une recherche";
+"Clear the search" = "Effacer la recherche";
+"Close the panel" = "Fermer le panneau";
+"Vim Keybindings" = "Raccourcis Vim";
+"One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed." = "Un ou deux caractères — un raccourci à deux caractères comme gg se déclenche au double appui. Échap, Tab, / et 1–9 sont fixes.";

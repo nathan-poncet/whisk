@@ -8,12 +8,28 @@ final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var focusRevision = 0
     @Published private(set) var closeRevision = 0
 
+    /// Vim navigation splits the panel into two input modes: SEARCH is the
+    /// field with focus, NORMAL frees the letters to act as commands. With
+    /// vim off the panel simply never leaves SEARCH.
+    @Published private(set) var vimEnabled = false
+    @Published private(set) var searchActive = true
+
     func update(_ newState: HistoryViewState) {
         state = newState
     }
 
     func requestSearchFocus() {
         focusRevision += 1
+    }
+
+    func configureInput(vim: Bool) {
+        vimEnabled = vim
+        searchActive = !vim
+    }
+
+    func setSearchActive(_ active: Bool) {
+        guard active != searchActive else { return }
+        searchActive = active
     }
 
     /// The panel just went away: the rail rewinds to its leading edge
@@ -34,6 +50,7 @@ struct PanelActions {
     let activatePlain: () -> Void
     let activateCard: (Int) -> Void
     let navigate: (ArrowDirection) -> Void
+    let jumpToEdge: (SelectionEdge) -> Void
     let switchChipGroup: () -> Void
     let toggleSourceFilter: (String) -> Void
     let toggleCategoryFilter: (String) -> Void

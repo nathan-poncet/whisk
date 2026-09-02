@@ -61,6 +61,10 @@ final class GeneralSettingsStore: ObservableObject {
         didSet { defaults.set(checkForUpdates, forKey: "checkForUpdates") }
     }
 
+    @Published var vimNavigation: Bool {
+        didSet { defaults.set(vimNavigation, forKey: "vimNavigation") }
+    }
+
     @Published var excludedApps: [ExcludedApp] {
         didSet {
             if let data = try? JSONEncoder().encode(excludedApps) {
@@ -78,6 +82,7 @@ final class GeneralSettingsStore: ObservableObject {
             defaults.object(forKey: "historyCapacity") == nil ? 500 : defaults.integer(forKey: "historyCapacity")
         checkForUpdates =
             defaults.object(forKey: "checkForUpdates") == nil ? true : defaults.bool(forKey: "checkForUpdates")
+        vimNavigation = defaults.bool(forKey: "vimNavigation")
         if let data = defaults.data(forKey: "excludedApps"),
             let stored = try? JSONDecoder().decode([ExcludedApp].self, from: data)
         {
