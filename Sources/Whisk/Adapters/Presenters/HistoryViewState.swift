@@ -7,7 +7,6 @@ struct HistoryViewState: Equatable {
     let countLabel: String
     let query: String
     let selectedID: UUID?
-    let hiddenCount: Int
     let stackCount: Int
     let filters: FilterBarViewState
 
@@ -16,7 +15,6 @@ struct HistoryViewState: Equatable {
         countLabel: String,
         query: String,
         selectedID: UUID?,
-        hiddenCount: Int,
         stackCount: Int = 0,
         filters: FilterBarViewState
     ) {
@@ -24,7 +22,6 @@ struct HistoryViewState: Equatable {
         self.countLabel = countLabel
         self.query = query
         self.selectedID = selectedID
-        self.hiddenCount = hiddenCount
         self.stackCount = stackCount
         self.filters = filters
     }
@@ -34,7 +31,6 @@ struct HistoryViewState: Equatable {
         countLabel: "0 items",
         query: "",
         selectedID: nil,
-        hiddenCount: 0,
         filters: .empty
     )
 }

@@ -39,10 +39,6 @@ enum ArrowDirection {
     case right
 }
 
-/// The rail renders eagerly (lazy loading pops cards in during fast
-/// scrolls), so it is bounded; search reaches everything beyond it.
-private let railLimit = 60
-
 /// The pinned filter leads the chip row as its own group — it is neither
 /// an application nor a content category; controller navigation and
 /// presenter rendering share this id.
@@ -463,8 +459,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private var visibleItems: [ClipboardItem] {
-        let matches = filterHistory(history, filter: currentFilter())
-        return Array(matches.prefix(railLimit))
+        filterHistory(history, filter: currentFilter())
     }
 
     private func mutate(_ transform: (History) throws -> History) {
@@ -497,8 +492,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         if focusZone == .chips, chips.isEmpty {
             focusZone = .cards
         }
-        let matches = filterHistory(history, filter: currentFilter())
-        let visible = Array(matches.prefix(railLimit))
+        let visible = filterHistory(history, filter: currentFilter())
         if selectedID == nil || !visible.contains(where: { $0.id == selectedID }) {
             selectedID = visible.first?.id
         }
@@ -509,7 +503,6 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 query: query,
                 now: clock.now(),
                 selectedID: selectedID,
-                hiddenCount: matches.count - visible.count,
                 stack: pasteStack,
                 filters: FilterContext(
                     sources: sources,

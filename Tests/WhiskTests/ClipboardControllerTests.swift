@@ -176,7 +176,7 @@ import Testing
         #expect(spy.states.count == presented)
     }
 
-    @Test func the_rail_is_bounded_and_reports_what_it_hides() {
+    @Test func every_matching_item_rides_the_rail() {
         let store = InMemoryHistoryStore()
         store.stored = (1...70).map { anItem(.text("item \($0)")) }
         let spy = StateSpy()
@@ -184,12 +184,11 @@ import Testing
             pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
         )
 
-        #expect(spy.last.cards.count == 60)
-        #expect(spy.last.hiddenCount == 10)
+        #expect(spy.last.cards.count == 70)
         #expect(spy.last.countLabel == "70 items")
 
         controller.search("item 7")
-        #expect(spy.last.hiddenCount == 0)
+        #expect(spy.last.cards.count == 2)
     }
 
     @Test func the_chip_row_is_one_line_and_arrows_cross_the_separator() {

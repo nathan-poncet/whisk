@@ -128,9 +128,6 @@ struct HistoryPanelView: View {
                     }
                     .id(card.id)
                 }
-                if store.state.hiddenCount > 0 {
-                    overflowCard
-                }
             }
             .padding(.vertical, 8)
         }
@@ -164,20 +161,6 @@ struct HistoryPanelView: View {
         Color.clear
             .frame(width: 230)
             .frame(maxHeight: .infinity)
-    }
-
-    private var overflowCard: some View {
-        VStack(spacing: 6) {
-            Text("+\(store.state.hiddenCount)")
-                .font(.title3.weight(.semibold))
-            Text(localized("older items\nsearch to find them"))
-                .font(.caption2)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-        }
-        .frame(width: 120)
-        .frame(maxHeight: .infinity)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var emptyState: some View {
