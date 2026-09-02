@@ -187,8 +187,9 @@ import Testing
         #expect(spy.last.cards.count == 70)
         #expect(spy.last.countLabel == "70 items")
 
+        // Free words AND together: "item" and "7" both have to match.
         controller.search("item 7")
-        #expect(spy.last.cards.count == 2)
+        #expect(spy.last.cards.count == 8)
     }
 
     @Test func the_chip_row_is_one_line_and_arrows_cross_the_separator() {
