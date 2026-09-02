@@ -15,6 +15,8 @@ struct ItemCardView: View, Equatable {
         lhs.card == rhs.card
     }
 
+    @Environment(\.colorScheme) private var scheme
+
     private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
 
     private var selectedSide: CGFloat {
@@ -42,7 +44,12 @@ struct ItemCardView: View, Equatable {
         .background {
             Color.clear
                 .frame(width: selectedSide, height: selectedSide)
-                .liquidGlass(in: Self.shape, cornerRadius: 18)
+                .liquidGlass(
+                    in: Self.shape,
+                    cornerRadius: 18,
+                    tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID)
+                        .surfaceTint(dark: scheme == .dark)
+                )
                 .animation(.easeOut(duration: 0.16), value: card.isSelected)
         }
         .contentShape(Rectangle())
@@ -88,7 +95,7 @@ struct ItemCardView: View, Equatable {
                     .foregroundStyle(.secondary)
             }
             Text(card.sourceLabel)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .lineLimit(1)
             Spacer()
             if let position = card.stackPosition {

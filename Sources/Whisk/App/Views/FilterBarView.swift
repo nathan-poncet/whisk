@@ -7,6 +7,7 @@ import SwiftUI
 /// the keyboard cursor (↑/↓ reach the row, ←/→ move, Return toggles) and
 /// hovering moves that same focus with the mouse.
 struct FilterBarView: View {
+    @Environment(\.colorScheme) private var scheme
     let filters: FilterBarViewState
     let onToggleApp: (String) -> Void
     let onToggleKind: (String) -> Void
@@ -36,6 +37,8 @@ struct FilterBarView: View {
                     ForEach(filters.apps) { chip in
                         ChipButton(
                             chip: chip,
+                            baseTint: SourceAppStyle.resolve(bundleID: chip.sourceBundleID)
+                                .surfaceTint(dark: scheme == .dark),
                             onToggle: { onToggleApp(chip.id) },
                             onFocus: { onFocusApp(chip.id) }
                         ) {
@@ -120,6 +123,7 @@ struct FilterBarView: View {
 /// it, and focus or an active filter zooms it slightly.
 private struct ChipButton<Label: View>: View {
     let chip: FilterChip
+    var baseTint: Color?
     let onToggle: () -> Void
     let onFocus: () -> Void
     @ViewBuilder let label: () -> Label
@@ -142,7 +146,7 @@ private struct ChipButton<Label: View>: View {
                 Color.clear
                     .liquidGlass(
                         in: Capsule(),
-                        tint: chip.isActive ? Color.accentColor.opacity(0.28) : nil
+                        tint: chip.isActive ? Color.accentColor.opacity(0.28) : baseTint
                     )
                     .frame(
                         width: proxy.size.width * (zoomed ? 1.06 : 1),
