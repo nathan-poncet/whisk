@@ -197,7 +197,7 @@ struct HistoryPanelView: View {
             .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
         .padding(.horizontal, 16)
     }
 }

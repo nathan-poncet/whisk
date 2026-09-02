@@ -38,7 +38,7 @@ struct PreviewOverlayView: View {
             }
         }
         .frame(width: 700, height: 480)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous), cornerRadius: 24)
     }
 
     @ViewBuilder private func content(for card: CardViewState) -> some View {
