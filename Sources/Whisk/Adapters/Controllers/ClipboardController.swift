@@ -397,13 +397,23 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         distinctSources(of: history.items).filter { activeSourceKeys.contains($0.filterKey) }
     }
 
-    // The apps facet is primary and stays complete; the categories facet
-    // adapts to it — selecting Spotify hides the categories Spotify never
-    // produced, selecting several apps shows the union of what they
-    // contain. Pruning only flows downhill (apps → categories), otherwise
-    // picking a category would cascade into deselecting apps.
+    // Each facet narrows what the OTHER displays — selecting image hides
+    // the apps that never produced an image, selecting Spotify hides the
+    // categories Spotify never yielded — but an ACTIVE chip is never
+    // hidden, so a selection can never be dropped by ricochet. Impossible
+    // combinations are unreachable because their chips vanish before they
+    // can be clicked.
     private var availableSources: [SourceApp] {
-        distinctSources(of: history.items)
+        let scoped = distinctSources(
+            of: filterHistory(
+                history,
+                filter: HistoryFilter(categories: activeCategories, pinnedOnly: pinnedOnly)
+            )
+        )
+        let strayActives = activeSources.filter { active in
+            !scoped.contains { $0.filterKey == active.filterKey }
+        }
+        return scoped + strayActives
     }
 
     private var availableCategories: [ContentCategory] {
@@ -411,7 +421,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             history,
             filter: HistoryFilter(sources: activeSources, pinnedOnly: pinnedOnly)
         )
-        let present = Set(matches.map(\.category))
+        let present = Set(matches.map(\.category)).union(activeCategories)
         return ContentCategory.allCases.filter(present.contains)
     }
 
@@ -475,14 +485,21 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     private func refresh() {
         // Reconcile the facets: app keys survive as long as the app exists
-        // in the history at all; a category selection the chosen apps made
-        // impossible is dropped instead of yielding an empty rail.
-        let sources = availableSources
+        // in the history at all; active categories only fall when a history
+        // mutation (deletion, eviction) makes them impossible — the UI
+        // itself cannot build an impossible combination.
         activeSourceKeys = activeSourceKeys.filter { key in
-            sources.contains { $0.filterKey == key }
+            history.items.contains { $0.source?.filterKey == key }
         }
+        let sources = availableSources
+        let scopedCategories = Set(
+            filterHistory(
+                history,
+                filter: HistoryFilter(sources: activeSources, pinnedOnly: pinnedOnly)
+            ).map(\.category)
+        )
+        activeCategories = activeCategories.intersection(scopedCategories)
         let categories = availableCategories
-        activeCategories = activeCategories.intersection(categories)
         let pinnedInScope = hasPinnedInScope
         if pinnedOnly, !pinnedInScope {
             pinnedOnly = false
