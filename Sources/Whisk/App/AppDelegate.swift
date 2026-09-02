@@ -42,30 +42,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.stateStore = stateStore
         self.clipboard = clipboard
 
+        // Filtering re-renders a screenful of glass cards, so keystrokes
+        // coalesce: only the last query of a typing burst runs. Anything
+        // that consumes the results flushes the pending query first, so an
+        // action never lands on a stale rail.
+        let searchDebounce = Debouncer(delay: 0.18)
         let actions = PanelActions(
-            search: { clipboard.search($0) },
+            search: { query in
+                searchDebounce.schedule { clipboard.search(query) }
+            },
             select: { [weak self] id in
+                searchDebounce.flush()
                 clipboard.select(id)
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
             highlight: { clipboard.highlight($0) },
             activate: { [weak self] in
+                searchDebounce.flush()
                 guard clipboard.activateFocused() else { return }
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
             activatePlain: { [weak self] in
+                searchDebounce.flush()
                 guard clipboard.activateFocused(plain: true) else { return }
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
             activateCard: { [weak self] index in
+                searchDebounce.flush()
                 guard clipboard.activate(at: index) else { return }
                 self?.panelController?.hide()
                 PasteSimulator.paste()
             },
-            navigate: { clipboard.navigate($0) },
+            navigate: { direction in
+                searchDebounce.flush()
+                clipboard.navigate(direction)
+            },
             switchChipGroup: { clipboard.switchChipGroup() },
             toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
             toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
@@ -74,9 +88,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             togglePin: { clipboard.togglePin($0) },
             delete: { clipboard.delete($0) },
             togglePinSelected: { clipboard.togglePinSelected() },
-            deleteSelected: { clipboard.deleteSelected() },
-            stackSelected: { clipboard.stackSelected() },
-            panelWillShow: { clipboard.panelWillShow() }
+            deleteSelected: {
+                searchDebounce.flush()
+                clipboard.deleteSelected()
+            },
+            stackSelected: {
+                searchDebounce.flush()
+                clipboard.stackSelected()
+            },
+            panelWillShow: {
+                searchDebounce.cancel()
+                clipboard.panelWillShow()
+            }
         )
         let panelController = PanelController(stateStore: stateStore, actions: actions, keyBindings: keyBindings)
         self.panelController = panelController
