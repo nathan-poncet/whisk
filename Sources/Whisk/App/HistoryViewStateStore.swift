@@ -41,6 +41,7 @@ struct PanelActions {
     let focusCategoryChip: (String) -> Void
     let togglePin: (UUID) -> Void
     let delete: (UUID) -> Void
+    let dragBegan: () -> Void
     let togglePinSelected: () -> Void
     let deleteSelected: () -> Void
     let stackSelected: () -> Void

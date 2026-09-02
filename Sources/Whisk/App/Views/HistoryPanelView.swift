@@ -142,7 +142,8 @@ struct HistoryPanelView: View {
                                 onSelect: { actions.select(card.id) },
                                 onHighlight: { actions.highlight(card.id) },
                                 onTogglePin: { actions.togglePin(card.id) },
-                                onDelete: { actions.delete(card.id) }
+                                onDelete: { actions.delete(card.id) },
+                                onDragBegin: actions.dragBegan
                             )
                             .equatable()
                         } else {
