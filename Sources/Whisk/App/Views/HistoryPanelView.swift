@@ -21,10 +21,17 @@ struct HistoryPanelView: View {
     private static let cardStride: CGFloat = 244
     private static let mountDelta = 8
 
+    /// The field echoes keystrokes instantly; the controller's query only
+    /// follows after the debounce, so the text must live here.
+    @State private var searchText = ""
+
     private var queryBinding: Binding<String> {
         Binding(
-            get: { store.state.query },
-            set: { actions.search($0) }
+            get: { searchText },
+            set: { newValue in
+                searchText = newValue
+                actions.search(newValue)
+            }
         )
     }
 
@@ -48,6 +55,7 @@ struct HistoryPanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: store.focusRevision) {
             searchFocused = true
+            searchText = store.state.query
         }
         .onAppear {
             ItemCardView.prewarm(store.state.cards)
