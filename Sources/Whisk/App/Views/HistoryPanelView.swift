@@ -13,12 +13,13 @@ struct HistoryPanelView: View {
     @FocusState private var searchFocused: Bool
 
     /// The render server pays ~8 ms per glass layer whenever the panel
-    /// orders on or off screen, so only the cards near the viewport carry
-    /// glass; the rest are same-sized cheap placeholders swapped in as the
-    /// user scrolls (a sliding window, margin included).
+    /// orders on or off screen, so only the cards inside the viewport plus
+    /// a delta on each side are displayed at all; the slots beyond keep
+    /// their size but render nothing, and everything is preloaded so a
+    /// card entering the delta arrives fully formed.
     @State private var railWindow = RailWindow()
     private static let cardStride: CGFloat = 244
-    private static let mountMargin = 4
+    private static let mountDelta = 8
 
     private var queryBinding: Binding<String> {
         Binding(
@@ -47,6 +48,12 @@ struct HistoryPanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: store.focusRevision) {
             searchFocused = true
+        }
+        .onAppear {
+            ItemCardView.prewarm(store.state.cards)
+        }
+        .onChange(of: store.state.cards) { _, cards in
+            ItemCardView.prewarm(cards)
         }
     }
 
@@ -146,18 +153,15 @@ struct HistoryPanelView: View {
         // Without scroll geometry (macOS 14) every slot mounts, as before.
         guard #available(macOS 15.0, *) else { return true }
         if index == selectedIndex { return true }
-        let lower = max(0, railWindow.leading - Self.mountMargin)
-        let upper = railWindow.leading + railWindow.capacity + Self.mountMargin
+        let lower = max(0, railWindow.leading - Self.mountDelta)
+        let upper = railWindow.leading + railWindow.capacity + Self.mountDelta
         return (lower...upper).contains(index)
     }
 
+    // Off-window slots display nothing at all — they only hold the scroll
+    // extent steady.
     private var railPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(.white.opacity(0.05))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(.white.opacity(0.08), lineWidth: 1)
-            )
+        Color.clear
             .frame(width: 230)
             .frame(maxHeight: .infinity)
     }
