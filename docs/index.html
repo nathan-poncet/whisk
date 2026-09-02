@@ -151,9 +151,12 @@
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
     }
     .tryit .note {
-      width: min(430px, 86%); margin: 0 auto 22px; text-align: left;
+      /* Grows gently with the scroll progress, like the screen around it. */
+      width: calc(min(430px, 86%) + 110px * var(--p, 0));
+      margin: 0 auto 22px; text-align: left;
       border-radius: 10px; overflow: hidden;
-      background: #f5f2ea; color: #333; font-size: 13px;
+      background: #f5f2ea; color: #333;
+      font-size: calc(13px + 1.5px * var(--p, 0));
       box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
     }
     .tryit .note .bar {
