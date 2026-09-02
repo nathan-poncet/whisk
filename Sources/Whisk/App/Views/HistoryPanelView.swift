@@ -5,6 +5,14 @@ struct HistoryPanelView: View {
     let actions: PanelActions
     @FocusState private var searchFocused: Bool
 
+    /// Every glass card costs several milliseconds to rasterize when the
+    /// panel appears; mounting all sixty up front made ⇧⌘V feel sluggish.
+    /// The panel opens with a screenful and the rest mounts in small
+    /// batches between run-loop turns, while the user can already type.
+    @State private var mountedCards = HistoryPanelView.initialBatch
+    private static let initialBatch = 14
+    private static let batchStep = 10
+
     private var queryBinding: Binding<String> {
         Binding(
             get: { store.state.query },
@@ -32,6 +40,31 @@ struct HistoryPanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: store.focusRevision) {
             searchFocused = true
+            mountNextBatch()
+        }
+        .onChange(of: store.closeRevision) {
+            mountedCards = Self.initialBatch
+        }
+        .onChange(of: store.state.cards.count) {
+            mountNextBatch()
+        }
+        .onChange(of: store.state.selectedID) { _, selectedID in
+            // Keyboard navigation may outrun the mounting: reveal up to the
+            // selection immediately.
+            guard let selectedID,
+                let index = store.state.cards.firstIndex(where: { $0.id == selectedID }),
+                index >= mountedCards
+            else { return }
+            mountedCards = index + Self.batchStep
+        }
+    }
+
+    private func mountNextBatch() {
+        guard mountedCards < store.state.cards.count else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+            guard mountedCards < store.state.cards.count else { return }
+            mountedCards = min(mountedCards + Self.batchStep, store.state.cards.count)
+            mountNextBatch()
         }
     }
 
@@ -68,7 +101,7 @@ struct HistoryPanelView: View {
                     // the viewport's edge, which pops them in during fast
                     // scrolls. The controller bounds the rail instead.
                     HStack(spacing: 14) {
-                        ForEach(store.state.cards) { card in
+                        ForEach(store.state.cards.prefix(mountedCards)) { card in
                             ItemCardView(
                                 card: card,
                                 onSelect: { actions.select(card.id) },
