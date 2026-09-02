@@ -6,6 +6,7 @@ import Foundation
 final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var state: HistoryViewState = .empty
     @Published private(set) var focusRevision = 0
+    @Published private(set) var closeRevision = 0
 
     func update(_ newState: HistoryViewState) {
         state = newState
@@ -13,6 +14,13 @@ final class HistoryViewStateStore: ObservableObject {
 
     func requestSearchFocus() {
         focusRevision += 1
+    }
+
+    /// The panel just went away: the rail unmounts back to its opening
+    /// batch while nobody is looking, so the next show redraws a handful
+    /// of glass cards instead of sixty.
+    func panelDidClose() {
+        closeRevision += 1
     }
 }
 
