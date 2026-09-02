@@ -41,7 +41,7 @@ enum ArrowDirection {
 
 /// The rail renders eagerly (lazy loading pops cards in during fast
 /// scrolls), so it is bounded; search reaches everything beyond it.
-private let railLimit = 60
+private let railLimit = 16
 
 /// The pinned filter leads the chip row as its own group — it is neither
 /// an application nor a content category; controller navigation and
