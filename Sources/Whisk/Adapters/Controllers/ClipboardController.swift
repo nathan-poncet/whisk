@@ -6,6 +6,12 @@ enum SelectionMove {
     case next
 }
 
+/// The two ends a jump can land on — the whole rail or the whole chip row.
+enum SelectionEdge {
+    case start
+    case end
+}
+
 /// Which region of the panel the keyboard is steering. The chip row is a
 /// single zone — pinned, applications and categories are groups inside it,
 /// crossed with plain arrows.
@@ -208,6 +214,21 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         refresh()
     }
 
+    /// Jumps the keyboard focus to either end of whatever zone holds it.
+    func jumpSelection(to edge: SelectionEdge) {
+        switch focusZone {
+        case .cards:
+            let items = visibleItems
+            guard !items.isEmpty else { return }
+            selectedID = (edge == .start ? items.first : items.last)?.id
+        case .chips:
+            let chips = chipEntries
+            guard !chips.isEmpty else { return }
+            focusedChipID = (edge == .start ? chips.first : chips.last)?.id
+        }
+        refresh()
+    }
+
     /// Moves the keyboard selection onto a specific visible card, e.g. the
     /// one under the pointer. Selects only — nothing is written back.
     func highlight(_ id: UUID) {
@@ -367,6 +388,19 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func delete(_ id: UUID) {
+        // Deleting the selection keeps the cursor in place: the neighbor
+        // below slides into the hole and inherits the selection (the one
+        // above when the last card goes).
+        if id == selectedID {
+            let items = visibleItems
+            if let index = items.firstIndex(where: { $0.id == id }) {
+                let successor =
+                    index + 1 < items.count
+                    ? items[index + 1]
+                    : (index > 0 ? items[index - 1] : nil)
+                selectedID = successor?.id
+            }
+        }
         mutate { try deleteItem(id, in: $0) }
     }
 

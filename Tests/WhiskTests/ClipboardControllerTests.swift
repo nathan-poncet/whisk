@@ -112,6 +112,37 @@ import Testing
         #expect(spy.last.cards.map(\.isSelected) == [false, true])
     }
 
+    @Test func deleting_the_selection_keeps_the_cursor_in_place() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("a")), anItem(.text("b")), anItem(.text("c"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.moveSelection(.next)
+        controller.deleteSelected()
+        #expect(spy.last.cards.map(\.isSelected) == [false, true])
+
+        controller.deleteSelected()
+        #expect(spy.last.cards.map(\.isSelected) == [true])
+    }
+
+    @Test func jumping_the_selection_lands_on_the_edges_of_the_rail() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("a")), anItem(.text("b")), anItem(.text("c"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.jumpSelection(to: .end)
+        #expect(spy.last.cards.map(\.isSelected) == [false, false, true])
+
+        controller.jumpSelection(to: .start)
+        #expect(spy.last.cards.map(\.isSelected) == [true, false, false])
+    }
+
     @Test func searching_resets_the_selection_to_the_first_match() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("alpha")), anItem(.text("beta")), anItem(.text("gamma"))]
