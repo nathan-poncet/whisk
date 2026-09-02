@@ -137,6 +137,103 @@
     }
     footer a { color: var(--accent); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
+
+    /* Interactive demo */
+    .tryit { text-align: center; }
+    .tryit .screen {
+      margin-top: 32px; border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(700px 420px at 18% 8%, rgba(127, 216, 164, 0.28), transparent 65%),
+        radial-gradient(800px 520px at 85% 20%, rgba(63, 157, 104, 0.22), transparent 70%),
+        linear-gradient(160deg, #17251d 0%, #0a1310 60%, #060a08 100%);
+      padding: 26px 0 18px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    }
+    .tryit .note {
+      width: min(430px, 86%); margin: 0 auto 22px; text-align: left;
+      border-radius: 10px; overflow: hidden;
+      background: #f5f2ea; color: #333; font-size: 13px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+    }
+    .tryit .note .bar {
+      background: #e4e0d5; padding: 5px 9px; font-size: 11px; color: #8a8578;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .tryit .note .bar span.dot { width: 9px; height: 9px; border-radius: 50%; }
+    .tryit .note .body { padding: 10px 12px; min-height: 52px; line-height: 1.5; }
+    .tryit .note .body .cursor {
+      display: inline-block; width: 1px; height: 14px; background: #333;
+      vertical-align: -2px; animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .tryit .chips {
+      display: flex; gap: 7px; justify-content: center; flex-wrap: wrap;
+      padding: 0 16px; margin-bottom: 10px;
+    }
+    .tryit .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11.5px; padding: 4px 10px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text); cursor: pointer; backdrop-filter: blur(10px);
+      transition: transform 0.12s ease;
+    }
+    .tryit .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .tryit .chip.active {
+      color: var(--accent); border-color: var(--accent); transform: scale(1.06);
+      background: rgba(127, 216, 164, 0.16); font-weight: 600;
+    }
+    .tryit .search {
+      display: flex; align-items: center; gap: 8px;
+      width: min(680px, 90%); margin: 0 auto 14px; padding: 9px 16px;
+      border-radius: 999px; background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14); backdrop-filter: blur(12px);
+    }
+    .tryit .search input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-size: 14px; font-family: inherit;
+    }
+    .tryit .search .count { font-size: 11px; color: var(--muted); }
+    .tryit .railwrap { overflow-x: auto; padding: 6px 16px 10px; scrollbar-width: none; }
+    .tryit .railwrap::-webkit-scrollbar { display: none; }
+    .tryit .rail { display: flex; gap: 10px; width: max-content; margin: 0 auto; }
+    .tryit .tcard {
+      width: 148px; min-height: 150px; border-radius: 14px; text-align: left;
+      background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.10);
+      backdrop-filter: blur(12px); padding: 9px 10px; cursor: pointer;
+      display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+    .tryit .tcard.selected {
+      transform: scale(1.04); border: 2px solid var(--accent);
+      box-shadow: 0 0 18px rgba(127, 216, 164, 0.35);
+    }
+    .tryit .tcard .head { display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; }
+    .tryit .tcard .head .dot { width: 9px; height: 9px; border-radius: 3px; }
+    .tryit .tcard .body { flex: 1; font-size: 11px; color: var(--text); overflow: hidden; line-height: 1.45; }
+    .tryit .tcard .body.mono { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 10px; }
+    .tryit .tcard .swatch { border-radius: 8px; height: 56px; margin-bottom: 6px; }
+    .tryit .tcard .foot { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--muted); }
+    .tryit .hint { margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .tryit .hint kbd { font-size: 11px; }
+
+    /* Feature clips */
+    .card.has-clip { cursor: pointer; position: relative; }
+    .card.has-clip::after {
+      content: "▶ watch"; position: absolute; top: 14px; right: 16px;
+      font-size: 11px; color: var(--accent); opacity: 0.85;
+    }
+    .clip-modal {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.72);
+      display: none; align-items: center; justify-content: center; z-index: 10;
+      backdrop-filter: blur(6px);
+    }
+    .clip-modal.open { display: flex; }
+    .clip-modal video {
+      max-width: min(1000px, 92vw); max-height: 82vh; border-radius: 14px;
+      border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+    }
   </style>
 </head>
 <body>
@@ -167,50 +264,78 @@
     </div>
   </div>
 
+
+  <section id="try" class="tryit">
+    <h2>Try it right here</h2>
+    <p class="sub" style="color: var(--muted); max-width: 560px; margin: 10px auto 0">
+      A faithful little simulation of the panel. Type to filter, click the chips,
+      use <kbd>←</kbd> <kbd>→</kbd> and <kbd>⏎</kbd> to paste into the note.
+    </p>
+    <div class="screen">
+      <div class="note">
+        <div class="bar">
+          <span class="dot" style="background:#f56"></span>
+          <span class="dot" style="background:#fb5"></span>
+          <span class="dot" style="background:#5c5"></span>
+          &nbsp;Untitled — your note
+        </div>
+        <div class="body"><span id="note-text"></span><span class="cursor"></span></div>
+      </div>
+      <div class="chips" id="try-chips"></div>
+      <div class="search">
+        <span style="color: var(--muted)">🔍</span>
+        <input id="try-input" type="text" placeholder="Search clipboard history" autocomplete="off">
+        <span class="count" id="try-count"></span>
+      </div>
+      <div class="railwrap"><div class="rail" id="try-rail"></div></div>
+      <p class="hint">The real panel floats over everything you do — <kbd>⇧⌘V</kbd> from any app.</p>
+    </div>
+  </section>
+
   <section id="features">
     <h2>Everything a clipboard should have kept</h2>
     <div class="grid">
-      <div class="card">
+      <div class="card" data-clip="media/clips/history.mp4">
         <div class="icon">📋</div>
         <h3>Full history, persisted</h3>
         <p>Every copy is captured and stored locally — text, links, colors, images and files. Keep it forever or auto-expire it; pins never die.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/search.mp4">
         <div class="icon">🔍</div>
         <h3>Search that understands</h3>
         <p>Type to filter instantly, by content or by the app it came from. Operators like <code>app:safari</code> and <code>type:link</code> combine with free text.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/paste-stack.mp4">
         <div class="icon">🥞</div>
         <h3>Paste stack</h3>
         <p>Queue several cards with <kbd>⇧⏎</kbd> — press again to unqueue, each card wears its rank — then pop them one by one anywhere with a global shortcut. Collect once, paste in order.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/keyboard.mp4">
         <div class="icon">⌨️</div>
         <h3>Keyboard-first, layout-aware</h3>
         <p>Arrows, <kbd>⏎</kbd> to paste in place, <kbd>⌥⏎</kbd> for plain text, <kbd>⌘1…9</kbd> for direct hits, <kbd>⌘Y</kbd> for a full preview. Every shortcut is remappable and follows your keyboard layout — Dvorak included.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/previews.mp4">
         <div class="icon">✨</div>
         <h3>Rich previews</h3>
         <p>Links show their title and cover image, code is syntax-highlighted, colors render as swatches, files get QuickLook thumbnails. Cards carry the tint and icon of their source app.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/rich-text.mp4">
         <div class="icon">📝</div>
         <h3>Rich text, your call</h3>
         <p>Formatting is captured and pasted back faithfully — and <kbd>⌥⏎</kbd> pastes as plain text when you'd rather drop it.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/drag-drop.mp4">
         <div class="icon">🖱️</div>
         <h3>Drag &amp; drop</h3>
         <p>Grab any card and drop it straight into another application — text, links, colors, images and files all travel.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/privacy.mp4">
         <div class="icon">🔒</div>
         <h3>Private by design</h3>
         <p>History never leaves your Mac (SQLite on disk). Concealed content from password managers is never recorded, capture pauses from the menu bar, and you can exclude any app entirely.</p>
       </div>
-      <div class="card">
+      <div class="card" data-clip="media/clips/languages.mp4">
         <div class="icon">🌍</div>
         <h3>English &amp; français</h3>
         <p>The whole interface follows your system language — panel, settings and onboarding included.</p>
@@ -252,5 +377,111 @@
     Neovim mark by Jason Long (CC-BY 3.0)
   </footer>
 </main>
+
+<div class="clip-modal" id="clip-modal"><video id="clip-video" controls autoplay loop muted playsinline></video></div>
+<script>
+(() => {
+  const APPS = {
+    Notes:   "#e8c548", Ghostty: "#4c9ee8", Figma:  "#a259ff",
+    Safari:  "#1f8fff", Slack:   "#e0447b", Finder: "#59b0f2", Arc: "#f0546c",
+  };
+  const ITEMS = [
+    { app: "Arc",     kind: "text",  text: "Your clipboard, remembered.", time: "now" },
+    { app: "Ghostty", kind: "code",  text: "git rebase -i origin/main", time: "1m" },
+    { app: "Figma",   kind: "color", text: "#FF6B35", time: "3m" },
+    { app: "Notes",   kind: "text",  text: "Meet at 9:30 tomorrow — bring the design brief.", time: "8m" },
+    { app: "Safari",  kind: "link",  text: "github.com/nathan-poncet/whisk", time: "12m" },
+    { app: "Ghostty", kind: "code",  text: "func greet() -> String { \"hi\" }", time: "15m" },
+    { app: "Slack",   kind: "text",  text: "plain words about the launch", time: "22m" },
+    { app: "Figma",   kind: "color", text: "hsl(150, 45%, 62%)", time: "30m" },
+    { app: "Finder",  kind: "files", text: "report.pdf · budget.numbers", time: "41m" },
+    { app: "Arc",     kind: "link",  text: "nathan-poncet.github.io/whisk", time: "1h" },
+  ];
+  const swatch = (t) => {
+    if (t.startsWith("#")) return t;
+    const m = t.match(/hsl\(([^)]*)\)/); return m ? `hsl(${m[1]})` : "#7fd8a4";
+  };
+  const state = { q: "", apps: new Set(), kinds: new Set(), sel: 0 };
+  const el = (id) => document.getElementById(id);
+  const matches = (item) => {
+    if (state.apps.size && !state.apps.has(item.app)) return false;
+    if (state.kinds.size && !state.kinds.has(item.kind)) return false;
+    return state.q.toLowerCase().split(/\s+/).filter(Boolean).every((w) => {
+      if (w.startsWith("app:")) return item.app.toLowerCase().includes(w.slice(4));
+      if (w.startsWith("type:")) return item.kind.startsWith(w.slice(5));
+      return item.text.toLowerCase().includes(w) || item.app.toLowerCase().includes(w);
+    });
+  };
+  const render = () => {
+    const found = ITEMS.filter(matches);
+    state.sel = Math.min(state.sel, Math.max(0, found.length - 1));
+    // Adaptive facets: kinds shrink to what the selected apps contain.
+    const inAppScope = ITEMS.filter((i) => !state.apps.size || state.apps.has(i.app));
+    const kindsAvail = [...new Set(inAppScope.map((i) => i.kind))];
+    [...state.kinds].forEach((k) => { if (!kindsAvail.includes(k)) state.kinds.delete(k); });
+    el("try-chips").innerHTML =
+      Object.keys(APPS).map((a) =>
+        `<span class="chip ${state.apps.has(a) ? "active" : ""}" data-app="${a}">` +
+        `<span class="dot" style="background:${APPS[a]}"></span>${a}</span>`).join("") +
+      `<span style="width:1px;background:rgba(255,255,255,.25);margin:2px 3px"></span>` +
+      kindsAvail.map((k) =>
+        `<span class="chip ${state.kinds.has(k) ? "active" : ""}" data-kind="${k}">${k}</span>`).join("");
+    el("try-rail").innerHTML = found.map((i, n) => {
+      const body = i.kind === "color"
+        ? `<div class="swatch" style="background:${swatch(i.text)}"></div><div class="body mono">${i.text}</div>`
+        : `<div class="body ${i.kind === "code" ? "mono" : ""}">${i.text}</div>`;
+      return `<div class="tcard ${n === state.sel ? "selected" : ""}" data-n="${n}">` +
+        `<div class="head"><span class="dot" style="background:${APPS[i.app]}"></span>${i.app}</div>` +
+        body + `<div class="foot"><span>${i.time}</span><span>${i.kind}</span></div></div>`;
+    }).join("") || `<div style="color:var(--muted);font-size:13px;padding:30px 60px">No matches</div>`;
+    el("try-count").textContent = `${found.length} item${found.length === 1 ? "" : "s"}`;
+    return found;
+  };
+  const paste = () => {
+    const found = ITEMS.filter(matches);
+    const item = found[state.sel];
+    if (!item) return;
+    el("note-text").textContent += (el("note-text").textContent ? " " : "") + item.text;
+  };
+  el("try-input").addEventListener("input", (e) => { state.q = e.target.value; state.sel = 0; render(); });
+  el("try-input").addEventListener("keydown", (e) => {
+    const found = ITEMS.filter(matches);
+    if (e.key === "ArrowRight") { state.sel = Math.min(state.sel + 1, found.length - 1); render(); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { state.sel = Math.max(state.sel - 1, 0); render(); e.preventDefault(); }
+    if (e.key === "Enter") { paste(); e.preventDefault(); }
+  });
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (chip && chip.dataset.app) {
+      state.apps.has(chip.dataset.app) ? state.apps.delete(chip.dataset.app) : state.apps.add(chip.dataset.app);
+      state.sel = 0; render(); return;
+    }
+    if (chip && chip.dataset.kind) {
+      state.kinds.has(chip.dataset.kind) ? state.kinds.delete(chip.dataset.kind) : state.kinds.add(chip.dataset.kind);
+      state.sel = 0; render(); return;
+    }
+    const card = e.target.closest(".tcard");
+    if (card) { state.sel = Number(card.dataset.n); render(); paste(); }
+  });
+  render();
+
+  // Feature clips: cards advertise a video only when the file exists.
+  document.querySelectorAll(".card[data-clip]").forEach((card) => {
+    fetch(card.dataset.clip, { method: "HEAD" }).then((r) => {
+      if (!r.ok) return;
+      card.classList.add("has-clip");
+      card.addEventListener("click", () => {
+        el("clip-video").src = card.dataset.clip;
+        el("clip-modal").classList.add("open");
+      });
+    }).catch(() => {});
+  });
+  el("clip-modal").addEventListener("click", () => {
+    el("clip-modal").classList.remove("open");
+    el("clip-video").pause();
+    el("clip-video").removeAttribute("src");
+  });
+})();
+</script>
 </body>
 </html>
