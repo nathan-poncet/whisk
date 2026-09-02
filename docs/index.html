@@ -165,7 +165,11 @@
       display: flex; align-items: center; gap: 5px;
     }
     .tryit .note .bar span.dot { width: 9px; height: 9px; border-radius: 50%; }
-    .tryit .note .body { padding: 10px 12px; min-height: 52px; line-height: 1.5; }
+    .tryit .note .body {
+      padding: 10px 12px; line-height: 1.5;
+      /* Mostly vertical growth: the note deepens as the demo fills the page. */
+      min-height: calc(52px + 90px * var(--p, 0));
+    }
     .tryit .note .body .cursor {
       display: inline-block; width: 1px; height: 14px; background: #333;
       vertical-align: -2px; animation: blink 1s step-end infinite;
