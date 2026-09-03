@@ -546,19 +546,13 @@
     const target = stick.clientHeight - parseFloat(styles.paddingBottom) - screen.offsetTop;
     screen.style.setProperty("--maxh", `${Math.max(320, target)}px`);
   };
-  // Half-grown is frustrating: once scrolling settles in between, glide
-  // to whichever end is closer.
+  // Entering the zone plays the whole transition: the page glides to the
+  // end matching the scroll direction and the screen freezes there — no
+  // half-grown state to land on. A direction change mid-glide re-targets;
+  // the idle timer resumes the trip if a manual scrub parks in between.
+  let glideDir = 0;
+  let lastY = window.scrollY;
   let snapTimer = 0;
-  let snapping = false;
-  const scheduleSnap = (p, target) => {
-    clearTimeout(snapTimer);
-    if (snapping || p < 0.05 || p > 0.95) return;
-    snapTimer = setTimeout(() => {
-      snapping = true;
-      window.scrollTo({ top: target, behavior: "smooth" });
-      setTimeout(() => { snapping = false; }, 900);
-    }, 140);
-  };
   const onScroll = () => {
     // Growth starts as the section crosses the middle of the viewport and
     // finishes exactly where it used to — the runway just got longer.
@@ -567,8 +561,23 @@
     const total = Math.max(1, zoom.offsetHeight - window.innerHeight);
     const p = Math.min(1, Math.max(0, (lead - top) / (total + lead)));
     screen.style.setProperty("--p", p.toFixed(3));
+    const dir = Math.sign(window.scrollY - lastY);
+    lastY = window.scrollY;
     const sectionTop = window.scrollY + top;
-    scheduleSnap(p, p < 0.5 ? sectionTop - lead : sectionTop + total);
+    const endFor = (d) => (d > 0 ? sectionTop + total : sectionTop - lead);
+    clearTimeout(snapTimer);
+    if (p <= 0.005 || p >= 0.995) {
+      glideDir = 0;
+      return;
+    }
+    if (dir !== 0 && dir !== glideDir) {
+      glideDir = dir;
+      window.scrollTo({ top: endFor(dir), behavior: "smooth" });
+      return;
+    }
+    snapTimer = setTimeout(() => {
+      window.scrollTo({ top: endFor(glideDir || (p < 0.5 ? -1 : 1)), behavior: "smooth" });
+    }, 140);
   };
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", () => { measure(); onScroll(); }, { passive: true });
