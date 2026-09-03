@@ -128,6 +128,26 @@ import Testing
         #expect(spy.last.cards.map(\.isSelected) == [true])
     }
 
+    @Test func the_cursor_lives_in_one_zone_at_a_time() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("first"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("second"), from: "Slack", bundle: "com.slack"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        #expect(spy.last.cards.map(\.isSelected) == [true, false])
+
+        controller.navigate(.up)
+        #expect(spy.last.cards.map(\.isSelected) == [false, false])
+        #expect(spy.last.filters.apps.contains(where: \.isFocused))
+
+        controller.navigate(.down)
+        #expect(spy.last.cards.map(\.isSelected) == [true, false])
+    }
+
     @Test func jumping_the_selection_lands_on_the_edges_of_the_rail() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("a")), anItem(.text("b")), anItem(.text("c"))]

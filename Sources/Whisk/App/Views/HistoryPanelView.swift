@@ -18,7 +18,7 @@ struct HistoryPanelView: View {
     /// their size but render nothing, and everything is preloaded so a
     /// card entering the delta arrives fully formed.
     @State private var railWindow = RailWindow()
-    private static let cardStride: CGFloat = 254
+    private static let cardStride: CGFloat = 224
     private static let mountDelta = 8
 
     /// The field echoes keystrokes instantly; the controller's query only
@@ -39,7 +39,13 @@ struct HistoryPanelView: View {
     /// on the first typed character — or the moment vim's search mode
     /// engages, even empty.
     private var searchExpanded: Bool {
-        !searchText.isEmpty || (store.vimEnabled && store.searchActive)
+        !searchText.isEmpty || cursorOnSearch
+    }
+
+    /// One cursor at a time: while vim's search mode holds it, neither a
+    /// card nor a chip may wear one.
+    private var cursorOnSearch: Bool {
+        store.vimEnabled && store.searchActive
     }
 
     var body: some View {
@@ -54,6 +60,7 @@ struct HistoryPanelView: View {
             if !store.state.filters.isEmpty {
                 FilterBarView(
                     filters: store.state.filters,
+                    cursorSuppressed: cursorOnSearch,
                     onToggleApp: actions.toggleSourceFilter,
                     onToggleKind: actions.toggleCategoryFilter,
                     onFocusApp: actions.focusSourceChip,
@@ -137,19 +144,14 @@ struct HistoryPanelView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .liquidGlass(in: Capsule())
-        // The capsule lights up as it stretches: a crisp matcha rim over a
-        // soft halo, the same language as the cards' selection ring. Plain
-        // opacity (not if/else) so the outer animation carries the fade.
+        // The capsule lights up as it stretches: a crisp matcha rim, the
+        // same language as the cards' selection ring. Plain opacity (not
+        // if/else) so the outer animation carries the fade.
         .overlay {
-            ZStack {
-                Capsule()
-                    .stroke(Color.matcha.opacity(0.4), lineWidth: 4)
-                    .blur(radius: 5)
-                Capsule()
-                    .strokeBorder(Color.matcha.opacity(0.9), lineWidth: 1)
-            }
-            .opacity(searchExpanded ? 1 : 0)
-            .allowsHitTesting(false)
+            Capsule()
+                .strokeBorder(Color.matcha.opacity(0.9), lineWidth: 1)
+                .opacity(searchExpanded ? 1 : 0)
+                .allowsHitTesting(false)
         }
         .contentShape(Capsule())
         .onTapGesture {
@@ -209,7 +211,8 @@ struct HistoryPanelView: View {
                                 onHighlight: { actions.highlight(card.id) },
                                 onTogglePin: { actions.togglePin(card.id) },
                                 onDelete: { actions.delete(card.id) },
-                                onDragBegin: actions.dragBegan
+                                onDragBegin: actions.dragBegan,
+                                showsSelection: !cursorOnSearch
                             )
                             .equatable()
                         } else {
@@ -249,7 +252,7 @@ struct HistoryPanelView: View {
     // extent steady.
     private var railPlaceholder: some View {
         Color.clear
-            .frame(width: 240, height: 240)
+            .frame(width: 210, height: 210)
     }
 
     private var emptyState: some View {

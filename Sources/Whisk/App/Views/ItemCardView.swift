@@ -11,9 +11,12 @@ struct ItemCardView: View, Equatable {
     let onTogglePin: () -> Void
     let onDelete: () -> Void
     let onDragBegin: () -> Void
+    /// One cursor at a time: while vim's search mode holds it, the ring
+    /// stays off even though the selection survives underneath.
+    var showsSelection = true
 
     static func == (lhs: ItemCardView, rhs: ItemCardView) -> Bool {
-        lhs.card == rhs.card
+        lhs.card == rhs.card && lhs.showsSelection == rhs.showsSelection
     }
 
     @Environment(\.colorScheme) private var scheme
@@ -21,7 +24,7 @@ struct ItemCardView: View, Equatable {
     private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
 
     private var selectedSide: CGFloat {
-        card.isSelected ? 240 : 230
+        card.isSelected ? 210 : 200
     }
 
     var body: some View {
@@ -37,11 +40,11 @@ struct ItemCardView: View, Equatable {
         // grows geometrically to the same size. Same factor, same curve:
         // they track. The outer slot stays constant so neighbors never
         // shift.
-        .frame(width: 230, height: 230)
+        .frame(width: 200, height: 200)
         .overlay(selectionRing)
-        .scaleEffect(card.isSelected ? 240.0 / 230.0 : 1)
+        .scaleEffect(card.isSelected ? 210.0 / 200.0 : 1)
         .animation(.easeOut(duration: 0.16), value: card.isSelected)
-        .frame(width: 240, height: 240)
+        .frame(width: 210, height: 210)
         .background {
             Color.clear
                 .frame(width: selectedSide, height: selectedSide)
@@ -74,14 +77,9 @@ struct ItemCardView: View, Equatable {
     }
 
     @ViewBuilder private var selectionRing: some View {
-        if card.isSelected {
-            ZStack {
-                Self.shape
-                    .stroke(Color.matcha.opacity(0.55), lineWidth: 7)
-                    .blur(radius: 7)
-                Self.shape
-                    .strokeBorder(Color.matcha, lineWidth: 2)
-            }
+        if card.isSelected && showsSelection {
+            Self.shape
+                .strokeBorder(Color.matcha, lineWidth: 2)
         }
     }
 

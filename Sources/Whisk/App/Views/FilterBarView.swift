@@ -9,6 +9,8 @@ import SwiftUI
 struct FilterBarView: View {
     @Environment(\.colorScheme) private var scheme
     let filters: FilterBarViewState
+    /// One cursor at a time: vim's search mode swallows the chip focus.
+    var cursorSuppressed = false
     let onToggleApp: (String) -> Void
     let onToggleKind: (String) -> Void
     let onFocusApp: (String) -> Void
@@ -21,6 +23,7 @@ struct FilterBarView: View {
                     ForEach(filters.pinned) { chip in
                         ChipButton(
                             chip: chip,
+                            focusVisible: !cursorSuppressed,
                             onToggle: { onToggleKind(chip.id) },
                             onFocus: { onFocusKind(chip.id) }
                         ) {
@@ -39,6 +42,7 @@ struct FilterBarView: View {
                             chip: chip,
                             baseTint: SourceAppStyle.resolve(bundleID: chip.sourceBundleID)
                                 .surfaceTint(dark: scheme == .dark),
+                            focusVisible: !cursorSuppressed,
                             onToggle: { onToggleApp(chip.id) },
                             onFocus: { onFocusApp(chip.id) }
                         ) {
@@ -59,6 +63,7 @@ struct FilterBarView: View {
                     ForEach(filters.kinds) { chip in
                         ChipButton(
                             chip: chip,
+                            focusVisible: !cursorSuppressed,
                             onToggle: { onToggleKind(chip.id) },
                             onFocus: { onFocusKind(chip.id) }
                         ) {
@@ -124,19 +129,24 @@ struct FilterBarView: View {
 private struct ChipButton<Label: View>: View {
     let chip: FilterChip
     var baseTint: Color?
+    var focusVisible = true
     let onToggle: () -> Void
     let onFocus: () -> Void
     @ViewBuilder let label: () -> Label
 
+    private var isFocused: Bool {
+        chip.isFocused && focusVisible
+    }
+
     private var zoomed: Bool {
-        chip.isFocused || chip.isActive
+        isFocused || chip.isActive
     }
 
     var body: some View {
         Button(action: onToggle) {
             label()
         }
-        .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: chip.isFocused))
+        .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: isFocused))
         .scaleEffect(zoomed ? 1.06 : 1)
         // The frosted capsule is an AppKit view and ignores transforms, so
         // it grows geometrically in a measured background — oversize does
@@ -155,7 +165,7 @@ private struct ChipButton<Label: View>: View {
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
             }
         }
-        .animation(.easeOut(duration: 0.14), value: chip.isFocused)
+        .animation(.easeOut(duration: 0.14), value: isFocused)
         .animation(.easeOut(duration: 0.14), value: chip.isActive)
         .onContinuousHover { phase in
             if case .active = phase, MouseActivity.movedRecently {

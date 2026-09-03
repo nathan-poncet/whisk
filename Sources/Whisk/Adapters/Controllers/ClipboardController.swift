@@ -570,7 +570,10 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 items: visible,
                 query: query,
                 now: clock.now(),
-                selectedID: selectedID,
+                // One cursor at a time: while the chip row holds it, no
+                // card wears the ring — the selection itself survives for
+                // the way back down.
+                selectedID: focusZone == .cards ? selectedID : nil,
                 stack: pasteStack,
                 filters: FilterContext(
                     sources: sources,
