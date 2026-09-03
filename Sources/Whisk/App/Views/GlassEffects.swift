@@ -133,9 +133,6 @@ enum BackdropBlurTuner {
         blur.setValue(radius, forKey: "inputRadius")
         blur.setValue(true, forKey: "inputNormalizeEdges")
         backdrop.filters = [blur]
-        #if DEBUG
-            NSLog("WHISK-BLUR gaussian tuned to %.0f px", radius)
-        #endif
         return true
     }
 
