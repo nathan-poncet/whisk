@@ -57,6 +57,7 @@ struct ItemCardView: View, Equatable {
                 .animation(.easeOut(duration: 0.16), value: card.isSelected)
         }
         .contentShape(Rectangle())
+        .grabPointer()
         .onDrag {
             onDragBegin()
             return Self.dragProvider(for: card.preview)

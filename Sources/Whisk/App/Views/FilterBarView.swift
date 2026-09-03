@@ -147,6 +147,7 @@ private struct ChipButton<Label: View>: View {
             label()
         }
         .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: isFocused))
+        .linkPointer()
         .scaleEffect(zoomed ? 1.06 : 1)
         // The frosted capsule is an AppKit view and ignores transforms, so
         // it grows geometrically in a measured background — oversize does
