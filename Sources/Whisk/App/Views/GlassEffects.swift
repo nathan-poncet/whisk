@@ -173,7 +173,7 @@ struct GradientBlurVeil: NSViewRepresentable {
 }
 
 final class GradientVeilView: NSVisualEffectView {
-    static let blurRadius: Double = 5
+    static let blurRadius: Double = 3
     static let plateauAlpha: CGFloat = 1
     /// Fraction of the height, measured from the top, where the ramp ends.
     static let rampEnd: CGFloat = 0.25
