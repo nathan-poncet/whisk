@@ -7,6 +7,8 @@ Paste-style panel at the bottom of your screen.
 
 **Website: [nathan-poncet.github.io/whisk](https://nathan-poncet.github.io/whisk/)**
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S3V726AT7H)
+
 ![Whisk demo — the panel, keyboard navigation, filters, and direct paste](docs/media/demo.gif)
 
 *(Crisp MP4: [docs/media/demo.mp4](docs/media/demo.mp4), also attached to the [releases](https://github.com/nathan-poncet/whisk/releases).)*
