@@ -290,11 +290,11 @@ private struct ShortcutRecorder: View {
                 .padding(.vertical, 3)
                 .background(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(isRecording ? Color.accentColor.opacity(0.25) : Color(nsColor: .tertiarySystemFill))
+                        .fill(isRecording ? Color.matcha.opacity(0.25) : Color(nsColor: .tertiarySystemFill))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(isRecording ? Color.accentColor : .clear, lineWidth: 1.5)
+                        .strokeBorder(isRecording ? Color.matcha : .clear, lineWidth: 1.5)
                 )
         }
         .buttonStyle(.plain)

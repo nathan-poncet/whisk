@@ -119,7 +119,7 @@ struct HistoryPanelView: View {
             if store.state.stackCount > 0 {
                 Label("\(store.state.stackCount)", systemImage: "square.stack.3d.up.fill")
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(Color.matcha)
                     .help(localized("Paste stack — pop with the global shortcut"))
             }
             Text(store.state.countLabel)
@@ -137,6 +137,20 @@ struct HistoryPanelView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .liquidGlass(in: Capsule())
+        // The capsule lights up as it stretches: a crisp matcha rim over a
+        // soft halo, the same language as the cards' selection ring. Plain
+        // opacity (not if/else) so the outer animation carries the fade.
+        .overlay {
+            ZStack {
+                Capsule()
+                    .stroke(Color.matcha.opacity(0.4), lineWidth: 4)
+                    .blur(radius: 5)
+                Capsule()
+                    .strokeBorder(Color.matcha.opacity(0.9), lineWidth: 1)
+            }
+            .opacity(searchExpanded ? 1 : 0)
+            .allowsHitTesting(false)
+        }
         .contentShape(Capsule())
         .onTapGesture {
             if store.vimEnabled, !store.searchActive {

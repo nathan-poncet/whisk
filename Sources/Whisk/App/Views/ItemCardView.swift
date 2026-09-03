@@ -77,10 +77,10 @@ struct ItemCardView: View, Equatable {
         if card.isSelected {
             ZStack {
                 Self.shape
-                    .stroke(Color.accentColor.opacity(0.55), lineWidth: 7)
+                    .stroke(Color.matcha.opacity(0.55), lineWidth: 7)
                     .blur(radius: 7)
                 Self.shape
-                    .strokeBorder(Color.accentColor, lineWidth: 3)
+                    .strokeBorder(Color.matcha, lineWidth: 2)
             }
         }
     }
@@ -107,10 +107,10 @@ struct ItemCardView: View, Equatable {
                     Text("\(position)")
                         .font(.caption2.weight(.bold).monospacedDigit())
                 }
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(Color.matcha)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Capsule().fill(Color.accentColor.opacity(0.18)))
+                .background(Capsule().fill(Color.matcha.opacity(0.18)))
             }
             if card.isPinned {
                 Image(systemName: "pin.fill")
