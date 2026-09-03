@@ -237,7 +237,7 @@ final class PanelController {
         let frame = screen.frame
         // Taller than the content: the top band is empty backdrop, so the
         // blur veil begins above the search capsule instead of at its edge.
-        let height: CGFloat = 460
+        let height: CGFloat = 430
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true
@@ -362,7 +362,7 @@ final class PanelController {
         preview.setFrame(
             NSRect(
                 x: frame.midX - size.width / 2,
-                y: frame.minY + 506,
+                y: frame.minY + 476,
                 width: size.width,
                 height: size.height
             ),
