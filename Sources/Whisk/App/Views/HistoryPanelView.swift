@@ -113,6 +113,7 @@ struct HistoryPanelView: View {
                 .font(.system(size: 14))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .linkPointer()
             } else {
                 TextField(
                     searchExpanded ? localized("Search clipboard history") : localized("Search"),
