@@ -93,38 +93,9 @@ final class BackdropView: NSVisualEffectView {
         tuneBlur()
     }
 
-    /// The window server only honors its own filter class on backdrop
-    /// layers — public CIFilters are silently ignored — so the gaussian is
-    /// swapped through runtime lookup. Any failure leaves the stock
-    /// material untouched.
     private func tuneBlur() {
-        guard !blurTuned, let backdrop = Self.findBackdropLayer(in: layer) else { return }
-        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type else { return }
-        let selector = NSSelectorFromString("filterWithType:")
-        guard filterClass.responds(to: selector),
-            let blur = filterClass.perform(selector, with: "gaussianBlur")?
-                .takeUnretainedValue() as? NSObject
-        else { return }
-        blur.setValue(Self.blurRadius, forKey: "inputRadius")
-        blur.setValue(true, forKey: "inputNormalizeEdges")
-        backdrop.filters = [blur]
-        blurTuned = true
-        #if DEBUG
-            NSLog("WHISK-BLUR gaussian tuned to %.0f px", Self.blurRadius)
-        #endif
-    }
-
-    private static func findBackdropLayer(in layer: CALayer?) -> CALayer? {
-        guard let layer else { return nil }
-        if String(describing: type(of: layer)).contains("Backdrop") {
-            return layer
-        }
-        for sublayer in layer.sublayers ?? [] {
-            if let found = findBackdropLayer(in: sublayer) {
-                return found
-            }
-        }
-        return nil
+        guard !blurTuned else { return }
+        blurTuned = BackdropBlurTuner.tune(layer, radius: Self.blurRadius)
     }
 
     override func layout() {
@@ -142,6 +113,121 @@ final class BackdropView: NSVisualEffectView {
             xRadius: radius,
             yRadius: radius
         ).fill()
+        mask.unlockFocus()
+        maskImage = mask
+    }
+}
+
+/// The window server only honors its own filter class on backdrop layers —
+/// public CIFilters are silently ignored — so the gaussian is swapped
+/// through runtime lookup. Any failure leaves the stock material untouched.
+enum BackdropBlurTuner {
+    static func tune(_ layer: CALayer?, radius: Double) -> Bool {
+        guard let backdrop = backdropLayer(in: layer) else { return false }
+        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type else { return false }
+        let selector = NSSelectorFromString("filterWithType:")
+        guard filterClass.responds(to: selector),
+            let blur = filterClass.perform(selector, with: "gaussianBlur")?
+                .takeUnretainedValue() as? NSObject
+        else { return false }
+        blur.setValue(radius, forKey: "inputRadius")
+        blur.setValue(true, forKey: "inputNormalizeEdges")
+        backdrop.filters = [blur]
+        #if DEBUG
+            NSLog("WHISK-BLUR gaussian tuned to %.0f px", radius)
+        #endif
+        return true
+    }
+
+    static func backdropLayer(in layer: CALayer?) -> CALayer? {
+        guard let layer else { return nil }
+        if String(describing: type(of: layer)).contains("Backdrop") {
+            return layer
+        }
+        for sublayer in layer.sublayers ?? [] {
+            if let found = backdropLayer(in: sublayer) {
+                return found
+            }
+        }
+        return nil
+    }
+}
+
+/// The panel's veil: a REAL behind-window blur — SwiftUI materials only
+/// blur in-window content, which a transparent panel doesn't have — masked
+/// by a vertical gradient: nothing at the top, the plateau from the first
+/// quarter down. The plateau sits at FULL alpha: partial alpha only blends
+/// sharp text with blur and stays readable — the strength dial is the
+/// radius, never the mask.
+struct GradientBlurVeil: NSViewRepresentable {
+    func makeNSView(context: Context) -> GradientVeilView {
+        let view = GradientVeilView()
+        view.blendingMode = .behindWindow
+        view.state = .active
+        view.material = .hudWindow
+        view.wantsLayer = true
+        return view
+    }
+
+    func updateNSView(_ view: GradientVeilView, context: Context) {}
+}
+
+final class GradientVeilView: NSVisualEffectView {
+    static let blurRadius: Double = 5
+    static let plateauAlpha: CGFloat = 1
+    /// Fraction of the height, measured from the top, where the ramp ends.
+    static let rampEnd: CGFloat = 0.25
+
+    private var blurTuned = false
+    private var maskKey = ""
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        tuneBlur()
+    }
+
+    override func updateLayer() {
+        super.updateLayer()
+        tuneBlur()
+    }
+
+    private func tuneBlur() {
+        if !blurTuned {
+            blurTuned = BackdropBlurTuner.tune(layer, radius: Self.blurRadius)
+        }
+        if blurTuned {
+            hideTintLayers()
+        }
+    }
+
+    /// The material composites color washes as SIBLINGS of the backdrop
+    /// layer, one container down — two gray fills and a CAChameleonLayer.
+    /// The veil wants the blur alone, so every sibling is hidden; the
+    /// system re-adds them on appearance changes, hence on every
+    /// updateLayer.
+    private func hideTintLayers() {
+        guard let backdrop = BackdropBlurTuner.backdropLayer(in: layer),
+            let container = backdrop.superlayer
+        else { return }
+        for sublayer in container.sublayers ?? [] where sublayer !== backdrop {
+            sublayer.isHidden = true
+        }
+    }
+
+    override func layout() {
+        super.layout()
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        let key = "\(bounds.size)"
+        guard key != maskKey else { return }
+        maskKey = key
+        let mask = NSImage(size: bounds.size)
+        mask.lockFocus()
+        // Unflipped image coordinates: location 0 is the bottom edge.
+        NSGradient(
+            colorsAndLocations: (NSColor.white.withAlphaComponent(Self.plateauAlpha), 0),
+            (NSColor.white.withAlphaComponent(Self.plateauAlpha), 1 - Self.rampEnd),
+            (NSColor.white.withAlphaComponent(0), 1)
+        )?.draw(in: NSRect(origin: .zero, size: bounds.size), angle: 90)
         mask.unlockFocus()
         maskImage = mask
     }
