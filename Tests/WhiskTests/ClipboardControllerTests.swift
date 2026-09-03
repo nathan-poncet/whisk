@@ -177,6 +177,32 @@ import Testing
         #expect(spy.last.cards.map(\.isSelected) == [true])
     }
 
+    @Test func searching_finds_fuzzy_subsequences() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("hello world")), anItem(.text("goodbye"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.search("hlwd")
+
+        #expect(spy.last.cards.map(\.preview) == [.text("hello world")])
+    }
+
+    @Test func searching_ranks_the_tightest_match_above_the_most_recent() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("salut escargot rich")), anItem(.text("search results"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.search("search")
+
+        #expect(spy.last.cards.map(\.preview) == [.text("search results"), .text("salut escargot rich")])
+    }
+
     @Test func activation_targets_the_stepped_selection_not_the_first_card() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("front")), anItem(.text("stepped to"))]
