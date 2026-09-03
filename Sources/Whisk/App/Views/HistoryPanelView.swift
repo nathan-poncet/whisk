@@ -62,7 +62,7 @@ struct HistoryPanelView: View {
             }
             content
         }
-        .padding(.top, 12)
+        .padding(.top, 58)
         .padding(.bottom, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .onChange(of: store.focusRevision) {

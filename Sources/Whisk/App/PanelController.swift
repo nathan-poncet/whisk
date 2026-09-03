@@ -11,6 +11,31 @@ final class PanelController {
     private let keyBindings: KeyBindingsStore
     private var previewPanel: NSPanel?
 
+    /// The blur veil lives in its own window behind the panel: the panel's
+    /// closing animation shrinks its content, but the veil must hold
+    /// perfectly still and only fade.
+    private let veilPanel: NSPanel = {
+        let veil = NSPanel(
+            contentRect: .zero,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        veil.isFloatingPanel = true
+        veil.level = .statusBar
+        veil.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        veil.backgroundColor = .clear
+        veil.isOpaque = false
+        veil.hasShadow = false
+        veil.ignoresMouseEvents = true
+        veil.contentView = NSHostingView(rootView: GradientBlurVeil())
+        return veil
+    }()
+
+    /// Stale fade-out completions must never order out a veil that a
+    /// newer show already brought back.
+    private var veilGeneration = 0
+
     private let vimMode: () -> Bool
     private let vimBindings: VimBindingsStore
 
@@ -35,6 +60,7 @@ final class PanelController {
         // outlive it.
         panel.onClose = { [weak self] in
             self?.hidePreview()
+            self?.fadeOutVeil()
             self?.stateStore.panelDidClose()
         }
         // In vim navigation Esc walks back one mode — SEARCH to NORMAL —
@@ -209,7 +235,9 @@ final class PanelController {
         // The full frame, not visibleFrame: the panel floats above the
         // Dock, flush with the physical bottom edge of the screen.
         let frame = screen.frame
-        let height: CGFloat = 414
+        // Taller than the content: the top band is empty backdrop, so the
+        // blur veil begins above the search capsule instead of at its edge.
+        let height: CGFloat = 460
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true
@@ -218,10 +246,36 @@ final class PanelController {
         stateStore.configureInput(vim: vimMode(), searchKey: vimBindings.key(for: .search))
         stateStore.requestSearchFocus()
         panel.makeKeyAndOrderFront(nil)
+        veilGeneration += 1
+        veilPanel.setFrame(panel.frame, display: true)
+        veilPanel.alphaValue = 0
+        veilPanel.order(.below, relativeTo: panel.windowNumber)
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.22
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            veilPanel.animator().alphaValue = 1
+        }
     }
 
     func hide() {
         panel.orderOut(nil)
+    }
+
+    private func fadeOutVeil() {
+        guard veilPanel.isVisible else { return }
+        veilGeneration += 1
+        let generation = veilGeneration
+        NSAnimationContext.runAnimationGroup(
+            { context in
+                context.duration = 0.22
+                context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                veilPanel.animator().alphaValue = 0
+            },
+            completionHandler: { [weak self] in
+                guard let self, generation == veilGeneration else { return }
+                veilPanel.orderOut(nil)
+            }
+        )
     }
 
     private var ghostFadeTimer: Timer?
@@ -245,6 +299,9 @@ final class PanelController {
                 context.duration = 0.18
                 context.timingFunction = CAMediaTimingFunction(name: .easeOut)
                 self.panel.animator().alphaValue = 0
+                // The veil clears too: the drop target may sit right
+                // behind it.
+                self.veilPanel.animator().alphaValue = 0
             }
         }
         ghostFadeTimer = fade
@@ -305,7 +362,7 @@ final class PanelController {
         preview.setFrame(
             NSRect(
                 x: frame.midX - size.width / 2,
-                y: frame.minY + 460,
+                y: frame.minY + 506,
                 width: size.width,
                 height: size.height
             ),
