@@ -546,13 +546,29 @@
     const target = stick.clientHeight - parseFloat(styles.paddingBottom) - screen.offsetTop;
     screen.style.setProperty("--maxh", `${Math.max(320, target)}px`);
   };
+  // Half-grown is frustrating: once scrolling settles in between, glide
+  // to whichever end is closer.
+  let snapTimer = 0;
+  let snapping = false;
+  const scheduleSnap = (p, target) => {
+    clearTimeout(snapTimer);
+    if (snapping || p < 0.05 || p > 0.95) return;
+    snapTimer = setTimeout(() => {
+      snapping = true;
+      window.scrollTo({ top: target, behavior: "smooth" });
+      setTimeout(() => { snapping = false; }, 900);
+    }, 140);
+  };
   const onScroll = () => {
-    // Growth only begins once the section itself reaches the top of the
-    // viewport — before that, the demo is plainly a demo.
+    // Growth starts as the section crosses the middle of the viewport and
+    // finishes exactly where it used to — the runway just got longer.
+    const lead = window.innerHeight * 0.5;
     const top = section.getBoundingClientRect().top;
     const total = Math.max(1, zoom.offsetHeight - window.innerHeight);
-    const p = Math.min(1, Math.max(0, -top / total));
+    const p = Math.min(1, Math.max(0, (lead - top) / (total + lead)));
     screen.style.setProperty("--p", p.toFixed(3));
+    const sectionTop = window.scrollY + top;
+    scheduleSnap(p, p < 0.5 ? sectionTop - lead : sectionTop + total);
   };
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", () => { measure(); onScroll(); }, { passive: true });
