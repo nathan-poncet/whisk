@@ -11,7 +11,7 @@ jobs:
   release:
     runs-on: macos-26
     env:
-      TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+      TAP_DEPLOY_KEY: ${{ secrets.TAP_DEPLOY_KEY }}
       SIGN_P12: ${{ secrets.DEVELOPER_ID_P12 }}
       SIGN_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
       NOTARY_KEY: ${{ secrets.NOTARY_API_KEY_P8 }}
@@ -88,13 +88,20 @@ jobs:
             --title "$GITHUB_REF_NAME" \
             --generate-notes
 
+      # Authenticated by a deploy key scoped to the tap repository alone —
+      # no personal token anywhere.
       - name: Bump Homebrew cask
-        if: env.TAP_TOKEN != ''
+        if: env.TAP_DEPLOY_KEY != ''
         run: |
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
           SHA=$(shasum -a 256 dist/Whisk.dmg | cut -d' ' -f1)
-          git clone "https://x-access-token:${TAP_TOKEN}@github.com/nathan-poncet/homebrew-tap.git" tap
+          mkdir -p ~/.ssh
+          printf '%s\n' "$TAP_DEPLOY_KEY" > ~/.ssh/tap_deploy_key
+          chmod 600 ~/.ssh/tap_deploy_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/tap_deploy_key -o IdentitiesOnly=yes"
+          git clone git@github.com:nathan-poncet/homebrew-tap.git tap
           cd tap
           sed -i '' \
             -e "s|^  version .*|  version \"${VERSION}\"|" \
@@ -104,3 +111,4 @@ jobs:
           git config user.email "112613712+nathan-poncet@users.noreply.github.com"
           git commit -am "whisk ${VERSION}"
           git push
+          rm -f ~/.ssh/tap_deploy_key
