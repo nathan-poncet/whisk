@@ -8,16 +8,17 @@ enum Payload: Equatable, Hashable {
     case image(Data)
     case fileReferences([String])
 
-    func matches(_ query: String) -> Bool {
+    /// The text a search can look at; image bytes are opaque.
+    var searchableText: String? {
         switch self {
         case .text(let value):
-            return value.localizedCaseInsensitiveContains(query)
+            return value
         case .link(let url):
-            return url.absoluteString.localizedCaseInsensitiveContains(query)
+            return url.absoluteString
         case .fileReferences(let paths):
-            return paths.contains { $0.localizedCaseInsensitiveContains(query) }
+            return paths.joined(separator: " ")
         case .image:
-            return false
+            return nil
         }
     }
 }
