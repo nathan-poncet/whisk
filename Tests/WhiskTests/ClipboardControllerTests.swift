@@ -142,7 +142,7 @@ import Testing
 
         controller.navigate(.up)
         #expect(spy.last.cards.map(\.isSelected) == [false, false])
-        #expect(spy.last.filters.apps.contains(where: \.isFocused))
+        #expect(spy.last.filters.apps.map(\.isFocused).contains(true))
 
         controller.navigate(.down)
         #expect(spy.last.cards.map(\.isSelected) == [true, false])
