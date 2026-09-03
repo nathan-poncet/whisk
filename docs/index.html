@@ -549,59 +549,14 @@
     const target = stick.clientHeight - parseFloat(styles.paddingBottom) - screen.offsetTop;
     screen.style.setProperty("--maxh", `${Math.max(320, target)}px`);
   };
-  // Entering the zone hands the page over: the transition animates itself
-  // to the end matching the scroll direction while user scroll is
-  // swallowed, and stays swallowed until the leftover momentum dies —
-  // the wheel must stop and start again to keep going.
-  let animating = false;
-  let locked = false;
-  let quietTimer = 0;
-  const armQuiet = () => {
-    clearTimeout(quietTimer);
-    quietTimer = setTimeout(() => { locked = false; }, 180);
-  };
-  const swallow = (event) => {
-    if (!locked) return;
-    event.preventDefault();
-    // Only the cooldown re-arms: while the animation runs, nothing may
-    // shorten or extend the lock.
-    if (!animating) armQuiet();
-  };
-  addEventListener("wheel", swallow, { passive: false });
-  addEventListener("touchmove", swallow, { passive: false });
-  const animateTo = (target) => {
-    animating = true;
-    locked = true;
-    const from = window.scrollY;
-    const start = performance.now();
-    const duration = 600;
-    const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-    const step = (now) => {
-      const t = Math.min(1, (now - start) / duration);
-      window.scrollTo(0, from + (target - from) * ease(t));
-      if (t < 1) {
-        requestAnimationFrame(step);
-      } else {
-        animating = false;
-        armQuiet();
-      }
-    };
-    requestAnimationFrame(step);
-  };
-  let lastY = window.scrollY;
   const onScroll = () => {
     // Growth starts as the section crosses the middle of the viewport and
-    // finishes exactly where it used to — the runway just got longer.
+    // finishes at the end of the runway — plain scroll-driven scrubbing.
     const lead = window.innerHeight * 0.5;
     const top = section.getBoundingClientRect().top;
     const total = Math.max(1, zoom.offsetHeight - window.innerHeight);
     const p = Math.min(1, Math.max(0, (lead - top) / (total + lead)));
     screen.style.setProperty("--p", p.toFixed(3));
-    const dir = Math.sign(window.scrollY - lastY);
-    lastY = window.scrollY;
-    if (animating || locked || dir === 0 || p <= 0.005 || p >= 0.995) return;
-    const sectionTop = window.scrollY + top;
-    animateTo(dir > 0 ? sectionTop + total : sectionTop - lead);
   };
   addEventListener("scroll", onScroll, { passive: true });
   addEventListener("resize", () => { measure(); onScroll(); }, { passive: true });
