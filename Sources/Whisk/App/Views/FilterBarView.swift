@@ -146,7 +146,7 @@ private struct ChipButton<Label: View>: View {
                 Color.clear
                     .liquidGlass(
                         in: Capsule(),
-                        tint: chip.isActive ? Color.accentColor.opacity(0.28) : baseTint
+                        tint: chip.isActive ? Color.matcha.opacity(0.28) : baseTint
                     )
                     .frame(
                         width: proxy.size.width * (zoomed ? 1.06 : 1),
@@ -172,7 +172,7 @@ private struct FilterChipStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.callout.weight(isActive ? .semibold : .regular))
-            .foregroundStyle(isActive ? Color.accentColor : .primary)
+            .foregroundStyle(isActive ? Color.matcha : .primary)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .overlay(
@@ -183,10 +183,10 @@ private struct FilterChipStyle: ButtonStyle {
 
     private var borderColor: Color {
         if isFocused {
-            return .accentColor
+            return Color.matcha
         }
         if isActive {
-            return .accentColor.opacity(0.8)
+            return Color.matcha.opacity(0.8)
         }
         return .clear
     }
