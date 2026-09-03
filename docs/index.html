@@ -256,7 +256,9 @@
       border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
     }
 
-    .tryit-zoom { height: 190vh; }
+    /* 90vh of growth, then 60vh of dwell: the screen holds its full
+       size for a stretch of scroll before the page moves on. */
+    .tryit-zoom { height: 250vh; }
     /* The heading stays pinned above the growing screen: even at full
        size, the demo is visibly labeled a demo. */
     .tryit-stick {
@@ -550,11 +552,14 @@
     screen.style.setProperty("--maxh", `${Math.max(320, target)}px`);
   };
   const onScroll = () => {
-    // Growth starts as the section crosses the middle of the viewport and
-    // finishes at the end of the runway — plain scroll-driven scrubbing.
+    // Growth starts as the section crosses the middle of the viewport;
+    // the last stretch of the runway is a dwell where p pins at 1 — the
+    // screen holds fully extended until the extra scroll is spent.
     const lead = window.innerHeight * 0.5;
     const top = section.getBoundingClientRect().top;
-    const total = Math.max(1, zoom.offsetHeight - window.innerHeight);
+    const runway = Math.max(1, zoom.offsetHeight - window.innerHeight);
+    const dwell = Math.min(runway - 1, window.innerHeight * 0.6);
+    const total = runway - dwell;
     const p = Math.min(1, Math.max(0, (lead - top) / (total + lead)));
     screen.style.setProperty("--p", p.toFixed(3));
   };
