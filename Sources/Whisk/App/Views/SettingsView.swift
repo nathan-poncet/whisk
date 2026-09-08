@@ -10,47 +10,131 @@ struct SettingsView: View {
     @ObservedObject var vimBindings: VimBindingsStore
 
     var body: some View {
-        // The window is created once and never resized: the scroll absorbs
-        // the vim section appearing and disappearing with its toggle.
-        ScrollView {
-            content
+        // The window is created once and never resized; the grouped form
+        // scrolls, so the vim section can appear and disappear freely.
+        Form {
+            generalSection
+            historySection
+            excludedSection
+            vimSection
+            shortcutsSection
+            restoreSection
         }
-        .frame(width: 500, height: 640)
+        .formStyle(.grouped)
+        .frame(width: 560, height: 720)
     }
 
-    private var content: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(localized("General"))
-                .font(.title3.weight(.semibold))
+    private var generalSection: some View {
+        Section {
+            Toggle(isOn: Binding(get: { loginItem.isEnabled }, set: { loginItem.setEnabled($0) })) {
+                SettingsRowLabel(localized("Launch Whisk at login"), symbol: "power", tint: .green)
+            }
+            .toggleStyle(.switch)
+            if let error = loginItem.lastError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+            Toggle(isOn: $general.checkForUpdates) {
+                SettingsRowLabel(
+                    localized("Check for updates at launch"), symbol: "arrow.triangle.2.circlepath", tint: .blue)
+            }
+            .toggleStyle(.switch)
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 10) {
-                Toggle(
-                    localized("Launch Whisk at login"),
-                    isOn: Binding(
-                        get: { loginItem.isEnabled },
-                        set: { loginItem.setEnabled($0) }
+    private var historySection: some View {
+        Section {
+            Picker(selection: $general.retentionPeriod) {
+                ForEach(RetentionPeriodOption.allCases) { option in
+                    Text(option.label).tag(option)
+                }
+            } label: {
+                SettingsRowLabel(localized("Keep history for"), symbol: "clock", tint: .orange)
+            }
+            Picker(selection: $general.capacity) {
+                ForEach(GeneralSettingsStore.capacityChoices, id: \.self) { choice in
+                    Text(GeneralSettingsStore.capacityLabel(choice)).tag(choice)
+                }
+            } label: {
+                SettingsRowLabel(localized("History capacity"), symbol: "tray.full", tint: .purple)
+            }
+        } footer: {
+            Text(localized("Pinned items are never expired or evicted."))
+        }
+    }
+
+    private var excludedSection: some View {
+        Section {
+            ForEach(general.excludedApps) { app in
+                HStack(spacing: 9) {
+                    if let icon = SourceAppStyle.resolve(bundleID: app.bundleID).icon {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .frame(width: 22, height: 22)
+                    }
+                    Text(app.name)
+                    Spacer()
+                    Button {
+                        general.excludedApps.removeAll { $0.bundleID == app.bundleID }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.borderless)
+                }
+            }
+            Button {
+                addExcludedApp()
+            } label: {
+                SettingsRowLabel(localized("Add App…"), symbol: "hand.raised.fill", tint: .red)
+            }
+            .buttonStyle(.plain)
+        } header: {
+            Text(localized("Excluded apps"))
+        } footer: {
+            Text(localized("Copies from excluded apps are never recorded."))
+        }
+    }
+
+    private var vimSection: some View {
+        Section {
+            Toggle(isOn: $general.vimNavigation) {
+                SettingsRowLabel(localized("Vim navigation in the panel"), symbol: "keyboard", tint: .matcha)
+            }
+            .toggleStyle(.switch)
+            if general.vimNavigation {
+                ForEach(VimAction.allCases) { action in
+                    HStack(spacing: 10) {
+                        Text(action.displayName)
+                        Spacer()
+                        if vimBindings.duplicatedActions.contains(action) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.yellow)
+                                .help(localized("This shortcut is used by another action"))
+                        }
+                        VimKeyField(action: action, store: vimBindings)
+                        Button {
+                            vimBindings.reset(action)
+                        } label: {
+                            Image(systemName: "arrow.uturn.backward")
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(!vimBindings.isCustomized(action))
+                        .help(localized("Reset to default"))
+                    }
+                }
+            }
+        } header: {
+            Text(localized("Vim Keybindings"))
+        } footer: {
+            if general.vimNavigation {
+                Text(
+                    localized(
+                        "One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed."
                     )
                 )
-                if let error = loginItem.lastError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-                Picker(localized("Keep history for"), selection: $general.retentionPeriod) {
-                    ForEach(RetentionPeriodOption.allCases) { option in
-                        Text(option.label).tag(option)
-                    }
-                }
-                Picker(localized("History capacity"), selection: $general.capacity) {
-                    ForEach(GeneralSettingsStore.capacityChoices, id: \.self) { choice in
-                        Text(GeneralSettingsStore.capacityLabel(choice)).tag(choice)
-                    }
-                }
-                Text(localized("Pinned items are never expired or evicted."))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Toggle(localized("Check for updates at launch"), isOn: $general.checkForUpdates)
-                Toggle(localized("Vim navigation in the panel"), isOn: $general.vimNavigation)
+            } else {
                 Text(
                     String(
                         format: localized(
@@ -64,155 +148,66 @@ struct SettingsView: View {
                         vimBindings.key(for: .closePanel)
                     )
                 )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            }
+        }
+    }
 
-                Divider()
-
-                HStack {
-                    Text(localized("Excluded apps"))
+    private var shortcutsSection: some View {
+        Section {
+            ForEach(KeyAction.allCases) { action in
+                HStack(spacing: 10) {
+                    Text(action.displayName)
+                    if action.isGlobal {
+                        Text(localized("global"))
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(.quaternary))
+                    }
                     Spacer()
-                    Button(localized("Add App…")) {
-                        addExcludedApp()
+                    if store.duplicatedActions.contains(action) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.yellow)
+                            .help(localized("This shortcut is used by another action"))
                     }
-                }
-                if general.excludedApps.isEmpty {
-                    Text(localized("Copies from excluded apps are never recorded."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(general.excludedApps) { app in
-                        HStack(spacing: 8) {
-                            if let icon = SourceAppStyle.resolve(bundleID: app.bundleID).icon {
-                                Image(nsImage: icon)
-                                    .resizable()
-                                    .frame(width: 16, height: 16)
-                            }
-                            Text(app.name)
-                            Spacer()
-                            Button {
-                                general.excludedApps.removeAll { $0.bundleID == app.bundleID }
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.secondary)
-                            }
-                            .buttonStyle(.borderless)
-                        }
+                    ShortcutRecorder(action: action, store: store)
+                    Button {
+                        store.reset(action)
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
                     }
+                    .buttonStyle(.borderless)
+                    .disabled(!store.isCustomized(action))
+                    .help(localized("Reset to default"))
                 }
             }
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color(nsColor: .quaternarySystemFill))
-            )
-
-            Divider()
-
+        } header: {
             Text(localized("Keyboard Shortcuts"))
-                .font(.title3.weight(.semibold))
-            Text(localized("Click a shortcut to record a new one — press Escape to cancel recording."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            VStack(spacing: 2) {
-                ForEach(KeyAction.allCases) { action in
-                    HStack(spacing: 10) {
-                        Text(action.displayName)
-                        if action.isGlobal {
-                            Text(localized("global"))
-                                .font(.caption2)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Capsule().fill(.quaternary))
-                        }
-                        Spacer()
-                        if store.duplicatedActions.contains(action) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
-                                .help(localized("This shortcut is used by another action"))
-                        }
-                        ShortcutRecorder(action: action, store: store)
-                        Button {
-                            store.reset(action)
-                        } label: {
-                            Image(systemName: "arrow.uturn.backward")
-                        }
-                        .buttonStyle(.borderless)
-                        .disabled(!store.isCustomized(action))
-                        .help(localized("Reset to default"))
-                    }
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color(nsColor: .quaternarySystemFill))
-                    )
-                }
-            }
-
-            Text(localized("⌘1…⌘9 paste the matching card directly."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            if general.vimNavigation {
-                Divider()
-
-                Text(localized("Vim Keybindings"))
-                    .font(.title3.weight(.semibold))
-                Text(
-                    localized(
-                        "One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed."
-                    )
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-                VStack(spacing: 2) {
-                    ForEach(VimAction.allCases) { action in
-                        HStack(spacing: 10) {
-                            Text(action.displayName)
-                            Spacer()
-                            if vimBindings.duplicatedActions.contains(action) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundStyle(.yellow)
-                                    .help(localized("This shortcut is used by another action"))
-                            }
-                            VimKeyField(action: action, store: vimBindings)
-                            Button {
-                                vimBindings.reset(action)
-                            } label: {
-                                Image(systemName: "arrow.uturn.backward")
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(!vimBindings.isCustomized(action))
-                            .help(localized("Reset to default"))
-                        }
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color(nsColor: .quaternarySystemFill))
-                        )
-                    }
-                }
-            }
-
-            HStack {
+        } footer: {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(localized("Click a shortcut to record a new one — press Escape to cancel recording."))
+                Text(localized("⌘1…⌘9 paste the matching card directly."))
                 if !store.duplicatedActions.isEmpty {
-                    Label(localized("Two actions share the same shortcut."), systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.yellow)
-                }
-                Spacer()
-                Button(localized("Restore Defaults")) {
-                    store.resetAll()
-                    vimBindings.resetAll()
+                    Label(
+                        localized("Two actions share the same shortcut."),
+                        systemImage: "exclamationmark.triangle"
+                    )
+                    .foregroundStyle(.yellow)
                 }
             }
         }
-        .padding(20)
-        .frame(width: 460)
+    }
+
+    private var restoreSection: some View {
+        Section {
+            Button(role: .destructive) {
+                store.resetAll()
+                vimBindings.resetAll()
+            } label: {
+                Text(localized("Restore Defaults"))
+                    .frame(maxWidth: .infinity)
+            }
+        }
     }
 
     private func addExcludedApp() {
@@ -227,6 +222,31 @@ struct SettingsView: View {
                 (bundle.infoDictionary?["CFBundleName"] as? String) ?? url.deletingPathExtension().lastPathComponent
             guard !general.excludedApps.contains(where: { $0.bundleID == bundleID }) else { continue }
             general.excludedApps.append(ExcludedApp(bundleID: bundleID, name: name))
+        }
+    }
+}
+
+/// The iOS-Settings row anatomy: the symbol on its rounded color tile,
+/// the title beside it.
+private struct SettingsRowLabel: View {
+    let title: String
+    let symbol: String
+    let tint: Color
+
+    init(_ title: String, symbol: String, tint: Color) {
+        self.title = title
+        self.symbol = symbol
+        self.tint = tint
+    }
+
+    var body: some View {
+        HStack(spacing: 9) {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 25, height: 25)
+                .background(RoundedRectangle(cornerRadius: 6.5, style: .continuous).fill(tint))
+            Text(title)
         }
     }
 }
