@@ -18,14 +18,19 @@ jobs:
         run: swift build
       - name: Test with coverage
         shell: bash
+        # Fails the build when line coverage of the testable code drops
+        # under the minimum; see scripts/coverage.sh for what is measured.
+        env:
+          COVERAGE_MIN: 90
         run: ./scripts/coverage.sh | tee coverage-report.txt
       - name: Coverage summary
+        if: always()
         run: |
           {
             echo '### Coverage'
             echo
             echo '```'
-            grep -E '^(Filename|TOTAL)' coverage-report.txt
+            grep -E '^(Filename|TOTAL|Coverage gate)' coverage-report.txt || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4

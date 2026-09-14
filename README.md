@@ -171,14 +171,18 @@ every push and archives the coverage report.
 ## CI & releases
 
 Every push runs the Dependency Rule lint, `swift format lint --strict`,
-the build, and the tests ([ci.yml](.github/workflows/ci.yml)). Dependabot
+the build, and the tests with coverage ([ci.yml](.github/workflows/ci.yml));
+the build fails when line coverage of the testable code drops under 90 %
+(everything but the composition root, the global hot key, the paste
+simulation and the entry point, which no unit test may exercise). Dependabot
 keeps the GitHub Actions (and any future Swift package dependencies) up to
 date and raises security alerts with automated fixes; CodeQL scans the
 Swift code itself on every push and weekly.
 
 Pushing a tag `v*` runs [release.yml](.github/workflows/release.yml): it
 tests, builds a universal (arm64 + x86_64) `Whisk.app`, attaches the zip to
-a GitHub release, and bumps the Homebrew formula in
+a GitHub release whose notes are the version's section of
+[CHANGELOG.md](CHANGELOG.md), and bumps the Homebrew formula in
 [nathan-poncet/homebrew-tap](https://github.com/nathan-poncet/homebrew-tap)
 (requires a `TAP_GITHUB_TOKEN` repository secret with write access to the
 tap).
