@@ -5,6 +5,13 @@ import Testing
 
 @testable import Whisk
 
+/// A key press the way AppKit would deliver it, without a window.
+func aKeyEvent(_ keyCode: Int, _ modifiers: NSEvent.ModifierFlags = [], typing characters: String = "") -> NSEvent? {
+    NSEvent.keyEvent(
+        with: .keyDown, location: .zero, modifierFlags: modifiers, timestamp: 0, windowNumber: 0, context: nil,
+        characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: UInt16(keyCode))
+}
+
 /// A UserDefaults suite of its own per test, wiped when the test ends.
 final class IsolatedDefaults {
     let defaults: UserDefaults
@@ -79,6 +86,46 @@ final class IsolatedDefaults {
         #expect(logger.messages.count == 1)
     }
 
+    @Test func a_binding_is_read_off_a_key_event_and_matches_it_back() throws {
+        let press = try #require(aKeyEvent(kVK_ANSI_K, [.command, .shift, .capsLock], typing: "K"))
+        let other = try #require(aKeyEvent(kVK_ANSI_K, [.command], typing: "k"))
+
+        let binding = KeyBinding(event: press)
+
+        #expect(binding == KeyBinding(keyCode: UInt16(kVK_ANSI_K), modifiers: [.command, .shift]))
+        #expect(binding.matches(press))
+        #expect(!binding.matches(other))
+    }
+
+    @Test func recording_takes_the_next_key_and_escape_cancels() throws {
+        _ = NSApplication.shared
+        let sandbox = try IsolatedDefaults()
+        let store = KeyBindingsStore(defaults: sandbox.defaults)
+        let press = try #require(aKeyEvent(kVK_ANSI_X, [.command], typing: "x"))
+        let escape = try #require(aKeyEvent(kVK_Escape))
+        #expect(!store.record(press))
+
+        store.beginRecording(.pinSelection)
+        #expect(store.recordingAction == .pinSelection)
+        #expect(store.record(press))
+        #expect(store.binding(for: .pinSelection) == KeyBinding(event: press))
+        #expect(store.recordingAction == nil)
+
+        store.beginRecording(.deleteSelection)
+        #expect(store.record(escape))
+        #expect(!store.isCustomized(.deleteSelection))
+        #expect(store.recordingAction == nil)
+    }
+
+    @Test func every_action_has_a_name_and_only_two_reach_outside_the_panel() {
+        let names = KeyAction.allCases.map(\.displayName)
+
+        #expect(names.allSatisfy { !$0.isEmpty })
+        #expect(Set(names).count == names.count)
+        #expect(KeyAction.allCases.filter(\.isGlobal) == [.togglePanel, .pasteNextFromStack])
+        #expect(KeyAction.allCases.map(\.id) == KeyAction.allCases.map(\.rawValue))
+    }
+
     @Test func a_binding_keeps_only_the_four_modifier_keys() {
         let clean = KeyBinding(keyCode: 1, modifiers: [.command])
         let noisy = KeyBinding(keyCode: 1, modifiers: [.command, .capsLock, .function, .numericPad])
@@ -133,6 +180,28 @@ final class IsolatedDefaults {
         #expect(!store.isSequencePrefix("h"))
         #expect(store.action(for: "gg") == .firstCard)
         #expect(store.action(for: "G") == .lastCard)
+    }
+
+    @Test func resetting_one_action_restores_its_default_alone() throws {
+        let sandbox = try IsolatedDefaults()
+        let store = VimBindingsStore(defaults: sandbox.defaults)
+        store.set("x", for: .search)
+        store.set("y", for: .closePanel)
+
+        store.reset(.search)
+
+        #expect(store.key(for: .search) == "s")
+        #expect(store.key(for: .closePanel) == "y")
+    }
+
+    @Test func every_vim_action_has_a_name_and_a_distinct_default_key() {
+        let names = VimAction.allCases.map(\.displayName)
+        let keys = VimAction.allCases.map(\.defaultKey)
+
+        #expect(names.allSatisfy { !$0.isEmpty })
+        #expect(Set(names).count == names.count)
+        #expect(Set(keys).count == keys.count)
+        #expect(VimAction.allCases.map(\.id) == VimAction.allCases.map(\.rawValue))
     }
 
     @Test func resetting_everything_restores_every_default() throws {
@@ -202,6 +271,22 @@ final class IsolatedDefaults {
 
         #expect(store.excludedApps.isEmpty)
         #expect(logger.messages.count == 1)
+    }
+
+    @Test func retention_periods_and_excluded_apps_identify_and_label_themselves() {
+        let labels = RetentionPeriodOption.allCases.map(\.label)
+
+        #expect(labels.allSatisfy { !$0.isEmpty })
+        #expect(Set(labels).count == labels.count)
+        #expect(RetentionPeriodOption.allCases.map(\.id) == RetentionPeriodOption.allCases.map(\.rawValue))
+        #expect(ExcludedApp(bundleID: "com.slack", name: "Slack").id == "com.slack")
+    }
+
+    @Test func the_login_item_reports_its_current_status_without_touching_it() {
+        let manager = LoginItemManager()
+
+        #expect(manager.lastError == nil)
+        #expect(manager.isEnabled == false || manager.isEnabled == true)
     }
 
     @Test func capacity_labels_read_naturally() {

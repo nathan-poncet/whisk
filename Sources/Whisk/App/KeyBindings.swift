@@ -122,13 +122,21 @@ final class KeyBindingsStore: ObservableObject {
         endRecording()
         recordingAction = action
         recordingMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, let target = self.recordingAction else { return event }
-            if event.keyCode != UInt16(kVK_Escape) {
-                self.set(KeyBinding(event: event), for: target)
-            }
-            self.endRecording()
-            return nil
+            self?.record(event) == true ? nil : event
         }
+    }
+
+    /// The recorder's one decision: Escape cancels, any other key becomes
+    /// the binding, and either way the recorder disarms. False when nothing
+    /// was being recorded, so the event travels on.
+    @discardableResult
+    func record(_ event: NSEvent) -> Bool {
+        guard let target = recordingAction else { return false }
+        if event.keyCode != UInt16(kVK_Escape) {
+            set(KeyBinding(event: event), for: target)
+        }
+        endRecording()
+        return true
     }
 
     func endRecording() {
