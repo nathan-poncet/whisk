@@ -156,7 +156,7 @@ struct ItemCardView: View, Equatable {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .mask(bottomFade)
         case .link(let address):
-            LinkCardPreview(address: address)
+            LinkPreviewView(address: address, size: .card)
                 .padding(.horizontal, 14)
         case .image(let data):
             if let image = Self.decodedImage(for: card.id, data: data) {
@@ -177,7 +177,7 @@ struct ItemCardView: View, Equatable {
                     .padding(.horizontal, 14)
             }
         case .files(let names, let overflow, let thumbnailPath):
-            FileCardPreview(names: names, overflow: overflow, thumbnailPath: thumbnailPath)
+            FilePreviewView(names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .card)
                 .padding(.horizontal, 14)
         }
     }
@@ -279,107 +279,5 @@ struct ItemCardView: View, Equatable {
             let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
         else { return nil }
         return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
-    }
-}
-
-/// Link card: fetched page metadata when available, the bare address until
-/// then (or when the fetch failed).
-private struct LinkCardPreview: View {
-    let address: String
-    @ObservedObject private var store = LinkPreviewStore.shared
-
-    var body: some View {
-        Group {
-            if let preview = store.preview(for: address), preview.hasContent {
-                loaded(preview)
-            } else {
-                fallback
-            }
-        }
-        .onAppear {
-            store.load(address)
-        }
-    }
-
-    private func loaded(_ preview: LinkPreview) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            if let image = preview.image {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 76)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            }
-            HStack(alignment: .top, spacing: 6) {
-                if let icon = preview.icon {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .frame(width: 15, height: 15)
-                        .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
-                }
-                Text(preview.title ?? address)
-                    .font(.callout.weight(.medium))
-                    .lineLimit(preview.image == nil ? 4 : 2)
-            }
-            if preview.title != nil, let host = preview.host {
-                Text(host)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var fallback: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: "arrow.up.right")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
-            Text(address)
-                .font(.callout)
-                .lineLimit(5)
-        }
-    }
-}
-
-/// File card: a QuickLook thumbnail of the first file (file-type icon until
-/// it arrives), then the file names.
-private struct FileCardPreview: View {
-    let names: [String]
-    let overflow: Int
-    let thumbnailPath: String?
-    @ObservedObject private var store = FileThumbnailStore.shared
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            if let path = thumbnailPath {
-                Image(nsImage: store.thumbnail(for: path) ?? NSWorkspace.shared.icon(forFile: path))
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 64)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-            }
-            ForEach(names, id: \.self) { name in
-                HStack(spacing: 6) {
-                    Image(systemName: "doc")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                    Text(name)
-                        .font(.caption)
-                        .lineLimit(1)
-                }
-            }
-            if overflow > 0 {
-                Text(localized("+ \(overflow) more"))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .onAppear {
-            if let path = thumbnailPath {
-                store.load(path)
-            }
-        }
     }
 }

@@ -61,7 +61,7 @@ struct PreviewOverlayView: View {
             }
         case .link(let address):
             VStack(alignment: .leading, spacing: 10) {
-                LinkCardPreviewLarge(address: address)
+                LinkPreviewView(address: address, size: .large)
                 Text(address)
                     .font(.callout.monospaced())
                     .foregroundStyle(.secondary)
@@ -76,62 +76,7 @@ struct PreviewOverlayView: View {
                     .accessibilityLabel(localized("Image"))
             }
         case .files(let names, let overflow, let thumbnailPath):
-            VStack(alignment: .leading, spacing: 10) {
-                if let path = thumbnailPath {
-                    Image(
-                        nsImage: FileThumbnailStore.shared.thumbnail(for: path)
-                            ?? NSWorkspace.shared.icon(forFile: path)
-                    )
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 300)
-                    .accessibilityHidden(true)
-                    .onAppear { FileThumbnailStore.shared.load(path) }
-                }
-                ForEach(names, id: \.self) { name in
-                    Label(name, systemImage: "doc")
-                }
-                if overflow > 0 {
-                    Text(localized("+ \(overflow) more"))
-                        .foregroundStyle(.secondary)
-                }
-            }
+            FilePreviewView(names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .large)
         }
-    }
-}
-
-/// The link preview at overlay size.
-private struct LinkCardPreviewLarge: View {
-    let address: String
-    @ObservedObject private var store = LinkPreviewStore.shared
-
-    var body: some View {
-        Group {
-            if let preview = store.preview(for: address), preview.hasContent {
-                VStack(alignment: .leading, spacing: 10) {
-                    if let image = preview.image {
-                        Image(nsImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: 280)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    HStack(spacing: 8) {
-                        if let icon = preview.icon {
-                            Image(nsImage: icon)
-                                .resizable()
-                                .frame(width: 18, height: 18)
-                        }
-                        Text(preview.title ?? address)
-                            .font(.title3.weight(.medium))
-                    }
-                }
-            } else {
-                Image(systemName: "link")
-                    .font(.title)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .onAppear { store.load(address) }
     }
 }
