@@ -120,7 +120,7 @@ overwrite each other's history — and quit the installed one first, since
 only one of them can hold the global shortcut:
 
 ```sh
-WHISK_DATA_DIR=/tmp/whisk-test open -n dist/Whisk.app --env WHISK_DATA_DIR=/tmp/whisk-test
+open -n dist/Whisk.app --env WHISK_DATA_DIR=/tmp/whisk-test
 ```
 
 The clipboard icon appears in the menu bar. Copy a few things, then press
