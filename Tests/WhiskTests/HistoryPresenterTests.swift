@@ -110,6 +110,23 @@ import Testing
         #expect(state.cards.first?.kindLabel == "link")
     }
 
+    @Test func the_chip_row_renders_in_the_order_it_is_steered() throws {
+        let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
+        let row = ChipEntry.row(hasPinned: true, sources: [slack], categories: [.code, .text])
+
+        let state = presenter.present(
+            items: [], query: "", now: now,
+            filters: FilterContext(chips: row, activeCategories: [.code], focusedChipID: "com.slack")
+        )
+
+        #expect(row.map(\.id) == ["pinned", "com.slack", "code", "text"])
+        #expect(state.filters.pinned.map(\.id) == ["pinned"])
+        #expect(state.filters.apps.map(\.label) == ["Slack"])
+        #expect(state.filters.apps.first?.isFocused == true)
+        #expect(state.filters.kinds.map(\.isActive) == [true, false])
+        #expect(state.filters.focusedChipID == "com.slack")
+    }
+
     @Test func the_count_label_is_singular_for_one_item() {
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)
