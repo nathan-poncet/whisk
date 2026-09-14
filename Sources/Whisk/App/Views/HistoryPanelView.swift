@@ -137,6 +137,9 @@ struct HistoryPanelView: View {
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
             if store.vimEnabled {
+                // Vim's own vocabulary, untranslated on purpose: the modes
+                // carry the editor's names everywhere; VoiceOver gets the
+                // localized name below.
                 Text(store.searchActive ? "SEARCH" : "NORMAL")
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(.secondary)
