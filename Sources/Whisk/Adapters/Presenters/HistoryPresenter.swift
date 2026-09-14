@@ -75,12 +75,20 @@ struct FilterContext: Equatable {
 /// underneath: previews (regex tokenization, color parsing) and minute-
 /// grained time labels are cached per immutable item, so a selection move
 /// re-renders in microseconds instead of re-running regexes on 60 cards.
+/// Past the limit a cache keeps only the items being presented, so what
+/// is on screen never has to be recomputed and what was deleted is let go.
 final class HistoryPresenter {
     private var previewCache: [UUID: CardPreview] = [:]
     private var timeCache: [UUID: (bucket: Int, label: String)] = [:]
+    private var presentedIDs: Set<UUID> = []
     private let cacheLimit = 2048
 
     init() {}
+
+    /// How many previews are held back, for the tests that watch the purge.
+    var cachedPreviewCount: Int {
+        previewCache.count
+    }
 
     func present(
         items: [ClipboardItem],
@@ -90,7 +98,8 @@ final class HistoryPresenter {
         stack: [UUID] = [],
         filters: FilterContext = .empty
     ) -> HistoryViewState {
-        HistoryViewState(
+        presentedIDs = Set(items.map(\.id))
+        return HistoryViewState(
             cards: items.map {
                 card(
                     for: $0,
@@ -233,7 +242,7 @@ final class HistoryPresenter {
         }
         let preview = computePreview(for: item)
         if previewCache.count >= cacheLimit {
-            previewCache.removeAll(keepingCapacity: true)
+            previewCache = previewCache.filter { presentedIDs.contains($0.key) }
         }
         previewCache[item.id] = preview
         return preview
@@ -334,7 +343,7 @@ final class HistoryPresenter {
         }
         let label = Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now)
         if timeCache.count >= cacheLimit {
-            timeCache.removeAll(keepingCapacity: true)
+            timeCache = timeCache.filter { presentedIDs.contains($0.key) }
         }
         timeCache[item.id] = (bucket, label)
         return label
