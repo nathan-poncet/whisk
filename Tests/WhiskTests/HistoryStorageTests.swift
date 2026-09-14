@@ -66,7 +66,7 @@ import Testing
         let directory = temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let items = [anItem(.image(Data([0x89, 0x50, 0x4E, 0x47]))), anItem(.text("from json"))]
-        try FileHistoryStore(directory: directory).save(items)
+        try LegacyHistoryFixture.write(items, in: directory)
         let blobs = directory.appendingPathComponent("blobs", isDirectory: true)
         #expect(FileManager.default.fileExists(atPath: blobs.path))
 
@@ -84,7 +84,7 @@ import Testing
         let recent = anItem(.text("captured meanwhile"))
         try silently(directory).save([recent])
         let old = anItem(.text("from json"))
-        try FileHistoryStore(directory: directory).save([old])
+        try LegacyHistoryFixture.write([old], in: directory)
 
         #expect(try silently(directory).load() == [recent, old])
     }

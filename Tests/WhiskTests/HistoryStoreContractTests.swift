@@ -8,12 +8,11 @@ import Testing
 /// against each of them in a fresh temporary directory; what is specific
 /// to one format has its own suite further down.
 enum StoreGateway: CaseIterable {
-    case file
     case sqlite
     case volatile
 
     /// Gateways whose history outlives the instance that saved it.
-    static let persistent: [StoreGateway] = [.file, .sqlite]
+    static let persistent: [StoreGateway] = [.sqlite]
 }
 
 private struct StoreHarness {
@@ -31,7 +30,6 @@ private struct StoreHarness {
     /// A store over this harness's files; a second call models a relaunch.
     func makeStore() throws -> any HistoryStore {
         switch gateway {
-        case .file: return FileHistoryStore(directory: directory)
         case .sqlite: return try SQLiteHistoryStore(databaseURL: databaseURL)
         case .volatile: return VolatileHistoryStore()
         }
@@ -113,44 +111,6 @@ private func sampleItems() throws -> [ClipboardItem] {
         try harness.makeStore().save(items)
 
         #expect(try harness.makeStore().load() == items)
-    }
-}
-
-@Suite struct FileHistoryStoreSpecifics {
-    @Test func a_blob_no_longer_referenced_is_removed_on_save() throws {
-        let harness = StoreHarness(.file)
-        defer { harness.tearDown() }
-        let store = try harness.makeStore()
-        let image = ClipboardItem(
-            id: UUID(), payload: .image(Data([0x01])), source: nil, copiedAt: date(ms: 1_700_000_000_000),
-            isPinned: false)
-        let text = ClipboardItem(
-            id: UUID(), payload: .text("survivor"), source: nil, copiedAt: date(ms: 1_700_000_001_000),
-            isPinned: false)
-        let blobs = harness.directory.appendingPathComponent("blobs", isDirectory: true)
-
-        try store.save([image, text])
-        #expect(try FileManager.default.contentsOfDirectory(atPath: blobs.path).count == 1)
-
-        try store.save([text])
-        #expect(try FileManager.default.contentsOfDirectory(atPath: blobs.path).isEmpty)
-    }
-
-    @Test func a_stored_entry_with_an_unknown_kind_is_skipped_not_fatal() throws {
-        let harness = StoreHarness(.file)
-        defer { harness.tearDown() }
-        let store = try harness.makeStore()
-        try store.save([
-            ClipboardItem(
-                id: UUID(), payload: .text("valid"), source: nil, copiedAt: date(ms: 1_700_000_000_000),
-                isPinned: false)
-        ])
-        let index = harness.directory.appendingPathComponent("history.json")
-        let corrupted = try String(contentsOf: index, encoding: .utf8)
-            .replacingOccurrences(of: "\"text\",", with: "\"hologram\",")
-        try corrupted.write(to: index, atomically: true, encoding: .utf8)
-
-        #expect(try store.load().isEmpty)
     }
 }
 

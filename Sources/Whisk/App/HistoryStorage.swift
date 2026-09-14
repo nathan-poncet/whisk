@@ -25,6 +25,17 @@ enum HistoryStorage {
     static let legacyIndexName = "history.json"
     static let retiredSuffix = ".migrated"
 
+    /// `~/Library/Application Support/Whisk`.
+    static func defaultDirectory(fileManager: FileManager = .default) throws -> URL {
+        let base = try fileManager.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        return base.appendingPathComponent("Whisk", isDirectory: true)
+    }
+
     static func open(
         in directory: URL,
         fileManager: FileManager = .default,
@@ -58,7 +69,7 @@ enum HistoryStorage {
         let legacyIndex = directory.appendingPathComponent(legacyIndexName)
         guard fileManager.fileExists(atPath: legacyIndex.path) else { return }
         do {
-            let legacy = try FileHistoryStore(directory: directory, fileManager: fileManager).load()
+            let legacy = try LegacyJSONHistory(directory: directory, fileManager: fileManager).load()
             let current = try store.load()
             let known = Set(current.map(\.id))
             try store.save(current + legacy.filter { !known.contains($0.id) })

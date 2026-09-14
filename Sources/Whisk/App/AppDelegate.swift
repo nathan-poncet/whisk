@@ -194,7 +194,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Support leaves the session running in memory.
     private static func openStore() -> AnyHistoryStore {
         do {
-            return HistoryStorage.open(in: try FileHistoryStore.defaultDirectory())
+            return HistoryStorage.open(in: try HistoryStorage.defaultDirectory())
         } catch {
             NSLog(
                 "Whisk: Application Support unavailable — %@; history will not be saved this session",
