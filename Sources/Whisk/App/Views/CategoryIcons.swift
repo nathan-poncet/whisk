@@ -20,11 +20,16 @@ enum CategoryIcons {
         return image
     }
 
+    private final class Token {}
+
     private static func loadResource(_ name: String) -> NSImage? {
+        // The last candidate is the directory holding the code that asked:
+        // where SwiftPM drops the resource bundle next to a test runner.
         let candidates = [
             Bundle.main.resourceURL,
             Bundle.main.bundleURL,
             Bundle.main.executableURL?.deletingLastPathComponent(),
+            Bundle(for: Token.self).bundleURL.deletingLastPathComponent(),
         ]
         for candidate in candidates {
             guard let url = candidate?.appendingPathComponent("Whisk_Whisk.bundle"),
