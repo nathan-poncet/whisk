@@ -36,6 +36,13 @@ struct ClipboardItem: Equatable, Hashable, Identifiable {
             category: category, rtf: rtf)
     }
 
+    /// The same card holding something else: identity, source, date and
+    /// pin stay; the kind is classified anew and the formatting, which
+    /// described the old words, goes.
+    func replacing(payload: Payload) -> ClipboardItem {
+        ClipboardItem(id: id, payload: payload, source: source, copiedAt: copiedAt, isPinned: isPinned)
+    }
+
     func pinToggled() -> ClipboardItem {
         ClipboardItem(
             id: id, payload: payload, source: source, copiedAt: copiedAt, isPinned: !isPinned,

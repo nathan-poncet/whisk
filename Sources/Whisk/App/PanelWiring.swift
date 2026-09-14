@@ -13,6 +13,8 @@ enum PanelWiring {
         let revealFiles: ([String]) -> Void
         let saveToDisk: (DragPayload) -> Void
         let excludeSource: (_ bundleID: String, _ name: String) -> Void
+        /// Opens the in-panel editor on a card.
+        let beginEditing: (CardViewState) -> Void
     }
 
     static func actions<Board: Pasteboard, Time: Clock, Store: HistoryStore, Log: Logger>(
@@ -74,6 +76,11 @@ enum PanelWiring {
             deleteAllFromSource: { key in
                 searchDebounce.flush()
                 clipboard.deleteAll(fromSource: key)
+            },
+            beginEditing: system.beginEditing,
+            edit: { id, text in
+                searchDebounce.flush()
+                clipboard.edit(id, text: text)
             },
             highlight: { clipboard.highlight($0) },
             activate: {

@@ -114,6 +114,9 @@ struct ItemCardView: View, Equatable {
             Button(localized("Save As…")) { actions.saveToDisk(card.dragPayload) }
         }
         Divider()
+        if card.transformable {
+            Button(localized("Edit…")) { actions.beginEditing(card) }
+        }
         Button(card.isPinned ? localized("Unpin") : localized("Pin")) { actions.togglePin(card.id) }
         Button(card.stackPosition == nil ? localized("Add to Paste Stack") : localized("Remove from Paste Stack")) {
             actions.stack(card.id)

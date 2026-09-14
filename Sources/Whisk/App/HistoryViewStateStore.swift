@@ -16,6 +16,18 @@ final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var searchActive = true
     @Published private(set) var vimSearchKey = "s"
 
+    /// The card whose text is being edited in the panel, while it is.
+    @Published private(set) var editing: CardViewState?
+
+    func beginEditing(_ card: CardViewState) {
+        guard card.transformable else { return }
+        editing = card
+    }
+
+    func endEditing() {
+        editing = nil
+    }
+
     /// The card's side in points; the selected card grows by the zoom.
     @Published private(set) var cardSide: CGFloat = 200
     static let selectionZoom: CGFloat = 1.05
@@ -91,6 +103,8 @@ struct PanelActions {
     let stack: (UUID) -> Void
     let excludeSource: (_ bundleID: String, _ name: String) -> Void
     let deleteAllFromSource: (String) -> Void
+    let beginEditing: (CardViewState) -> Void
+    let edit: (UUID, String) -> Void
     let highlight: (UUID) -> Void
     let activate: () -> Void
     let activatePlain: () -> Void

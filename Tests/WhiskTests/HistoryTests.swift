@@ -132,4 +132,22 @@ import Testing
 
         #expect(purged.items.map(\.payload) == [.text("notes"), .text("slack pinned")])
     }
+
+    @Test func replacing_a_payload_keeps_identity_position_pin_and_source_and_drops_formatting() {
+        let clock = FakeClock()
+        var history = History()
+            .recording(.text("older"), from: nil, at: clock.now())
+            .recording(.text("Hello"), from: SourceApp(name: "Notes"), rtf: Data("rich".utf8), at: clock.now())
+        history = history.togglingPin(history.items[0].id)
+        let edited = history.items[0]
+
+        let next = history.replacingPayload(of: edited.id, with: .text("Hello, world"))
+
+        #expect(next.items.map(\.payload) == [.text("Hello, world"), .text("older")])
+        #expect(next.items[0].id == edited.id)
+        #expect(next.items[0].isPinned)
+        #expect(next.items[0].source?.name == "Notes")
+        #expect(next.items[0].rtf == nil)
+        #expect(history.replacingPayload(of: UUID(), with: .text("x")) == history)
+    }
 }

@@ -73,6 +73,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let togglePinItem: TogglePin<Store>
     private let deleteItem: DeleteItem<Store>
     private let deleteMatching: DeleteMatching<Store>
+    private let editItem: EditItem<Store>
     private let clearUnpinned: ClearHistory<Store>
     private let enforceRetention: EnforceRetention<Store>
     private let filterHistory = FilterHistory()
@@ -105,6 +106,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         togglePinItem = TogglePin(store: store)
         deleteItem = DeleteItem(store: store)
         deleteMatching = DeleteMatching(store: store)
+        editItem = EditItem(store: store)
         clearUnpinned = ClearHistory(store: store)
         enforceRetention = EnforceRetention(store: store)
         do {
@@ -446,6 +448,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     func clear() {
         mutate { try clearUnpinned($0) }
+    }
+
+    /// Replaces a card's text with what the user rewrote.
+    func edit(_ id: UUID, text: String) {
+        mutate { try editItem(id, text: text, in: $0) }
     }
 
     /// Removes every unpinned card copied from one application.

@@ -40,6 +40,11 @@ final class PanelKeyRouter {
     /// Routes panel keys through the user's bindings, intercepted ahead of
     /// the search field's caret. True when the key was consumed.
     func handle(_ event: NSEvent) -> Bool {
+        // While the editor is open every key is the editor's: SwiftUI gets
+        // ⌘S and Escape through the panel's own cancel path.
+        if stateStore.editing != nil {
+            return false
+        }
         // Vim's search commits like /: Return keeps the query and filter
         // and returns to normal mode — the paste stays one p away.
         if stateStore.vimEnabled, stateStore.searchActive,
@@ -68,6 +73,7 @@ final class PanelKeyRouter {
             (.saveSelection, { self.saveSelected() }),
             (.excludeSelectionSource, { self.excludeSelectedSource() }),
             (.deleteSelectionSource, { self.deleteFromSelectedSource() }),
+            (.editSelection, { self.editSelected() }),
         ]
         for (action, perform) in panelActions where keyBindings.binding(for: action).matches(event) {
             perform()
@@ -163,7 +169,13 @@ final class PanelKeyRouter {
         case .save: saveSelected()
         case .excludeSource: excludeSelectedSource()
         case .deleteFromSource: deleteFromSelectedSource()
+        case .edit: editSelected()
         }
+    }
+
+    private func editSelected() {
+        guard let card = stateStore.state.selectedCard, card.transformable else { return }
+        actions.beginEditing(card)
     }
 
     // The card under the cursor decides whether a key does anything: a

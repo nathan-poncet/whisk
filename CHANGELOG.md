@@ -27,6 +27,10 @@ live in the commit history.
   (`⌘S`), exclude its application (`⌃⌘X`), delete everything from its
   application (`⌃⌘⌫`, pins survive). Every shortcut is rebindable and has
   a vim key: `y`, `o`, `r`, `w`, `X`, `D`.
+- A card's text can be edited in place: `⌘E`, the vim `e` or "Edit…" open
+  an editor inside the panel, `⌘S` saves, `Esc` cancels. The card keeps
+  its position, pin and source; formatting is dropped; a rewrite that
+  reads as a web address becomes a link.
 
 ## [0.9.0] - 2026-09-14
 

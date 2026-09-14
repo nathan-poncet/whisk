@@ -160,3 +160,40 @@ import Testing
         #expect(next.items[0].payload == .text("Hello"))
     }
 }
+
+@Suite struct ItemEditing {
+    let clock = FakeClock()
+    let store = InMemoryHistoryStore()
+
+    @Test func an_edit_replaces_the_text_reclassifies_and_persists() throws {
+        let history = History().recording(.text("plain words"), from: nil, at: clock.now())
+        let id = history.items[0].id
+        let edit = EditItem(store: store)
+
+        let next = try edit(id, text: "func run() { start() }", in: history)
+
+        #expect(next.items[0].payload == .text("func run() { start() }"))
+        #expect(next.items[0].category == .code)
+        #expect(store.stored == next.items)
+    }
+
+    @Test func a_rewrite_that_reads_as_a_web_address_becomes_a_link() throws {
+        let url = try #require(URL(string: "https://example.com/new"))
+
+        #expect(EditItem<InMemoryHistoryStore>.payload(for: " https://example.com/new\n") == .link(url))
+        #expect(
+            EditItem<InMemoryHistoryStore>.payload(for: "see https://example.com") == .text("see https://example.com"))
+        #expect(EditItem<InMemoryHistoryStore>.payload(for: "ftp://example.com") == .text("ftp://example.com"))
+    }
+
+    @Test func blank_text_and_unchanged_text_are_refused_without_a_save() throws {
+        let history = History().recording(.text("keep"), from: nil, at: clock.now())
+        let id = history.items[0].id
+        let edit = EditItem(store: store)
+
+        #expect(try edit(id, text: "   \n", in: history) == history)
+        #expect(try edit(id, text: "keep", in: history) == history)
+        #expect(try edit(UUID(), text: "other", in: history) == history)
+        #expect(store.saveCount == 0)
+    }
+}

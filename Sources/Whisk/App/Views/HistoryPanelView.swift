@@ -164,7 +164,16 @@ struct HistoryPanelView: View {
     }
 
     @ViewBuilder private var content: some View {
-        if let message = store.state.emptyMessage {
+        if let editing = store.editing {
+            EditItemView(
+                card: editing,
+                onSave: { text in
+                    actions.edit(editing.id, text)
+                    store.endEditing()
+                },
+                onCancel: { store.endEditing() }
+            )
+        } else if let message = store.state.emptyMessage {
             emptyState(message)
         } else {
             ScrollViewReader { proxy in

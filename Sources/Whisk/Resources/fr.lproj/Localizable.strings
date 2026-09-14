@@ -130,3 +130,9 @@
 "Save the selection as a file" = "Enregistrer la sélection dans un fichier";
 "Exclude the selection's application" = "Exclure l'application de la sélection";
 "Delete everything from the selection's application" = "Tout supprimer de l'application de la sélection";
+"Edit…" = "Modifier…";
+"Edit the selection" = "Modifier la sélection";
+"Editing %@" = "Modification de %@";
+"Editor" = "Éditeur";
+"Save" = "Enregistrer";
+"Cancel" = "Annuler";

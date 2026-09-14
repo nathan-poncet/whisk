@@ -277,6 +277,23 @@ private func pump(_ hosting: NSView) {
         #expect(render(panel(store), 1200, 480) != nil)
         store.configureCards(side: CardSize.small.side)
         #expect(render(panel(store), 1200, 390) != nil)
+
+        store.configureCards(side: CardSize.medium.side)
+        store.update(ViewFixtures.state())
+        store.beginEditing(store.state.cards[0])
+        #expect(store.editing != nil)
+        #expect(render(panel(store), 1200, 430) != nil)
+        #expect(hostOffscreen(panel(store), 1200, 430).contentView != nil)
+        store.endEditing()
+    }
+
+    @Test func the_editor_renders_for_text_code_and_link_cards() {
+        let state = ViewFixtures.state()
+
+        for card in state.cards where card.transformable {
+            let editor = EditItemView(card: card, onSave: { _ in }, onCancel: {})
+            #expect(render(editor, 900, 300) != nil, "editor for \(card.kindLabel)")
+        }
     }
 }
 

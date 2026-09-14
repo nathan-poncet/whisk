@@ -78,7 +78,15 @@ struct FilterContext: Equatable {
 /// Past the limit a cache keeps only the items being presented, so what
 /// is on screen never has to be recomputed and what was deleted is let go.
 final class HistoryPresenter {
-    private var previewCache: [UUID: CardPreview] = [:]
+    /// A memoized preview and the text it was drawn from: editing keeps a
+    /// card's identity and changes its text, so identity alone cannot
+    /// vouch for the cache.
+    private struct CachedPreview {
+        let text: String?
+        let preview: CardPreview
+    }
+
+    private var previewCache: [UUID: CachedPreview] = [:]
     private var timeCache: [UUID: (bucket: Int, label: String)] = [:]
     private var presentedIDs: Set<UUID> = []
     private let cacheLimit = 2048
@@ -286,14 +294,14 @@ final class HistoryPresenter {
     }
 
     private func preview(for item: ClipboardItem) -> CardPreview {
-        if let cached = previewCache[item.id] {
-            return cached
+        if let cached = previewCache[item.id], cached.text == item.payload.transformableText {
+            return cached.preview
         }
         let preview = computePreview(for: item)
         if previewCache.count >= cacheLimit {
             previewCache = previewCache.filter { presentedIDs.contains($0.key) }
         }
-        previewCache[item.id] = preview
+        previewCache[item.id] = CachedPreview(text: item.payload.transformableText, preview: preview)
         return preview
     }
 

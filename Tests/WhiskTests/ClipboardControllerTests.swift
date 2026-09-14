@@ -708,6 +708,22 @@ import Testing
         #expect(store.stored.count == 2)
     }
 
+    @Test func editing_a_card_rewrites_it_where_it_stands() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("secnod"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        let typo = spy.last.cards[1].id
+
+        controller.edit(typo, text: "second")
+
+        #expect(spy.last.cards.map(\.preview) == [.text("first"), .text("second")])
+        #expect(spy.last.cards[1].id == typo)
+        #expect(store.stored.map(\.payload) == [.text("first"), .text("second")])
+    }
+
     @Test func the_history_loads_at_the_configured_capacity_not_the_default() throws {
         let store = InMemoryHistoryStore()
         store.stored = (0..<600).map { anItem(.text("item \($0)")) }

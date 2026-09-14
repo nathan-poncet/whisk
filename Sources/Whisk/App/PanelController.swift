@@ -59,6 +59,7 @@ final class PanelController {
         // resignKey order it out directly — and the preview must never
         // outlive it.
         panel.onClose = { [weak self] in
+            self?.stateStore.endEditing()
             self?.hidePreview()
             self?.fadeOutVeil()
             self?.stateStore.panelDidClose()
@@ -67,7 +68,12 @@ final class PanelController {
         // before it may close anything, and abandons the query on the way
         // out, exactly like Esc during a / search.
         panel.onCancel = { [weak self] in
-            guard let self, self.stateStore.vimEnabled, self.stateStore.searchActive else { return false }
+            guard let self else { return false }
+            if self.stateStore.editing != nil {
+                self.stateStore.endEditing()
+                return true
+            }
+            guard self.stateStore.vimEnabled, self.stateStore.searchActive else { return false }
             self.actions.search("")
             self.stateStore.setSearchActive(false)
             return true

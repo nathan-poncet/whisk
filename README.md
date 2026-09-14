@@ -159,6 +159,8 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   **⌘R** reveals files in Finder, **⌘S** saves the card as a file;
   **⌃⌘X** excludes the card's application, **⌃⌘⌫** deletes everything
   copied from it (pins survive).
+- **`⌘E`**: edit the selected card's text in place; `⌘S` saves, `Esc`
+  cancels. A rewrite that reads as a web address becomes a link again.
 - **Right-click a card**: everything above, plus paste as plain text and
   "Paste as…" rewrites, in one menu.
 - **Esc** or click outside: close the panel.
