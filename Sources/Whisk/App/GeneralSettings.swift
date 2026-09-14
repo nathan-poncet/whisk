@@ -67,28 +67,33 @@ final class GeneralSettingsStore: ObservableObject {
 
     @Published var excludedApps: [ExcludedApp] {
         didSet {
-            if let data = try? JSONEncoder().encode(excludedApps) {
-                defaults.set(data, forKey: "excludedApps")
+            do {
+                defaults.set(try JSONEncoder().encode(excludedApps), forKey: "excludedApps")
+            } catch {
+                logger.log("excluded apps not saved — \(error)")
             }
         }
     }
 
     private let defaults: UserDefaults
+    private let logger: any Logger
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, logger: any Logger = ConsoleLogger()) {
         self.defaults = defaults
+        self.logger = logger
         retentionPeriod = RetentionPeriodOption(rawValue: defaults.string(forKey: "retentionPeriod") ?? "") ?? .forever
         capacity =
             defaults.object(forKey: "historyCapacity") == nil ? 500 : defaults.integer(forKey: "historyCapacity")
         checkForUpdates =
             defaults.object(forKey: "checkForUpdates") == nil ? true : defaults.bool(forKey: "checkForUpdates")
         vimNavigation = defaults.bool(forKey: "vimNavigation")
-        if let data = defaults.data(forKey: "excludedApps"),
-            let stored = try? JSONDecoder().decode([ExcludedApp].self, from: data)
-        {
-            excludedApps = stored
-        } else {
-            excludedApps = []
+        excludedApps = []
+        if let data = defaults.data(forKey: "excludedApps") {
+            do {
+                excludedApps = try JSONDecoder().decode([ExcludedApp].self, from: data)
+            } catch {
+                logger.log("stored excluded apps unreadable — \(error); none apply")
+            }
         }
     }
 

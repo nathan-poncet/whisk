@@ -88,14 +88,18 @@ final class KeyBindingsStore: ObservableObject {
 
     private var recordingMonitor: Any?
     private let defaults: UserDefaults
+    private let logger: any Logger
     private static let storageKey = "keyBindings"
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, logger: any Logger = ConsoleLogger()) {
         self.defaults = defaults
-        if let data = defaults.data(forKey: Self.storageKey),
-            let stored = try? JSONDecoder().decode([String: KeyBinding].self, from: data)
-        {
-            overrides = stored
+        self.logger = logger
+        if let data = defaults.data(forKey: Self.storageKey) {
+            do {
+                overrides = try JSONDecoder().decode([String: KeyBinding].self, from: data)
+            } catch {
+                logger.log("stored key bindings unreadable — \(error); the defaults apply")
+            }
         }
     }
 
@@ -164,8 +168,11 @@ final class KeyBindingsStore: ObservableObject {
     }
 
     private func persist() {
-        guard let data = try? JSONEncoder().encode(overrides) else { return }
-        defaults.set(data, forKey: Self.storageKey)
+        do {
+            defaults.set(try JSONEncoder().encode(overrides), forKey: Self.storageKey)
+        } catch {
+            logger.log("key bindings not saved — \(error)")
+        }
     }
 
     private static func defaultBinding(for action: KeyAction) -> KeyBinding {
