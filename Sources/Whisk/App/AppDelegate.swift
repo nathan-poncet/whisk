@@ -41,68 +41,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.clipboard = clipboard
 
         // Filtering re-renders a screenful of glass cards, so keystrokes
-        // coalesce: only the last query of a typing burst runs. Anything
-        // that consumes the results flushes the pending query first, so an
-        // action never lands on a stale rail.
-        let searchDebounce = Debouncer(delay: 0.18)
-        let actions = PanelActions(
-            search: { query in
-                searchDebounce.schedule { clipboard.search(query) }
-            },
-            select: { [weak self] id in
-                searchDebounce.flush()
-                clipboard.select(id)
-                self?.panelController?.hide()
-                PasteSimulator.paste()
-            },
-            highlight: { clipboard.highlight($0) },
-            activate: { [weak self] in
-                searchDebounce.flush()
-                guard clipboard.activateFocused() else { return }
-                self?.panelController?.hide()
-                PasteSimulator.paste()
-            },
-            activatePlain: { [weak self] in
-                searchDebounce.flush()
-                guard clipboard.activateFocused(plain: true) else { return }
-                self?.panelController?.hide()
-                PasteSimulator.paste()
-            },
-            activateCard: { [weak self] index in
-                searchDebounce.flush()
-                guard clipboard.activate(at: index) else { return }
-                self?.panelController?.hide()
-                PasteSimulator.paste()
-            },
-            navigate: { direction in
-                searchDebounce.flush()
-                clipboard.navigate(direction)
-            },
-            jumpToEdge: { edge in
-                searchDebounce.flush()
-                clipboard.jumpSelection(to: edge)
-            },
-            switchChipGroup: { clipboard.switchChipGroup() },
-            toggleSourceFilter: { clipboard.toggleSourceFilter($0) },
-            toggleCategoryFilter: { clipboard.toggleCategoryFilter($0) },
-            focusSourceChip: { clipboard.focusSourceChip($0) },
-            focusCategoryChip: { clipboard.focusCategoryChip($0) },
-            togglePin: { clipboard.togglePin($0) },
-            delete: { clipboard.delete($0) },
-            dragBegan: { [weak self] in self?.panelController?.dragDidBegin() },
-            togglePinSelected: { clipboard.togglePinSelected() },
-            deleteSelected: {
-                searchDebounce.flush()
-                clipboard.deleteSelected()
-            },
-            stackSelected: {
-                searchDebounce.flush()
-                clipboard.stackSelected()
-            },
-            panelWillShow: {
-                searchDebounce.cancel()
-                clipboard.panelWillShow()
-            }
+        // coalesce: only the last query of a typing burst runs.
+        let actions = PanelWiring.actions(
+            for: clipboard,
+            searchDebounce: Debouncer(delay: 0.18),
+            hidePanel: { [weak self] in self?.panelController?.hide() },
+            paste: { PasteSimulator.paste() },
+            dragBegan: { [weak self] in self?.panelController?.dragDidBegin() }
         )
         let panelController = PanelController(
             stateStore: stateStore, actions: actions, keyBindings: keyBindings,
