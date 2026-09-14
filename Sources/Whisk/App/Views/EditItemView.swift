@@ -1,45 +1,44 @@
 import SwiftUI
 
 /// The in-panel editor for a card's text: replaces the rail while it is
-/// open, so the panel keeps the keyboard. ⌘S saves, Escape cancels
-/// through the panel's cancel path.
+/// open, so the panel keeps the keyboard. The text lives on the store, so
+/// the panel's key router saves it on Return and lets Shift-Return break
+/// the line; ⌘S and the button save too, Escape cancels through the
+/// panel's cancel path.
 struct EditItemView: View {
+    @ObservedObject var store: HistoryViewStateStore
     let card: CardViewState
     let onSave: (String) -> Void
     let onCancel: () -> Void
-    @State private var text: String
     @FocusState private var focused: Bool
 
-    init(card: CardViewState, onSave: @escaping (String) -> Void, onCancel: @escaping () -> Void) {
-        self.card = card
-        self.onSave = onSave
-        self.onCancel = onCancel
-        _text = State(initialValue: Self.initialText(of: card))
+    private var text: Binding<String> {
+        Binding(get: { store.editingText }, set: { store.setEditingText($0) })
     }
 
-    /// What the editor starts from: the card's text, or a link's address.
-    static func initialText(of card: CardViewState) -> String {
-        switch card.dragPayload {
-        case .text(let value): return value
-        case .link(let url): return url.absoluteString
-        case .image, .files: return ""
-        }
+    private var isBlank: Bool {
+        store.editingText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(String(format: localized("Editing %@"), card.sourceLabel))
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(String(format: localized("Editing %@"), card.sourceLabel))
+                        .font(.headline)
+                    Text(localized("Return saves, Shift-Return breaks the line, Escape cancels."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 Button(localized("Cancel"), action: onCancel)
                     .keyboardShortcut(.cancelAction)
-                Button(localized("Save")) { onSave(text) }
+                Button(localized("Save")) { onSave(store.editingText) }
                     .keyboardShortcut("s", modifiers: .command)
                     .buttonStyle(.borderedProminent)
-                    .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(isBlank)
             }
-            TextEditor(text: $text)
+            TextEditor(text: text)
                 .font(.system(size: 13, design: card.kindLabel == localized("code") ? .monospaced : .default))
                 .scrollContentBackground(.hidden)
                 .focused($focused)

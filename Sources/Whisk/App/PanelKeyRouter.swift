@@ -40,10 +40,17 @@ final class PanelKeyRouter {
     /// Routes panel keys through the user's bindings, intercepted ahead of
     /// the search field's caret. True when the key was consumed.
     func handle(_ event: NSEvent) -> Bool {
-        // While the editor is open every key is the editor's: SwiftUI gets
-        // ⌘S and Escape through the panel's own cancel path.
-        if stateStore.editing != nil {
-            return false
+        // While the editor is open the keys are the editor's, but for one:
+        // Return saves, Shift-Return breaks the line. ⌘S reaches the
+        // button through SwiftUI, Escape the panel's own cancel path.
+        if let editing = stateStore.editing {
+            let isReturn = event.specialKey == .carriageReturn || event.specialKey == .enter
+            guard isReturn, !event.modifierFlags.contains(.shift) else { return false }
+            let text = stateStore.editingText
+            guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
+            stateStore.endEditing()
+            actions.edit(editing.id, text)
+            return true
         }
         // Vim's search commits like /: Return keeps the query and filter
         // and returns to normal mode — the paste stays one p away.

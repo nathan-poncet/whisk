@@ -16,16 +16,34 @@ final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var searchActive = true
     @Published private(set) var vimSearchKey = "s"
 
-    /// The card whose text is being edited in the panel, while it is.
+    /// The card whose text is being edited in the panel, while it is, and
+    /// the text as it stands — here rather than in the view, so the key
+    /// router can save it on Return.
     @Published private(set) var editing: CardViewState?
+    @Published private(set) var editingText = ""
 
     func beginEditing(_ card: CardViewState) {
         guard card.transformable else { return }
+        editingText = Self.editableText(of: card)
         editing = card
+    }
+
+    func setEditingText(_ text: String) {
+        editingText = text
     }
 
     func endEditing() {
         editing = nil
+        editingText = ""
+    }
+
+    /// What the editor starts from: the card's text, or a link's address.
+    static func editableText(of card: CardViewState) -> String {
+        switch card.dragPayload {
+        case .text(let value): return value
+        case .link(let url): return url.absoluteString
+        case .image, .files: return ""
+        }
     }
 
     /// The card's side in points; the selected card grows by the zoom.

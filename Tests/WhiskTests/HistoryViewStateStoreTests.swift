@@ -72,12 +72,16 @@ import Testing
 
         store.beginEditing(state.cards[0])
         #expect(store.editing?.id == state.cards[0].id)
-        #expect(EditItemView.initialText(of: state.cards[0]) == "words")
-        #expect(EditItemView.initialText(of: state.cards[2]) == "https://example.com")
-        #expect(EditItemView.initialText(of: state.cards[1]) == "")
+        #expect(store.editingText == "words")
+        #expect(HistoryViewStateStore.editableText(of: state.cards[2]) == "https://example.com")
+        #expect(HistoryViewStateStore.editableText(of: state.cards[1]) == "")
+
+        store.setEditingText("words, more")
+        #expect(store.editingText == "words, more")
 
         store.endEditing()
         #expect(store.editing == nil)
+        #expect(store.editingText == "")
     }
 
     @Test func the_presented_state_is_what_the_views_read() {

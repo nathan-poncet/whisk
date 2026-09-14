@@ -138,3 +138,4 @@
 "Cancel" = "Cancel";
 "Undo Last Change" = "Undo Last Change";
 "Undo the last deletion or edit" = "Undo the last deletion or edit";
+"Return saves, Shift-Return breaks the line, Escape cancels." = "Return saves, Shift-Return breaks the line, Escape cancels.";

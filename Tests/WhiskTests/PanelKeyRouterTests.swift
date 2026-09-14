@@ -268,12 +268,33 @@ final class PanelActionSpy {
 
         fixture.stateStore.beginEditing(fixture.stateStore.state.cards[0])
         #expect(!(try fixture.press(kVK_ANSI_H, typing: "h")))
-        #expect(!(try fixture.press(kVK_Return, typing: "\r")))
+        #expect(!(try fixture.press(kVK_Return, [.shift], typing: "\r")))
+        #expect(fixture.stateStore.editing != nil)
         #expect(fixture.spy.calls.count == 1)
 
         fixture.stateStore.endEditing()
         #expect(try fixture.press(kVK_ANSI_E, [.command], typing: "e"))
         #expect(fixture.spy.calls.count == 2)
+    }
+
+    @Test func in_the_editor_return_saves_the_text_and_a_blank_return_is_swallowed() throws {
+        let fixture = try Fixture(vim: false)
+        let item = anItem(.text("words"))
+        fixture.stateStore.update(
+            HistoryPresenter().present(
+                items: [item], query: "", now: Date(timeIntervalSince1970: 1_700_000_000), selectedID: item.id))
+        fixture.stateStore.beginEditing(fixture.stateStore.state.cards[0])
+
+        fixture.stateStore.setEditingText("   ")
+        #expect(try fixture.press(kVK_Return, typing: "\r"))
+        #expect(fixture.stateStore.editing != nil)
+        #expect(fixture.spy.calls.isEmpty)
+
+        fixture.stateStore.setEditingText("words\nand more")
+        #expect(try fixture.press(kVK_ANSI_KeypadEnter, typing: "\u{3}"))
+
+        #expect(fixture.stateStore.editing == nil)
+        #expect(fixture.spy.calls == ["edit:\(item.id):words\nand more"])
     }
 
     @Test func vim_keys_reach_the_same_card_actions() throws {

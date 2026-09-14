@@ -287,12 +287,17 @@ private func pump(_ hosting: NSView) {
         store.endEditing()
     }
 
-    @Test func the_editor_renders_for_text_code_and_link_cards() {
+    @Test func the_editor_renders_for_text_code_and_link_cards_blank_or_not() {
         let state = ViewFixtures.state()
+        let store = HistoryViewStateStore()
 
         for card in state.cards where card.transformable {
-            let editor = EditItemView(card: card, onSave: { _ in }, onCancel: {})
+            store.beginEditing(card)
+            let editor = EditItemView(store: store, card: card, onSave: { _ in }, onCancel: {})
             #expect(render(editor, 900, 300) != nil, "editor for \(card.kindLabel)")
+            store.setEditingText("")
+            #expect(render(editor, 900, 300) != nil, "blank editor for \(card.kindLabel)")
+            store.endEditing()
         }
     }
 }
