@@ -125,6 +125,12 @@ enum ViewFixtures {
             #expect(render(ViewFixtures.card(card), 210, 210) != nil, "card \(card.kindLabel)")
             #expect(render(ViewFixtures.card(card, showsSelection: false), 210, 210) != nil)
         }
+        let searched = HistoryPresenter().present(
+            items: ViewFixtures.items(), query: "arrive greet", now: ViewFixtures.now)
+        for card in searched.cards where !card.matches.isEmpty {
+            #expect(render(ViewFixtures.card(card), 210, 210) != nil, "highlighted \(card.kindLabel)")
+        }
+        #expect(searched.cards.filter { !$0.matches.isEmpty }.count == 2)
         let window = hostOffscreen(ViewFixtures.card(state.cards[0]), 210, 210)
         #expect(window.contentView != nil)
 

@@ -34,6 +34,16 @@ import Testing
         #expect(camel > buried)
     }
 
+    @Test func a_match_tells_where_each_pattern_character_landed() throws {
+        let scattered = try #require(FuzzyMatch.match(pattern: "ab", in: "xaxxb"))
+        let tight = try #require(FuzzyMatch.match(pattern: "ab", in: "a....ab"))
+
+        #expect(scattered.positions == [1, 4])
+        #expect(tight.positions == [5, 6])
+        #expect(FuzzyMatch.match(pattern: "", in: "anything")?.positions == [])
+        #expect(FuzzyMatch.match(pattern: "z", in: "anything") == nil)
+    }
+
     @Test func the_tightest_window_is_scored_not_the_earliest_start() throws {
         let tight = try #require(FuzzyMatch.score(pattern: "ab", in: "ab"))
         let late = try #require(FuzzyMatch.score(pattern: "ab", in: "a....ab"))

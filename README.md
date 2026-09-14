@@ -34,8 +34,8 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   three sizes (Settings).
 - **Search** — type to filter instantly by content **or by the app it came
   from** (`slack invoice` finds "invoice" copied from Slack); operators
-  `app:safari`, `type:link` and `pinned` combine with free text; `Return`
-  selects the first match.
+  `app:safari`, `type:link` and `pinned` combine with free text; the
+  matched letters light up on the cards; `Return` selects the first match.
 - **Filters** — a chip bar narrows the rail by source application (one chip
   per app, with its icon) and by content category (text, code, color, link,
   image, files); chips combine with each other and with the search query.

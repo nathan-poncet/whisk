@@ -12,8 +12,19 @@ enum FuzzyMatch {
     private static let penaltyGapStart = 3
     private static let penaltyGapExtension = 1
 
+    /// A match with the offsets, in characters of the candidate, of the
+    /// characters the pattern landed on — what a card highlights.
+    struct Match: Equatable {
+        let score: Int
+        let positions: [Int]
+    }
+
     static func score(pattern: String, in candidate: String) -> Int? {
-        guard !pattern.isEmpty else { return 0 }
+        match(pattern: pattern, in: candidate)?.score
+    }
+
+    static func match(pattern: String, in candidate: String) -> Match? {
+        guard !pattern.isEmpty else { return Match(score: 0, positions: []) }
         let insensitive = !pattern.contains(where: \.isUppercase)
         let text = Array(insensitive ? candidate.lowercased() : candidate)
         let needle = Array(insensitive ? pattern.lowercased() : pattern)
@@ -48,8 +59,9 @@ enum FuzzyMatch {
         return score(window: text, needle: needle, start: start, end: end)
     }
 
-    private static func score(window text: [Character], needle: [Character], start: Int, end: Int) -> Int {
+    private static func score(window text: [Character], needle: [Character], start: Int, end: Int) -> Match {
         var total = 0
+        var positions: [Int] = []
         var needleIndex = 0
         var previousMatched = false
         for position in start...end where needleIndex < needle.count {
@@ -61,6 +73,7 @@ enum FuzzyMatch {
                 if isWordStart(text, at: position) {
                     total += bonusBoundary
                 }
+                positions.append(position)
                 previousMatched = true
                 needleIndex += 1
             } else {
@@ -68,7 +81,7 @@ enum FuzzyMatch {
                 previousMatched = false
             }
         }
-        return total
+        return Match(score: total, positions: positions)
     }
 
     private static func isWordStart(_ text: [Character], at position: Int) -> Bool {
