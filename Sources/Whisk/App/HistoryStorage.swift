@@ -44,12 +44,12 @@ enum HistoryStorage {
         let databaseURL = directory.appendingPathComponent(databaseName)
         let store: AnyHistoryStore
         do {
-            store = AnyHistoryStore(try SQLiteHistoryStore(databaseURL: databaseURL))
+            store = try openReadable(databaseURL)
         } catch {
-            log("cannot open \(databaseName) — \(error); setting it aside")
+            log("cannot read \(databaseName) — \(error); setting it aside")
             setAside(databaseURL, fileManager: fileManager)
             do {
-                store = AnyHistoryStore(try SQLiteHistoryStore(databaseURL: databaseURL))
+                store = try openReadable(databaseURL)
             } catch {
                 log("cannot create a fresh \(databaseName) — \(error); history will not be saved this session")
                 return AnyHistoryStore(VolatileHistoryStore())
@@ -57,6 +57,15 @@ enum HistoryStorage {
         }
         importLegacyHistory(in: directory, into: store, fileManager: fileManager, log: log)
         return store
+    }
+
+    /// A database is trusted only once it has been read: one that opens
+    /// but will not load — a drifted schema, a damaged page — would start
+    /// the session empty and let the first save overwrite it.
+    private static func openReadable(_ databaseURL: URL) throws -> AnyHistoryStore {
+        let store = try SQLiteHistoryStore(databaseURL: databaseURL)
+        _ = try store.load()
+        return AnyHistoryStore(store)
     }
 
     /// Imports the JSON history of earlier versions, merging it behind

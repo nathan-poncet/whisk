@@ -1,4 +1,5 @@
 import Foundation
+import SQLite3
 import Testing
 
 @testable import Whisk
@@ -44,6 +45,30 @@ import Testing
         let item = anItem(.text("after recovery"))
         try store.save([item])
         #expect(try SQLiteHistoryStore(databaseURL: database).load() == [item])
+    }
+
+    @Test func a_database_that_opens_but_will_not_load_is_set_aside_too() throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let database = directory.appendingPathComponent("history.sqlite")
+        var raw: OpaquePointer?
+        defer { sqlite3_close(raw) }
+        try #require(sqlite3_open(database.path, &raw) == SQLITE_OK)
+        // A content table from another era: it exists, so it is not
+        // recreated, and it lacks the columns a load asks for.
+        try #require(
+            sqlite3_exec(raw, "CREATE TABLE content (id TEXT PRIMARY KEY, kind TEXT NOT NULL)", nil, nil, nil)
+                == SQLITE_OK)
+        var logged: [String] = []
+
+        let store = HistoryStorage.open(in: directory) { logged.append($0) }
+
+        #expect(try store.load().isEmpty)
+        #expect(logged.count == 1)
+        #expect(FileManager.default.fileExists(atPath: database.path + ".unreadable"))
+        try store.save([anItem(.text("after recovery"))])
+        #expect(try SQLiteHistoryStore(databaseURL: database).load().count == 1)
     }
 
     @Test func when_no_database_can_be_created_the_session_runs_in_memory() throws {
