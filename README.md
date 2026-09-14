@@ -9,9 +9,9 @@ Paste-style panel at the bottom of your screen.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S3V726AT7H)
 
-![Whisk demo — the panel, keyboard navigation, filters, and direct paste](docs/media/demo.gif)
+![Whisk in 50 seconds — copy-paste on repeat, then one panel: search, colors, paste stack, preview, drag & drop](docs/media/demo.gif)
 
-*(Crisp MP4: [docs/media/demo.mp4](docs/media/demo.mp4), also attached to the [releases](https://github.com/nathan-poncet/whisk/releases).)*
+*(Crisp MP4 with sound: [docs/media/demo.mp4](docs/media/demo.mp4), or watch it on the [website](https://nathan-poncet.github.io/whisk/).)*
 
 
 Built in Swift/SwiftUI following Clean Architecture: a pure, synchronous
