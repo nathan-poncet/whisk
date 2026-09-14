@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "sources": {
+    "demo": "/Users/nponcet/Desktop/Perso/Work/whisk/docs/media/demo.mp4"
+  },
+  "ranges": [
+    {
+      "source": "demo",
+      "start": 22.0,
+      "end": 51.633333,
+      "reason": "User requested removing the copy/paste introduction; starts on the first full product-demo frame."
+    }
+  ],
+  "total_duration_s": 29.633333,
+  "output": "whisk-demo.mp4",
+  "audio": "Retained with 30 ms boundary fades; no new narration or subtitles."
+}
