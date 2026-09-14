@@ -97,3 +97,6 @@
 "%@, kind filter" = "%@, filtre par type";
 "Search mode" = "Mode recherche";
 "Normal mode" = "Mode normal";
+"Fetch link previews" = "Récupérer les aperçus de liens";
+"Privacy" = "Confidentialité";
+"A copied link is looked up once for its title and image. Off, nothing leaves this Mac." = "Un lien copié est consulté une fois pour son titre et son image. Désactivé, rien ne quitte ce Mac.";

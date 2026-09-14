@@ -97,3 +97,6 @@
 "%@, kind filter" = "%@, kind filter";
 "Search mode" = "Search mode";
 "Normal mode" = "Normal mode";
+"Fetch link previews" = "Fetch link previews";
+"Privacy" = "Privacy";
+"A copied link is looked up once for its title and image. Off, nothing leaves this Mac." = "A copied link is looked up once for its title and image. Off, nothing leaves this Mac.";

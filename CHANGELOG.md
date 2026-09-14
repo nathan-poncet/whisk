@@ -8,6 +8,11 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Added
+- Link previews can be switched off in Settings, under Privacy: no
+  request leaves the Mac and link cards show the bare address, including
+  for links already looked up.
+
 ## [0.9.0] - 2026-09-14
 
 ### Added
