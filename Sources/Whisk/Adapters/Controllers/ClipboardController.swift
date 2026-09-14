@@ -62,6 +62,10 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var activeCategories: Set<ContentCategory> = []
     private var pinnedOnly = false
     private var retention: RetentionPolicy
+    /// When the oldest unpinned item crosses the age limit. Any mutation
+    /// re-arms it for the next tick: an unpin or a capture can change
+    /// which item expires first.
+    private var nextExpiry: Date = .distantPast
     private var isPaused = false
     private var excludedBundleIDs: Set<String> = []
     private var pasteStack: [UUID] = []
@@ -123,7 +127,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         } else {
             mutate { try capture(into: $0, excluding: excludedBundleIDs) }
         }
-        guard retention.maxAge != nil else { return }
+        guard retention.maxAge != nil, clock.now() >= nextExpiry else { return }
         enforceRetentionNow()
     }
 
@@ -151,8 +155,18 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         } catch {
             NSLog("Whisk: storage failure — %@", String(describing: error))
         }
+        nextExpiry = earliestExpiry()
         guard history != previous else { return }
         refresh()
+    }
+
+    // The poll skips retention until then rather than re-walking the
+    // whole history four times a second.
+    private func earliestExpiry() -> Date {
+        guard let maxAge = retention.maxAge,
+            let oldest = history.items.filter({ !$0.isPinned }).map(\.copiedAt).min()
+        else { return .distantFuture }
+        return oldest.addingTimeInterval(maxAge)
     }
 
     /// Pastes the card at a rail position (⌘1…⌘9). Returns false when the
@@ -535,6 +549,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             NSLog("Whisk: storage failure — %@", String(describing: error))
         }
         guard history != previous else { return }
+        nextExpiry = .distantPast
         refresh()
     }
 

@@ -538,6 +538,47 @@ import Testing
         #expect(store.saveCount == 0)
     }
 
+    @Test func an_item_expires_on_the_first_tick_past_its_age_limit() {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("aging"), at: clock.now())]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: clock,
+            retention: RetentionPolicy(maxAge: 3_600), present: spy.record
+        )
+
+        clock.advance(by: 3_599)
+        controller.pollTick()
+        #expect(spy.last.cards.count == 1)
+
+        clock.advance(by: 2)
+        controller.pollTick()
+        #expect(spy.last.cards.isEmpty)
+        #expect(store.stored.isEmpty)
+    }
+
+    @Test func unpinning_an_item_past_the_age_limit_expires_it_on_the_next_tick() {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("fresh"), at: clock.now()),
+            anItem(.text("old but pinned"), at: clock.now().addingTimeInterval(-7_200), pinned: true),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: clock,
+            retention: RetentionPolicy(maxAge: 3_600), present: spy.record
+        )
+        controller.pollTick()
+        #expect(spy.last.cards.count == 2)
+
+        controller.togglePin(spy.last.cards[1].id)
+        controller.pollTick()
+
+        #expect(spy.last.cards.map(\.preview) == [.text("fresh")])
+    }
+
     @Test func applying_retention_purges_expired_items_live() {
         let clock = FakeClock()
         let store = InMemoryHistoryStore()

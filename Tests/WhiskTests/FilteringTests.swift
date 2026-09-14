@@ -197,6 +197,20 @@ import Testing
         #expect(bounded.items.map(\.payload) == [.text("newest")])
     }
 
+    @Test func a_capacity_that_merely_changed_is_adopted_without_rewriting_the_store() throws {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        let enforce = EnforceRetention(store: store)
+        let history = History().recording(.text("only"), from: nil, at: clock.now())
+        let roomier = try #require(HistoryCapacity(1000))
+
+        let next = try enforce(history, policy: RetentionPolicy(capacity: roomier), now: clock.now())
+
+        #expect(next.capacity == roomier)
+        #expect(next.items == history.items)
+        #expect(store.saveCount == 0)
+    }
+
     @Test func source_category_and_query_combine() throws {
         let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
 
