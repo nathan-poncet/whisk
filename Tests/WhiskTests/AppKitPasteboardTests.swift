@@ -108,6 +108,25 @@ import Testing
         #expect(normalized.prefix(4) == Data([0x89, 0x50, 0x4E, 0x47]))
     }
 
+    @Test func a_board_holding_only_foreign_types_yields_nothing() {
+        let sandbox = PrivateBoard()
+        let gateway = AppKitPasteboard(board: sandbox.board)
+        let foreign = NSPasteboard.PasteboardType("com.example.opaque-blob")
+        sandbox.board.declareTypes([foreign], owner: nil)
+        sandbox.board.setData(Data([0x01, 0x02]), forType: foreign)
+
+        #expect(gateway.readIfChanged() == nil)
+    }
+
+    @Test func the_copy_is_attributed_to_a_regular_frontmost_app_or_to_the_menu_bar_owner() throws {
+        let finder = try #require(
+            NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first)
+
+        #expect(AppKitPasteboard.attributedSource(frontmost: finder, menuBarOwner: nil) == finder)
+        #expect(AppKitPasteboard.attributedSource(frontmost: nil, menuBarOwner: finder) == finder)
+        #expect(AppKitPasteboard.attributedSource(frontmost: nil, menuBarOwner: nil) == nil)
+    }
+
     @Test func own_writes_are_not_captured_again() {
         let sandbox = PrivateBoard()
         let gateway = AppKitPasteboard(board: sandbox.board)

@@ -217,6 +217,30 @@ import Testing
             ])
     }
 
+    @Test func presenting_beyond_the_cache_limit_purges_and_keeps_rendering() {
+        let old = Date(timeIntervalSince1970: 1_600_000_000)
+        let items = (0..<2_100).map { anItem(.text("entry \($0)"), at: old.addingTimeInterval(Double($0))) }
+
+        let first = presenter.present(items: items, query: "", now: now)
+        let second = presenter.present(items: items, query: "", now: now)
+
+        #expect(first.cards.count == 2_100)
+        #expect(first.cards.last?.preview == .text("entry 2099"))
+        #expect(first.cards.map(\.timeLabel) == second.cards.map(\.timeLabel))
+    }
+
+    @Test func a_chip_bar_knows_when_it_has_nothing_to_show() throws {
+        let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
+        let row = ChipEntry.row(hasPinned: false, sources: [slack], categories: [])
+
+        let bare = presenter.present(items: [], query: "", now: now)
+        let chipped = presenter.present(items: [], query: "", now: now, filters: FilterContext(chips: row))
+
+        #expect(bare.filters.isEmpty)
+        #expect(FilterBarViewState.empty.isEmpty)
+        #expect(!chipped.filters.isEmpty)
+    }
+
     @Test func the_count_label_is_singular_for_one_item() {
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)
