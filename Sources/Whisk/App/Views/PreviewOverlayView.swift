@@ -15,6 +15,7 @@ struct PreviewOverlayView: View {
                             Image(nsImage: icon)
                                 .resizable()
                                 .frame(width: 20, height: 20)
+                                .accessibilityHidden(true)
                         }
                         Text(card.sourceLabel)
                             .font(.headline)
@@ -72,6 +73,7 @@ struct PreviewOverlayView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel(localized("Image"))
             }
         case .files(let names, let overflow, let thumbnailPath):
             VStack(alignment: .leading, spacing: 10) {
@@ -83,6 +85,7 @@ struct PreviewOverlayView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxHeight: 300)
+                    .accessibilityHidden(true)
                     .onAppear { FileThumbnailStore.shared.load(path) }
                 }
                 ForEach(names, id: \.self) { name in

@@ -75,6 +75,16 @@ struct ItemCardView: View, Equatable {
             Button(card.isPinned ? localized("Unpin") : localized("Pin"), action: onTogglePin)
             Button(localized("Delete"), role: .destructive, action: onDelete)
         }
+        // One VoiceOver element per card: the presenter's label and value
+        // say it all, the icons and texts inside are decorative.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(card.accessibilityLabel)
+        .accessibilityValue(card.accessibilityValue)
+        .accessibilityHint(localized("Pastes this card"))
+        .accessibilityAddTraits(card.isSelected && showsSelection ? [.isButton, .isSelected] : [.isButton])
+        .accessibilityAction(.default, onSelect)
+        .accessibilityAction(named: Text(card.isPinned ? localized("Unpin") : localized("Pin")), onTogglePin)
+        .accessibilityAction(named: Text(localized("Delete")), onDelete)
     }
 
     @ViewBuilder private var selectionRing: some View {

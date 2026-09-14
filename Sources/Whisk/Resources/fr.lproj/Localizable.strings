@@ -88,3 +88,12 @@
 
 "Nothing selected" = "Aucune sélection";
 "Launch at login needs the installed Whisk.app: %@" = "Le lancement à l'ouverture de session nécessite l'app Whisk installée : %@";
+
+"Pastes this card" = "Colle cette carte";
+"Pinned card" = "Carte épinglée";
+"Paste stack position %lld" = "Position %lld dans la pile de collage";
+"Pinned items, filter" = "Éléments épinglés, filtre";
+"%@, application filter" = "%@, filtre par application";
+"%@, kind filter" = "%@, filtre par type";
+"Search mode" = "Mode recherche";
+"Normal mode" = "Mode normal";

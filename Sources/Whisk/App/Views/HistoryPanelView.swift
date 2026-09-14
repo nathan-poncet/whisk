@@ -102,6 +102,7 @@ struct HistoryPanelView: View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             if store.vimEnabled && !store.searchActive {
                 // NORMAL mode: the letters are commands, the field is out
                 // of the loop — the persisted query stays readable.
@@ -129,6 +130,7 @@ struct HistoryPanelView: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(Color.matcha)
                     .help(localized("Paste stack — pop with the global shortcut"))
+                    .accessibilityLabel(localized("\(store.state.stackCount) in the paste stack"))
             }
             Text(store.state.countLabel)
                 .font(.caption.monospacedDigit())
@@ -140,6 +142,7 @@ struct HistoryPanelView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .overlay(Capsule().strokeBorder(.secondary.opacity(0.4), lineWidth: 1))
+                    .accessibilityLabel(store.searchActive ? localized("Search mode") : localized("Normal mode"))
             }
         }
         .padding(.horizontal, 16)
@@ -261,6 +264,7 @@ struct HistoryPanelView: View {
             Image(systemName: "doc.on.clipboard")
                 .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             Text(message)
                 .foregroundStyle(.secondary)
         }

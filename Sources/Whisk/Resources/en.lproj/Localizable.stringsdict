@@ -34,5 +34,21 @@
 			<string>%lld characters</string>
 		</dict>
 	</dict>
+	<key>%lld in the paste stack</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@cards@</string>
+		<key>cards</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld card in the paste stack</string>
+			<key>other</key>
+			<string>%lld cards in the paste stack</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

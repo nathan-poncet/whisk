@@ -96,6 +96,7 @@ struct FilterBarView: View {
             .fill(.white.opacity(0.25))
             .frame(width: 1, height: 16)
             .padding(.horizontal, 4)
+            .accessibilityHidden(true)
     }
 
     @ViewBuilder private func chipIcon(_ icon: ChipIcon?) -> some View {
@@ -145,6 +146,8 @@ private struct ChipButton<Label: View>: View {
             label()
         }
         .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: isFocused))
+        .accessibilityLabel(chip.accessibilityLabel)
+        .accessibilityAddTraits(chip.isActive ? .isSelected : [])
         .linkPointer()
         .scaleEffect(zoomed ? 1.06 : 1)
         // The frosted capsule is an AppKit view and ignores transforms, so
