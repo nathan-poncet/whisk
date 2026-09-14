@@ -6,13 +6,9 @@ import SwiftUI
 struct PreviewOverlayView: View {
     @ObservedObject var store: HistoryViewStateStore
 
-    private var card: CardViewState? {
-        store.state.cards.first(where: \.isSelected)
-    }
-
     var body: some View {
         Group {
-            if let card {
+            if let card = store.state.selectedCard {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
                         if let icon = SourceAppStyle.resolve(bundleID: card.sourceBundleID).icon {

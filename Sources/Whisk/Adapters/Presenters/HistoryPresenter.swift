@@ -103,8 +103,18 @@ final class HistoryPresenter {
             query: query,
             selectedID: selectedID,
             stackCount: stack.count,
-            filters: filterBar(from: filters)
+            filters: filterBar(from: filters),
+            emptyMessage: items.isEmpty ? Self.emptyMessage(query: query, filters: filters) : nil
         )
+    }
+
+    /// An empty rail either invites the first copy or reports that the
+    /// query and chips matched nothing.
+    private static func emptyMessage(query: String, filters: FilterContext) -> String {
+        let narrowed =
+            !query.isEmpty || !filters.activeSourceKeys.isEmpty || !filters.activeCategories.isEmpty
+            || filters.pinnedOnly
+        return narrowed ? localized("No matches") : localized("Copy something to get started")
     }
 
     private func card(
@@ -143,6 +153,18 @@ final class HistoryPresenter {
         case .link: localized("link")
         case .image: localized("image")
         case .files: localized("files")
+        }
+    }
+
+    private static func chipIcon(_ category: ContentCategory) -> ChipIcon {
+        switch category {
+        case .text: .symbol("text.alignleft")
+        // The code chip wears the Neovim mark when the bundle ships it.
+        case .code: .resource("nvim", fallback: "chevron.left.forwardslash.chevron.right")
+        case .color: .symbol("paintpalette")
+        case .link: .symbol("link")
+        case .image: .symbol("photo")
+        case .files: .symbol("folder")
         }
     }
 
@@ -208,6 +230,7 @@ final class HistoryPresenter {
                         id: entry.id,
                         label: localized("Pinned"),
                         sourceBundleID: nil,
+                        icon: .symbol("pin.fill"),
                         isActive: context.pinnedOnly,
                         isFocused: isFocused
                     )
@@ -228,6 +251,7 @@ final class HistoryPresenter {
                         id: entry.id,
                         label: Self.kindLabel(category).capitalized,
                         sourceBundleID: nil,
+                        icon: Self.chipIcon(category),
                         isActive: context.activeCategories.contains(category),
                         isFocused: isFocused
                     )

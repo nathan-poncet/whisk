@@ -163,8 +163,8 @@ struct HistoryPanelView: View {
     }
 
     @ViewBuilder private var content: some View {
-        if store.state.cards.isEmpty {
-            emptyState
+        if let message = store.state.emptyMessage {
+            emptyState(message)
         } else {
             ScrollViewReader { proxy in
                 rail
@@ -256,17 +256,13 @@ struct HistoryPanelView: View {
             .frame(width: 210, height: 210)
     }
 
-    private var emptyState: some View {
+    private func emptyState(_ message: String) -> some View {
         VStack(spacing: 8) {
             Image(systemName: "doc.on.clipboard")
                 .font(.system(size: 24, weight: .light))
                 .foregroundStyle(.secondary)
-            Text(
-                store.state.query.isEmpty && !store.state.filters.hasActiveChip
-                    ? localized("Copy something to get started")
-                    : localized("No matches")
-            )
-            .foregroundStyle(.secondary)
+            Text(message)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)

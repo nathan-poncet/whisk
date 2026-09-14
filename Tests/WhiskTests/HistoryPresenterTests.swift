@@ -127,6 +127,43 @@ import Testing
         #expect(state.filters.focusedChipID == "com.slack")
     }
 
+    @Test func chips_carry_the_icon_they_wear() throws {
+        let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
+        let row = ChipEntry.row(hasPinned: true, sources: [slack], categories: [.code, .image])
+
+        let state = presenter.present(items: [], query: "", now: now, filters: FilterContext(chips: row))
+
+        #expect(state.filters.pinned.first?.icon == .symbol("pin.fill"))
+        #expect(state.filters.apps.first?.icon == nil)
+        #expect(
+            state.filters.kinds.map(\.icon) == [
+                .resource("nvim", fallback: "chevron.left.forwardslash.chevron.right"), .symbol("photo"),
+            ])
+    }
+
+    @Test func an_empty_rail_explains_itself() {
+        let untouched = presenter.present(items: [], query: "", now: now)
+        let searched = presenter.present(items: [], query: "zzz", now: now)
+        let narrowed = presenter.present(
+            items: [], query: "", now: now, filters: FilterContext(chips: [.pinned], pinnedOnly: true))
+        let populated = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
+
+        #expect(untouched.emptyMessage == "Copy something to get started")
+        #expect(searched.emptyMessage == "No matches")
+        #expect(narrowed.emptyMessage == "No matches")
+        #expect(populated.emptyMessage == nil)
+    }
+
+    @Test func the_selected_card_is_the_one_the_preview_follows() {
+        let items = [anItem(.text("first")), anItem(.text("second"))]
+
+        let state = presenter.present(items: items, query: "", now: now, selectedID: items[1].id)
+        let unfocused = presenter.present(items: items, query: "", now: now, selectedID: nil)
+
+        #expect(state.selectedCard?.preview == .text("second"))
+        #expect(unfocused.selectedCard == nil)
+    }
+
     @Test func the_count_label_is_singular_for_one_item() {
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)
