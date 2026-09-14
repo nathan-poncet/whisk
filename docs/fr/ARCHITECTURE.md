@@ -24,7 +24,8 @@ Sources/Whisk/
 │                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3)
 └── App/                    frameworks & drivers + racine de composition (tout est permis)
     ├── Views/              rendus SwiftUI du HistoryViewState
-    └── …                   AppDelegate · HistoryStorage · NSPanel · Timer · raccourci · CGEvent
+    └── …                   AppDelegate · HistoryStorage · PanelWiring · PanelKeyRouter ·
+                            NSPanel · Timer · raccourci · CGEvent
 ```
 
 ## Les rings
@@ -60,9 +61,15 @@ Sources/Whisk/
    qui a la forme d'un framework : vues SwiftUI (rendus muets du
    `HistoryViewState`), le `NSPanel` flottant, l'icône de barre de menus,
    le `Timer` de polling, le raccourci Carbon, la simulation de collage.
-   `HistoryStorage` ouvre la base, met de côté une base illisible, se
-   replie sur la mémoire et importe l'historique legacy. L'asynchrone vit
-   ici et seulement ici.
+   `HistoryStorage` ouvre la base, la lit une fois avant de lui faire
+   confiance, met de côté une base illisible, se replie sur la mémoire et
+   importe l'historique legacy. Deux morceaux de ce ring portent des
+   règles plutôt que du câblage et sont tenus à part pour être testés :
+   `PanelWiring` construit la table d'actions du panneau (quelles actions
+   vident le debounce de recherche, lesquelles ferment et collent), et
+   `PanelKeyRouter` transforme les touches en actions — mode normal de
+   vim, raccourcis de l'utilisateur, ⌘chiffres. `AppDelegate` ne fait
+   qu'assembler. L'asynchrone vit ici et seulement ici.
 
 ## Invariants
 
@@ -85,15 +92,35 @@ Sources/Whisk/
 
 Une seule cible `WhiskTests` (`@testable import Whisk`) avec les doublures
 déterministes dans `Fakes.swift` : `FakeClock`, `InMemoryHistoryStore`,
-`FailingHistoryStore`, `ScriptedPasteboard`, `RecordingLogger`. Le
-comportement du noyau, l'orchestration du controller et le formatage du
-presenter ont chacun leur suite ; les noms de tests énoncent un
-comportement (`a_storage_failure_is_logged_and_the_presented_state_stays_alive`).
-Le contrat `HistoryStore` est une seule suite paramétrée, exécutée contre
-chaque gateway (SQLite, mémoire) dans un répertoire temporaire neuf par
-test ; un nouveau gateway s'y ajoute par un simple cas. Le lecteur JSON
-legacy est testé contre une fixture de son format sur disque, le bootstrap
-de stockage contre des répertoires corrompus ou legacy, le gateway
-presse-papiers contre un presse-papiers privé, et les catalogues de
-chaînes contre le code qui les lit. `scripts/coverage.sh` exécute la suite
-avec la couverture et affiche le rapport que la CI archive.
+`FailingHistoryStore`, `SaveFailingHistoryStore`, `ScriptedPasteboard`,
+`RecordingLogger`. Les noms de tests énoncent un comportement
+(`a_storage_failure_is_logged_and_the_presented_state_stays_alive`).
+
+- **Noyau et adaptateurs** sont couverts ligne à ligne : le comportement
+  de l'historique, chaque use case, la navigation et les facettes du
+  controller, les chaînes, icônes et libellés VoiceOver du presenter. Le
+  contrat `HistoryStore` est une seule suite paramétrée, exécutée contre
+  chaque gateway (SQLite, mémoire) dans un répertoire temporaire neuf par
+  test ; une connexion brute sabote le schéma pour atteindre chaque chemin
+  d'erreur. Le lecteur JSON legacy est testé contre une fixture de son
+  format sur disque, le bootstrap de stockage contre des répertoires
+  corrompus, dérivés ou legacy, le gateway presse-papiers contre un
+  presse-papiers privé, les catalogues de chaînes contre le code qui les
+  lit.
+- **Le ring des frameworks est testé sans écran.** Les vues sont dessinées
+  hors écran avec `ImageRenderer` dans chaque état possible, et hébergées
+  dans une fenêtre jamais affichée pour que le flou derrière la fenêtre
+  reçoive un layer et une passe de layout ; le panneau reçoit des
+  changements d'état et un tour de run loop pour que ses observateurs
+  s'exécutent. Le routage clavier est piloté par des `NSEvent`
+  synthétiques, le debouncer par un ordonnanceur à manivelle, la
+  vérification de mise à jour par des réponses en conserve, QuickLook et
+  LinkPresentation en attendant leurs valeurs publiées. Un test n'affiche
+  jamais de fenêtre.
+- **Hors de la suite, à dessein :** `AppDelegate` (icône de menu,
+  raccourcis globaux, timers — la racine de composition que le smoke test
+  de release couvre), `HotKey` (en enregistrer un détournerait le
+  raccourci du testeur), `PasteSimulator` (envoie ⌘V à l'app au premier
+  plan), `main`, et les parties de `PanelController` qui affichent des
+  fenêtres. `scripts/coverage.sh` exécute la suite avec la couverture et
+  affiche le rapport que la CI archive.

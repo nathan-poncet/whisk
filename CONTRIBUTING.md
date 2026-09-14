@@ -74,6 +74,10 @@ TDD is the house style: write the failing test first. Conventions:
 - A port gets a **contract suite** that runs against every gateway
   implementing it (see `HistoryStoreContractTests`, parameterized over the
   SQLite and in-memory stores — a new gateway joins by adding a case).
+- Views get **rendering tests**: draw them with `ImageRenderer` or host
+  them in a window that is never ordered in (see `ViewRenderingTests`),
+  one case per state the view can show. A test must never put a window
+  on screen, register a hot key or touch the general pasteboard.
 - `./scripts/coverage.sh` runs the suite with coverage and prints the
   per-file report CI archives.
 
