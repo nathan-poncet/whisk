@@ -67,9 +67,9 @@ final class PanelController {
         // before it may close anything, and abandons the query on the way
         // out, exactly like Esc during a / search.
         panel.onCancel = { [weak self] in
-            guard let self, stateStore.vimEnabled, stateStore.searchActive else { return false }
-            actions.search("")
-            stateStore.setSearchActive(false)
+            guard let self, self.stateStore.vimEnabled, self.stateStore.searchActive else { return false }
+            self.actions.search("")
+            self.stateStore.setSearchActive(false)
             return true
         }
         // Hover-selection listens to this: only real pointer movement may
