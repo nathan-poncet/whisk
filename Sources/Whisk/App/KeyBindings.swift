@@ -178,8 +178,8 @@ final class KeyBindingsStore: ObservableObject {
     private static func defaultBinding(for action: KeyAction) -> KeyBinding {
         switch action {
         case .togglePanel:
-            let keyCode = KeyboardLayout.keyCode(for: "v") ?? CGKeyCode(kVK_ANSI_V)
-            return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command, .shift])
+            return KeyBinding(
+                keyCode: KeyboardLayout.keyCode(for: "v", orANSI: kVK_ANSI_V), modifiers: [.command, .shift])
         case .pasteSelection:
             return KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [])
         case .pastePlain:
@@ -187,8 +187,8 @@ final class KeyBindingsStore: ObservableObject {
         case .stackSelection:
             return KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [.shift])
         case .pasteNextFromStack:
-            let keyCode = KeyboardLayout.keyCode(for: "v") ?? CGKeyCode(kVK_ANSI_V)
-            return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command, .option])
+            return KeyBinding(
+                keyCode: KeyboardLayout.keyCode(for: "v", orANSI: kVK_ANSI_V), modifiers: [.command, .option])
         case .previousCard:
             return KeyBinding(keyCode: UInt16(kVK_LeftArrow), modifiers: [])
         case .nextCard:
@@ -202,11 +202,9 @@ final class KeyBindingsStore: ObservableObject {
         case .previewSelection:
             // Finder's Quick Look shortcut — the bare space bar would fight
             // with typing in the search field.
-            let keyCode = KeyboardLayout.keyCode(for: "y") ?? CGKeyCode(kVK_ANSI_Y)
-            return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command])
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "y", orANSI: kVK_ANSI_Y), modifiers: [.command])
         case .pinSelection:
-            let keyCode = KeyboardLayout.keyCode(for: "p") ?? CGKeyCode(kVK_ANSI_P)
-            return KeyBinding(keyCode: UInt16(keyCode), modifiers: [.command])
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "p", orANSI: kVK_ANSI_P), modifiers: [.command])
         case .deleteSelection:
             return KeyBinding(keyCode: UInt16(kVK_Delete), modifiers: [.command])
         }

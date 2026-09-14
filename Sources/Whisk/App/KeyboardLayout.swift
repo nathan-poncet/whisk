@@ -10,6 +10,12 @@ enum KeyboardLayout {
         return characterMap()[wanted]
     }
 
+    /// The key printing a character under the current layout, or its ANSI
+    /// position when the layout cannot be read.
+    static func keyCode(for character: Character, orANSI fallback: Int) -> UInt16 {
+        UInt16(keyCode(for: character) ?? CGKeyCode(fallback))
+    }
+
     /// The character a virtual key code prints under the current layout,
     /// for displaying recorded shortcuts.
     static func character(for keyCode: UInt16) -> Character? {
