@@ -520,6 +520,24 @@ import Testing
         #expect(spy.last.cards.count == 2)
     }
 
+    @Test func the_history_loads_at_the_configured_capacity_not_the_default() throws {
+        let store = InMemoryHistoryStore()
+        store.stored = (0..<600).map { anItem(.text("item \($0)")) }
+        let spy = StateSpy()
+        let roomy = try #require(HistoryCapacity(1000))
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(),
+            retention: RetentionPolicy(capacity: roomy), present: spy.record
+        )
+        #expect(spy.last.cards.count == 600)
+
+        controller.applyRetention(RetentionPolicy(capacity: roomy))
+
+        #expect(spy.last.cards.count == 600)
+        #expect(store.stored.count == 600)
+        #expect(store.saveCount == 0)
+    }
+
     @Test func applying_retention_purges_expired_items_live() {
         let clock = FakeClock()
         let store = InMemoryHistoryStore()

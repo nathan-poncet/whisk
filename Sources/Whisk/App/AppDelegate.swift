@@ -36,7 +36,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let clipboard = ClipboardController(
             pasteboard: AppKitPasteboard(),
             store: store,
-            clock: SystemClock()
+            clock: SystemClock(),
+            retention: generalSettings.policy
         ) { state in
             stateStore.update(state)
         }
