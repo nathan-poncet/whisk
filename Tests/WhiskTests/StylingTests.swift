@@ -80,4 +80,16 @@ import Testing
         #expect(runs[2].1 == CodeTextView.color(for: .number))
         #expect(Set([CodeToken.Kind.keyword, .string, .comment, .number].map(CodeTextView.color(for:))).count == 4)
     }
+
+    @Test func query_matches_wash_their_ranges_in_the_accent_and_ignore_spans_past_the_end() {
+        let spans = [MatchSpan(start: 4, length: 1), MatchSpan(start: 40, length: 2)]
+
+        let code = CodeTextView.attributed("let x = 1", tokens: [], matches: spans)
+        let plain = CodeTextView.highlighted("let x = 1", matches: spans)
+
+        for attributed in [code, plain] {
+            let washed = attributed.runs.filter { $0.appKit.backgroundColor == CodeTextView.matchWash }
+            #expect(washed.map { String(attributed[$0.range].characters) } == ["x"])
+        }
+    }
 }

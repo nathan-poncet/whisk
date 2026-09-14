@@ -16,6 +16,8 @@ live in the commit history.
   follows it, instead of always on the main screen.
 - Cards come in three sizes — small, medium, large — chosen in Settings;
   the panel's height follows.
+- The letters a search matched are washed in the accent color on text
+  and code cards, so the eye lands on why a card is there.
 
 ## [0.9.0] - 2026-09-14
 

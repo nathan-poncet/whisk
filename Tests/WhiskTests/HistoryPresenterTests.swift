@@ -247,6 +247,29 @@ import Testing
         #expect(!chipped.filters.isEmpty)
     }
 
+    @Test func a_live_query_marks_where_its_words_landed_in_utf16_offsets() {
+        let items = [anItem(.text("héllo 😀 world"), at: now), anItem(.text("func run() { start() }"), at: now)]
+
+        let searched = presenter.present(items: items, query: "world run", now: now)
+        let idle = presenter.present(items: items, query: "", now: now)
+        let gated = presenter.present(items: items, query: "app:slack", now: now)
+
+        #expect(searched.cards[0].matches == [MatchSpan(start: 9, length: 5)])
+        #expect(searched.cards[1].matches == [MatchSpan(start: 5, length: 3)])
+        #expect(idle.cards.allSatisfy { $0.matches.isEmpty })
+        #expect(gated.cards.allSatisfy { $0.matches.isEmpty })
+    }
+
+    @Test func scattered_hits_become_one_span_per_run_and_only_text_is_marked() throws {
+        let url = try #require(URL(string: "https://example.com/ac"))
+        let items = [anItem(.text("abcabc"), at: now), anItem(.link(url), at: now)]
+
+        let state = presenter.present(items: items, query: "ac", now: now)
+
+        #expect(state.cards[0].matches == [MatchSpan(start: 0, length: 1), MatchSpan(start: 2, length: 1)])
+        #expect(state.cards[1].matches.isEmpty)
+    }
+
     @Test func the_count_label_is_singular_for_one_item() {
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)

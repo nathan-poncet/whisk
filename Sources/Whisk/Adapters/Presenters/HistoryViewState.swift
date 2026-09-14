@@ -127,6 +127,9 @@ struct CardViewState: Equatable, Identifiable {
     let accessibilityValue: String
     /// What leaves the app when the card is dragged out.
     let dragPayload: DragPayload
+    /// Where the query's words landed in a textual preview, for the view
+    /// to underline; empty without a live query.
+    let matches: [MatchSpan]
     let preview: CardPreview
 
     init(
@@ -142,6 +145,7 @@ struct CardViewState: Equatable, Identifiable {
         accessibilityLabel: String,
         accessibilityValue: String,
         dragPayload: DragPayload,
+        matches: [MatchSpan] = [],
         preview: CardPreview
     ) {
         self.id = id
@@ -156,8 +160,16 @@ struct CardViewState: Equatable, Identifiable {
         self.accessibilityLabel = accessibilityLabel
         self.accessibilityValue = accessibilityValue
         self.dragPayload = dragPayload
+        self.matches = matches
         self.preview = preview
     }
+}
+
+/// A stretch of preview text the query matched, in UTF-16 offsets like a
+/// CodeToken, so views apply attributes without re-parsing.
+struct MatchSpan: Equatable {
+    let start: Int
+    let length: Int
 }
 
 /// What a dragged card hands to the drop target — the item itself, never

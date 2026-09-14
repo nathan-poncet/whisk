@@ -141,11 +141,19 @@ struct ItemCardView: View, Equatable {
     @ViewBuilder private var preview: some View {
         switch card.preview {
         case .text(let value):
-            Text(value)
-                .font(.system(size: 12))
-                .padding(.horizontal, 14)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .mask(bottomFade)
+            // A plain Text unless there is something to underline: the
+            // attributed path costs more and runs only under a live query.
+            Group {
+                if card.matches.isEmpty {
+                    Text(value)
+                } else {
+                    Text(CodeTextView.highlighted(value, matches: card.matches))
+                }
+            }
+            .font(.system(size: 12))
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .mask(bottomFade)
         case .color(let code, let rgb):
             VStack(alignment: .leading, spacing: 8) {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -157,7 +165,7 @@ struct ItemCardView: View, Equatable {
             }
             .padding(.horizontal, 14)
         case .code(let text, let tokens):
-            CodeTextView(text: text, tokens: tokens, lineLimit: nil)
+            CodeTextView(text: text, tokens: tokens, lineLimit: nil, matches: card.matches)
                 .padding(.horizontal, 14)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .mask(bottomFade)

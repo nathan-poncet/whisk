@@ -99,13 +99,15 @@ final class HistoryPresenter {
         filters: FilterContext = .empty
     ) -> HistoryViewState {
         presentedIDs = Set(items.map(\.id))
+        let words = ParsedQuery(query).words
         return HistoryViewState(
             cards: items.map {
                 card(
                     for: $0,
                     now: now,
                     isSelected: $0.id == selectedID,
-                    stackPosition: stack.firstIndex(of: $0.id).map { $0 + 1 }
+                    stackPosition: stack.firstIndex(of: $0.id).map { $0 + 1 },
+                    words: words
                 )
             },
             countLabel: countLabel(items.count),
@@ -127,7 +129,7 @@ final class HistoryPresenter {
     }
 
     private func card(
-        for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?
+        for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?, words: [String]
     ) -> CardViewState {
         let kind = Self.kindLabel(item.category)
         let source = item.source?.name ?? item.source?.bundleID ?? kind.capitalized
@@ -146,8 +148,49 @@ final class HistoryPresenter {
             accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
             accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
             dragPayload: Self.dragPayload(of: item),
+            matches: Self.matchSpans(of: words, in: item),
             preview: cardPreview
         )
+    }
+
+    /// Matching runs on the visible cards only and never on more than the
+    /// preview can show; the cost is the filter's own, once more, per word.
+    private static let matchScanLimit = 4000
+
+    private static func matchSpans(of words: [String], in item: ClipboardItem) -> [MatchSpan] {
+        guard !words.isEmpty, case .text(let value) = item.payload else { return [] }
+        let scanned = String(value.prefix(matchScanLimit))
+        var hits: Set<Int> = []
+        for word in words {
+            if let positions = FuzzyMatch.match(pattern: word, in: scanned)?.positions {
+                hits.formUnion(positions)
+            }
+        }
+        guard !hits.isEmpty else { return [] }
+        // Character offsets to UTF-16 ones: one running offset per character.
+        var utf16Offsets = [0]
+        utf16Offsets.reserveCapacity(scanned.count + 1)
+        for character in scanned {
+            utf16Offsets.append(utf16Offsets[utf16Offsets.count - 1] + character.utf16.count)
+        }
+        var spans: [MatchSpan] = []
+        var runStart: Int?
+        var previous = -2
+        for offset in hits.sorted() where offset + 1 < utf16Offsets.count {
+            if offset != previous + 1 {
+                if let start = runStart {
+                    spans.append(
+                        MatchSpan(start: utf16Offsets[start], length: utf16Offsets[previous + 1] - utf16Offsets[start]))
+                }
+                runStart = offset
+            }
+            previous = offset
+        }
+        if let start = runStart {
+            spans.append(
+                MatchSpan(start: utf16Offsets[start], length: utf16Offsets[previous + 1] - utf16Offsets[start]))
+        }
+        return spans
     }
 
     // A color travels as its code alone, the way the swatch shows it.
