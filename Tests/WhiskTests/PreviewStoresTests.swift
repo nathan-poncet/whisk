@@ -82,6 +82,28 @@ where P.Failure == Never {
 }
 
 @MainActor
+@Suite struct PreviewCacheBounds {
+    @Test func the_link_and_thumbnail_caches_let_everything_go_past_their_limit() {
+        // Instances of their own: the shared ones serve other suites
+        // concurrently.
+        let links = LinkPreviewStore()
+        let files = FileThumbnailStore()
+        let empty = LinkPreview(title: nil, host: nil, icon: nil, image: nil)
+
+        for index in 0..<(LinkPreviewStore.limit + 1) {
+            links.store(empty, for: "https://example.com/bound/\(index)")
+        }
+        for index in 0..<(FileThumbnailStore.limit + 1) {
+            files.store(ViewFixtures.swatch, for: "/nonexistent/bound/\(index)")
+        }
+
+        #expect(links.previews.count <= LinkPreviewStore.limit)
+        #expect(files.thumbnails.count <= FileThumbnailStore.limit)
+        #expect(links.preview(for: "https://example.com/bound/\(LinkPreviewStore.limit)") != nil)
+    }
+}
+
+@MainActor
 @Suite struct FileThumbnailGeneration {
     @Test func a_real_file_gets_a_thumbnail_and_is_generated_once() async throws {
         let directory = FileManager.default.temporaryDirectory

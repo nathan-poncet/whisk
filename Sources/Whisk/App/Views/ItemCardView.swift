@@ -239,7 +239,12 @@ struct ItemCardView: View, Equatable {
     // so each card decodes once into a card-sized thumbnail — and the rail
     // prewarms the whole batch off the main thread, so a card entering the
     // scroll window arrives already decoded.
-    private static let imageCache = NSCache<NSUUID, NSImage>()
+    private static let imageCache: NSCache<NSUUID, NSImage> = {
+        let cache = NSCache<NSUUID, NSImage>()
+        // A few screens' worth of thumbnails; the rest decode again on demand.
+        cache.countLimit = 512
+        return cache
+    }()
     private static let thumbnailMaxDimension = 480
     private static let prewarmQueue = DispatchQueue(label: "whisk.card-prewarm", qos: .utility)
 

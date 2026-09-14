@@ -47,9 +47,16 @@ final class LinkPreviewStore: ObservableObject {
     /// Keeps a preview for an address — fetched in production, canned in
     /// tests — and lets the address be fetched again later.
     func store(_ preview: LinkPreview, for address: String) {
+        if previews.count >= Self.limit {
+            previews.removeAll()
+        }
         previews[address] = preview
         inFlight.remove(address)
     }
+
+    /// Distinct links seen in a session; past it the oldest go together —
+    /// a refetch costs one request, an unbounded dictionary costs memory.
+    static let limit = 512
 
     nonisolated static func assemble(
         metadata: LPLinkMetadata?,

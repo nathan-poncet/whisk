@@ -36,7 +36,13 @@ final class FileThumbnailStore: ObservableObject {
     /// Keeps a thumbnail for a path — generated in production, canned in
     /// tests.
     func store(_ image: NSImage, for path: String) {
+        if thumbnails.count >= Self.limit {
+            thumbnails.removeAll()
+        }
         thumbnails[path] = image
         inFlight.remove(path)
     }
+
+    /// Distinct files thumbnailed in a session; past it they go together.
+    static let limit = 512
 }

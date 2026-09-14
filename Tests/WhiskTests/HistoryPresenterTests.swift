@@ -217,16 +217,22 @@ import Testing
             ])
     }
 
-    @Test func presenting_beyond_the_cache_limit_purges_and_keeps_rendering() {
+    @Test func past_the_cache_limit_the_purge_keeps_what_is_on_screen_and_lets_the_rest_go() {
         let old = Date(timeIntervalSince1970: 1_600_000_000)
-        let items = (0..<2_100).map { anItem(.text("entry \($0)"), at: old.addingTimeInterval(Double($0))) }
+        let many = (0..<2_100).map { anItem(.text("entry \($0)"), at: old.addingTimeInterval(Double($0))) }
+        let few = (0..<10).map { anItem(.text("later \($0)"), at: old) }
 
-        let first = presenter.present(items: items, query: "", now: now)
-        let second = presenter.present(items: items, query: "", now: now)
-
+        let first = presenter.present(items: many, query: "", now: now)
+        let second = presenter.present(items: many, query: "", now: now)
         #expect(first.cards.count == 2_100)
         #expect(first.cards.last?.preview == .text("entry 2099"))
         #expect(first.cards.map(\.timeLabel) == second.cards.map(\.timeLabel))
+        #expect(presenter.cachedPreviewCount == 2_100)
+
+        let next = presenter.present(items: few, query: "", now: now)
+
+        #expect(next.cards.count == 10)
+        #expect(presenter.cachedPreviewCount == 10)
     }
 
     @Test func a_chip_bar_knows_when_it_has_nothing_to_show() throws {
