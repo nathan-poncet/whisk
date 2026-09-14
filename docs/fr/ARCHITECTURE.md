@@ -15,15 +15,16 @@ flèches pointent uniquement vers l'intérieur.
 Sources/Whisk/
 ├── Entities/               History · ClipboardItem · Payload · SourceApp · HistoryCapacity
 ├── UseCases/               CaptureClipboardChange · SelectItem · FilterHistory ·
-│   └── Ports/              TogglePin · DeleteItem · ClearHistory · LoadHistory
-│                           Pasteboard · HistoryStore · Clock        (Foundation seulement)
+│   └── Ports/              TogglePin · DeleteItem · ClearHistory · LoadHistory · EnforceRetention
+│                           Pasteboard · HistoryStore · Clock · Logger  (Foundation seulement)
 ├── Adapters/
 │   ├── Controllers/        ClipboardController                     (Foundation seulement)
 │   ├── Presenters/         HistoryPresenter · HistoryViewState     (Foundation seulement)
-│   └── Gateways/           FileHistoryStore · AppKitPasteboard     (Foundation + AppKit)
+│   └── Gateways/           SQLiteHistoryStore · LegacyJSONHistory · VolatileHistoryStore ·
+│                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3)
 └── App/                    frameworks & drivers + racine de composition (tout est permis)
     ├── Views/              rendus SwiftUI du HistoryViewState
-    └── …                   AppDelegate · NSPanel · Timer · raccourci · CGEvent
+    └── …                   AppDelegate · HistoryStorage · NSPanel · Timer · raccourci · CGEvent
 ```
 
 ## Les rings
@@ -31,28 +32,37 @@ Sources/Whisk/
 1. **Noyau (entités + use cases).** `Entities/` et `UseCases/` avec ses
    `UseCases/Ports/` n'importent que Foundation — jamais AppKit, jamais
    SwiftUI. Les ports sont des protocoles aux noms de rôle (`Pasteboard`,
-   `HistoryStore`, `Clock`), un fichier par port, chacun possédant son type
-   d'erreur. Les use cases sont génériques sur leurs ports et restent
-   synchrones et purs ; le temps entre par `Clock`.
+   `HistoryStore`, `Clock`, `Logger`), un fichier par port, chacun
+   possédant son type d'erreur. Les use cases sont génériques sur leurs
+   ports et restent synchrones et purs ; le temps entre par `Clock`.
 2. **Interface adapters.**
    - *Controllers* : traduisent les événements UI et OS en invocations de
      use cases. `ClipboardController` reçoit les gateways, construit les
-     use cases, possède l'`History` courant et la requête de recherche, et
-     gère les échecs de stockage sans tuer la session.
+     use cases, possède l'`History` courant, la requête de recherche et la
+     sélection clavier, et signale les échecs de stockage au `Logger` sans
+     tuer la session.
    - *Presenters* : transformation pure entités → view state.
-     `HistoryPresenter` décide chaque chaîne d'affichage (labels de type,
-     temps relatifs, détection de couleurs hex, troncature des listes de
-     fichiers) et émet un `HistoryViewState` que les vues rendent tel quel.
-     Il ne lit jamais l'horloge système — `now` est un argument.
-   - *Gateways* : implémentent les ports du noyau. `FileHistoryStore`
-     possède le format de persistance (index JSON + blobs) ;
-     `AppKitPasteboard` possède la frontière NSPasteboard. C'est le seul
-     dossier du ring autorisé à importer AppKit.
+     `HistoryPresenter` décide chaque chaîne et symbole d'affichage (labels
+     de type, temps relatifs, phrase de l'état vide, icônes des puces,
+     détection de couleurs hex, troncature des listes de fichiers) et émet
+     un `HistoryViewState` que les vues rendent tel quel. Il ne lit jamais
+     l'horloge système — `now` est un argument. `ChipEntry.row` décide une
+     seule fois l'ordre des puces de filtre ; le controller pilote le
+     clavier le long de cette même liste.
+   - *Gateways* : implémentent les ports du noyau. `SQLiteHistoryStore`
+     possède le schéma de production ; `LegacyJSONHistory` lit l'index
+     JSON d'avant SQLite pour l'import unique ; `VolatileHistoryStore`
+     garde une session vivante quand aucune base ne peut s'ouvrir ;
+     `AppKitPasteboard` possède la frontière NSPasteboard ;
+     `ConsoleLogger` écrit dans le journal unifié. C'est le seul dossier
+     du ring autorisé à importer AppKit.
 3. **Frameworks & drivers (`App/`).** La racine de composition et tout ce
    qui a la forme d'un framework : vues SwiftUI (rendus muets du
    `HistoryViewState`), le `NSPanel` flottant, l'icône de barre de menus,
    le `Timer` de polling, le raccourci Carbon, la simulation de collage.
-   L'asynchrone vit ici et seulement ici.
+   `HistoryStorage` ouvre la base, met de côté une base illisible, se
+   replie sur la mémoire et importe l'historique legacy. L'asynchrone vit
+   ici et seulement ici.
 
 ## Invariants
 
@@ -62,21 +72,28 @@ Sources/Whisk/
   d'éviction dans chaque mutation.
 - **Fail closed.** Aucun force-unwrap dans les chemins de production. Un
   échec de stockage est journalisé et l'historique en mémoire continue de
-  fonctionner ; une entrée persistée corrompue est ignorée, jamais fatale.
+  fonctionner ; une entrée persistée corrompue est ignorée, jamais
+  fatale ; une base qui ne s'ouvre pas est mise de côté et la session
+  tourne en mémoire plutôt que de refuser de démarrer.
 - **Des octets opaques traversent les coutures.** Le noyau et le view
   state transportent les images comme `Data`. Le gateway presse-papiers
-  possède la normalisation PNG ; le gateway fichier possède le format
-  d'index JSON et fixe les dates à la milliseconde entière pour qu'un
-  historique sauvegardé se recharge à l'identique.
+  possède la normalisation PNG ; le gateway SQLite possède le schéma et
+  fixe les dates à la milliseconde entière pour qu'un historique
+  sauvegardé se recharge à l'identique.
 
 ## Tests
 
 Une seule cible `WhiskTests` (`@testable import Whisk`) avec les doublures
 déterministes dans `Fakes.swift` : `FakeClock`, `InMemoryHistoryStore`,
-`FailingHistoryStore`, `ScriptedPasteboard`. Le comportement du noyau,
-l'orchestration du controller et le formatage du presenter ont chacun leur
-suite ; les noms de tests énoncent un comportement
-(`a_storage_failure_keeps_the_presented_state_alive`). Le port
-`HistoryStore` a une suite de contrat exécutée contre le gateway fichier
-dans un répertoire temporaire neuf par test ; tout futur gateway (SQLite,
-CloudKit) devra passer le même contrat.
+`FailingHistoryStore`, `ScriptedPasteboard`, `RecordingLogger`. Le
+comportement du noyau, l'orchestration du controller et le formatage du
+presenter ont chacun leur suite ; les noms de tests énoncent un
+comportement (`a_storage_failure_is_logged_and_the_presented_state_stays_alive`).
+Le contrat `HistoryStore` est une seule suite paramétrée, exécutée contre
+chaque gateway (SQLite, mémoire) dans un répertoire temporaire neuf par
+test ; un nouveau gateway s'y ajoute par un simple cas. Le lecteur JSON
+legacy est testé contre une fixture de son format sur disque, le bootstrap
+de stockage contre des répertoires corrompus ou legacy, le gateway
+presse-papiers contre un presse-papiers privé, et les catalogues de
+chaînes contre le code qui les lit. `scripts/coverage.sh` exécute la suite
+avec la couverture et affiche le rapport que la CI archive.

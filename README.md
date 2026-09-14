@@ -156,10 +156,14 @@ swift test
 
 The suites cover history behaviour (dedup, capacity, pins, search),
 controller orchestration, and presenter formatting with deterministic
-fakes — frozen clock, scripted pasteboard, in-memory store. A contract
-suite runs the `HistoryStore` port against both gateways (JSON file and
-SQLite) in temporary directories. The Dependency Rule is linted by
-`./scripts/check-dependency-rule.sh`. CI runs everything on every push.
+fakes — frozen clock, scripted pasteboard, in-memory store, recording
+logger. One parameterized contract suite runs the `HistoryStore` port
+against every gateway (SQLite, in-memory) in temporary directories; the
+storage bootstrap, the legacy JSON import, the pasteboard gateway and the
+string catalogs have suites of their own. `./scripts/coverage.sh` runs
+the tests with coverage and prints the report. The Dependency Rule is
+linted by `./scripts/check-dependency-rule.sh`. CI runs everything on
+every push and archives the coverage report.
 
 ## CI & releases
 
