@@ -38,6 +38,17 @@ import Testing
         #expect(Payload.text("I said rgb(1, 2, 3) in a sentence").category == .text)
     }
 
+    @Test func letter_only_words_are_not_read_as_bare_hex_colors() {
+        #expect(Payload.text("facade").category == .text)
+        #expect(Payload.text("decade").category == .text)
+        #expect(Payload.text("DEADBEEF").category == .text)
+
+        #expect(Payload.text("#facade").category == .color)
+        #expect(Payload.text("#deadbeef").category == .color)
+        #expect(Payload.text("ff6b35").category == .color)
+        #expect(Payload.text("7D9471FF").category == .color)
+    }
+
     @Test func color_notations_convert_to_the_same_srgb_components() {
         let red = ParsedColor(red: 1, green: 0, blue: 0)
         #expect(ParsedColor.parse("#ff0000") == red)

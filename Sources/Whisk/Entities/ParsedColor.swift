@@ -41,6 +41,9 @@ extension ParsedColor {
             let unit = channels.map { Double($0) / 15 }
             return ParsedColor(red: unit[0], green: unit[1], blue: unit[2], alpha: unit.count == 4 ? unit[3] : 1)
         case 6, 8:
+            // Everyday words spell themselves with a–f alone ("facade",
+            // "decade"); a bare color almost always carries a digit.
+            guard hadHash || digits.contains(where: \.isNumber) else { return nil }
             var channels: [Double] = []
             var index = digits.startIndex
             while index < digits.endIndex {
