@@ -55,7 +55,7 @@ let pinnedChipID = "pinned"
 /// keyboard selection; generic over its gateways, like the use cases it
 /// drives. A storage failure is logged and the in-memory state keeps
 /// working.
-final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistoryStore> {
+final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistoryStore, Log: Logger> {
     private var history: History
     private var query = ""
     private var activeSourceKeys: Set<String> = []
@@ -86,6 +86,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let presenter: HistoryPresenter
     private let clock: Time
     private let pasteboard: Board
+    private let logger: Log
     private let present: (HistoryViewState) -> Void
 
     /// The retention policy shapes the history from the first load: a
@@ -97,11 +98,13 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         clock: Time,
         retention: RetentionPolicy = .standard,
         presenter: HistoryPresenter = HistoryPresenter(),
+        logger: Log,
         present: @escaping (HistoryViewState) -> Void
     ) {
         self.clock = clock
         self.presenter = presenter
         self.pasteboard = pasteboard
+        self.logger = logger
         self.present = present
         self.retention = retention
         capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
@@ -113,7 +116,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         do {
             history = try LoadHistory(store: store, capacity: retention.capacity)()
         } catch {
-            NSLog("Whisk: could not load history — %@", String(describing: error))
+            logger.log("could not load history — \(error)")
             history = History(capacity: retention.capacity)
         }
         refresh()
@@ -153,7 +156,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         do {
             history = try enforceRetention(history, policy: retention, now: clock.now())
         } catch {
-            NSLog("Whisk: storage failure — %@", String(describing: error))
+            logger.log("storage failure — \(error)")
         }
         nextExpiry = earliestExpiry()
         guard history != previous else { return }
@@ -546,7 +549,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         do {
             history = try transform(history)
         } catch {
-            NSLog("Whisk: storage failure — %@", String(describing: error))
+            logger.log("storage failure — \(error)")
         }
         guard history != previous else { return }
         nextExpiry = .distantPast

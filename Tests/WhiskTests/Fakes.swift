@@ -44,6 +44,32 @@ final class FailingHistoryStore: HistoryStore {
     }
 }
 
+final class RecordingLogger: Logger {
+    private(set) var messages: [String] = []
+
+    init() {}
+
+    func log(_ message: String) {
+        messages.append(message)
+    }
+}
+
+/// Most controller tests never look at the log: they get a fresh recorder
+/// without naming one.
+extension ClipboardController where Log == RecordingLogger {
+    convenience init(
+        pasteboard: Board,
+        store: Store,
+        clock: Time,
+        retention: RetentionPolicy = .standard,
+        present: @escaping (HistoryViewState) -> Void
+    ) {
+        self.init(
+            pasteboard: pasteboard, store: store, clock: clock, retention: retention, logger: RecordingLogger(),
+            present: present)
+    }
+}
+
 final class ScriptedPasteboard: Pasteboard {
     var pendingSnapshots: [PasteboardSnapshot] = []
     private(set) var written: [Payload] = []

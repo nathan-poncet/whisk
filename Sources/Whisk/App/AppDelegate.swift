@@ -4,6 +4,9 @@ import Combine
 import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private typealias Controller = ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore, ConsoleLogger>
+
+    private let logger = ConsoleLogger()
     private let keyBindings = KeyBindingsStore()
     private let generalSettings = GeneralSettingsStore()
     private let vimKeymap = VimBindingsStore()
@@ -19,17 +22,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var bindingsObserver: AnyCancellable?
     private var settingsWindow: NSWindow?
     private var stateStore: HistoryViewStateStore?
-    private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore>?
+    private var clipboard: Controller?
     private var pollTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let store = Self.openStore()
+        let store = openStore()
         let stateStore = HistoryViewStateStore()
         let clipboard = ClipboardController(
             pasteboard: AppKitPasteboard(),
             store: store,
             clock: SystemClock(),
-            retention: generalSettings.policy
+            retention: generalSettings.policy,
+            logger: logger
         ) { state in
             stateStore.update(state)
         }
@@ -162,13 +166,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Launch never fails on storage: HistoryStorage recovers from a
     /// database that will not open, and an unreachable Application
     /// Support leaves the session running in memory.
-    private static func openStore() -> AnyHistoryStore {
+    private func openStore() -> AnyHistoryStore {
         do {
-            return HistoryStorage.open(in: try HistoryStorage.defaultDirectory())
+            return HistoryStorage.open(in: try HistoryStorage.defaultDirectory(), log: logger.log)
         } catch {
-            NSLog(
-                "Whisk: Application Support unavailable — %@; history will not be saved this session",
-                String(describing: error))
+            logger.log("Application Support unavailable — \(error); history will not be saved this session")
             return AnyHistoryStore(VolatileHistoryStore())
         }
     }
@@ -200,7 +202,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func startPolling(_ clipboard: ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore>) {
+    private func startPolling(_ clipboard: Controller) {
         let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
             clipboard.pollTick()
         }
