@@ -30,7 +30,8 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   prints it (Dvorak, AZERTY, Colemak, …), re-resolved live when you switch
   layouts.
 - **Per-app styling** — each card carries the icon of the application it
-  was copied from and takes its tint from that app's icon.
+  was copied from and takes its tint from that app's icon. Cards come in
+  three sizes (Settings).
 - **Search** — type to filter instantly by content **or by the app it came
   from** (`slack invoice` finds "invoice" copied from Slack); operators
   `app:safari`, `type:link` and `pinned` combine with free text; `Return`

@@ -47,6 +47,19 @@ import Testing
         #expect(store.closeRevision == 1)
     }
 
+    @Test func the_card_side_drives_the_zoomed_slot_and_the_rail_stride() {
+        let store = HistoryViewStateStore()
+        #expect(store.cardSide == 200)
+        #expect(store.cardStride == 224)
+
+        store.configureCards(side: 160)
+
+        #expect(store.zoomedCardSide == 168)
+        #expect(store.cardStride == 182)
+        #expect(PanelController.panelHeight(forCardSide: 200) == 430)
+        #expect(PanelController.panelHeight(forCardSide: 250) == 480)
+    }
+
     @Test func the_presented_state_is_what_the_views_read() {
         let store = HistoryViewStateStore()
         #expect(store.state == .empty)

@@ -14,6 +14,8 @@ live in the commit history.
   for links already looked up.
 - The panel rises on the screen where the pointer is, and the preview
   follows it, instead of always on the main screen.
+- Cards come in three sizes — small, medium, large — chosen in Settings;
+  the panel's height follows.
 
 ## [0.9.0] - 2026-09-14
 

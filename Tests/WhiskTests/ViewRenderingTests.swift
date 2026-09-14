@@ -127,6 +127,13 @@ enum ViewFixtures {
         }
         let window = hostOffscreen(ViewFixtures.card(state.cards[0]), 210, 210)
         #expect(window.contentView != nil)
+
+        for size in CardSize.allCases {
+            let sized = ItemCardView(
+                card: state.cards[0], onSelect: {}, onHighlight: {}, onTogglePin: {}, onDelete: {},
+                onDragBegin: {}, side: size.side)
+            #expect(render(sized, size.side * 1.05, size.side * 1.05) != nil, "card at \(size)")
+        }
     }
 
     @Test func link_and_file_previews_render_loaded_and_bare_at_both_sizes() {
@@ -260,6 +267,12 @@ private func pump(_ hosting: NSView) {
         #expect(render(panel(store), 1200, 430) != nil)
         store.update(.empty)
         #expect(render(panel(store), 1200, 430) != nil)
+
+        store.update(ViewFixtures.longState())
+        store.configureCards(side: CardSize.large.side)
+        #expect(render(panel(store), 1200, 480) != nil)
+        store.configureCards(side: CardSize.small.side)
+        #expect(render(panel(store), 1200, 390) != nil)
     }
 }
 

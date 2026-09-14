@@ -19,7 +19,6 @@ struct HistoryPanelView: View {
     /// their size but render nothing, and everything is preloaded so a
     /// card entering the delta arrives fully formed.
     @State private var railWindow = RailWindow()
-    private static let cardStride: CGFloat = 224
     private static let mountDelta = 8
 
     /// The field echoes keystrokes instantly; the controller's query only
@@ -203,7 +202,7 @@ struct HistoryPanelView: View {
             // Eager sizing on purpose: a lazy stack materializes cards at
             // the viewport's edge, which pops them in during fast scrolls.
             // Every slot is laid out; only the windowed ones carry glass.
-            HStack(spacing: 14) {
+            HStack(spacing: HistoryViewStateStore.cardGap) {
                 let selectedIndex = store.state.cards.firstIndex { $0.id == store.state.selectedID }
                 ForEach(Array(store.state.cards.enumerated()), id: \.element.id) { index, card in
                     Group {
@@ -215,7 +214,8 @@ struct HistoryPanelView: View {
                                 onTogglePin: { actions.togglePin(card.id) },
                                 onDelete: { actions.delete(card.id) },
                                 onDragBegin: actions.dragBegan,
-                                showsSelection: !cursorOnSearch
+                                showsSelection: !cursorOnSearch,
+                                side: store.cardSide
                             )
                             .equatable()
                         } else {
@@ -228,11 +228,12 @@ struct HistoryPanelView: View {
             .padding(.vertical, 8)
         }
         if #available(macOS 15.0, *) {
+            let stride = store.cardStride
             scrollView
                 .onScrollGeometryChange(for: RailWindow.self) { geometry in
                     RailWindow(
-                        leading: max(0, Int(geometry.contentOffset.x / Self.cardStride)),
-                        capacity: Int(geometry.containerSize.width / Self.cardStride) + 1
+                        leading: max(0, Int(geometry.contentOffset.x / stride)),
+                        capacity: Int(geometry.containerSize.width / stride) + 1
                     )
                 } action: { _, window in
                     railWindow = window
@@ -255,7 +256,7 @@ struct HistoryPanelView: View {
     // extent steady.
     private var railPlaceholder: some View {
         Color.clear
-            .frame(width: 210, height: 210)
+            .frame(width: store.zoomedCardSide, height: store.zoomedCardSide)
     }
 
     private func emptyState(_ message: String) -> some View {

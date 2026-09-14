@@ -14,9 +14,11 @@ struct ItemCardView: View, Equatable {
     /// One cursor at a time: while vim's search mode holds it, the ring
     /// stays off even though the selection survives underneath.
     var showsSelection = true
+    /// The card's side before the selection zoom; Settings offers three.
+    var side: CGFloat = 200
 
     static func == (lhs: ItemCardView, rhs: ItemCardView) -> Bool {
-        lhs.card == rhs.card && lhs.showsSelection == rhs.showsSelection
+        lhs.card == rhs.card && lhs.showsSelection == rhs.showsSelection && lhs.side == rhs.side
     }
 
     @Environment(\.colorScheme) private var scheme
@@ -24,8 +26,12 @@ struct ItemCardView: View, Equatable {
 
     private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
 
+    private var zoomedSide: CGFloat {
+        side * HistoryViewStateStore.selectionZoom
+    }
+
     private var selectedSide: CGFloat {
-        card.isSelected ? 210 : 200
+        card.isSelected ? zoomedSide : side
     }
 
     var body: some View {
@@ -41,11 +47,11 @@ struct ItemCardView: View, Equatable {
         // grows geometrically to the same size. Same factor, same curve:
         // they track. The outer slot stays constant so neighbors never
         // shift.
-        .frame(width: 200, height: 200)
+        .frame(width: side, height: side)
         .overlay(selectionRing)
-        .scaleEffect(card.isSelected ? 210.0 / 200.0 : 1)
+        .scaleEffect(card.isSelected ? HistoryViewStateStore.selectionZoom : 1)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: card.isSelected)
-        .frame(width: 210, height: 210)
+        .frame(width: zoomedSide, height: zoomedSide)
         .background {
             Color.clear
                 .frame(width: selectedSide, height: selectedSide)

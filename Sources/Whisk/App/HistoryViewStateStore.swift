@@ -16,6 +16,24 @@ final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var searchActive = true
     @Published private(set) var vimSearchKey = "s"
 
+    /// The card's side in points; the selected card grows by the zoom.
+    @Published private(set) var cardSide: CGFloat = 200
+    static let selectionZoom: CGFloat = 1.05
+    /// The room the rail gives one card: the zoomed slot plus the gap.
+    static let cardGap: CGFloat = 14
+
+    var zoomedCardSide: CGFloat {
+        cardSide * Self.selectionZoom
+    }
+
+    var cardStride: CGFloat {
+        zoomedCardSide + Self.cardGap
+    }
+
+    func configureCards(side: CGFloat) {
+        cardSide = side
+    }
+
     func update(_ newState: HistoryViewState) {
         state = newState
     }

@@ -31,6 +31,33 @@ enum RetentionPeriodOption: String, CaseIterable, Identifiable {
     }
 }
 
+/// The three card sizes offered in Settings; the panel's height and the
+/// rail's stride follow the side.
+enum CardSize: String, CaseIterable, Identifiable {
+    case small
+    case medium
+    case large
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .small: localized("Small")
+        case .medium: localized("Medium")
+        case .large: localized("Large")
+        }
+    }
+
+    /// The card's side in points, before the selection zoom.
+    var side: CGFloat {
+        switch self {
+        case .small: 160
+        case .medium: 200
+        case .large: 250
+        }
+    }
+}
+
 /// An application whose copies are never recorded.
 struct ExcludedApp: Codable, Equatable, Identifiable {
     let bundleID: String
@@ -71,6 +98,10 @@ final class GeneralSettingsStore: ObservableObject {
         didSet { defaults.set(linkPreviews, forKey: "linkPreviews") }
     }
 
+    @Published var cardSize: CardSize {
+        didSet { defaults.set(cardSize.rawValue, forKey: "cardSize") }
+    }
+
     @Published var excludedApps: [ExcludedApp] {
         didSet {
             do {
@@ -94,6 +125,7 @@ final class GeneralSettingsStore: ObservableObject {
             defaults.object(forKey: "checkForUpdates") == nil ? true : defaults.bool(forKey: "checkForUpdates")
         vimNavigation = defaults.bool(forKey: "vimNavigation")
         linkPreviews = defaults.object(forKey: "linkPreviews") == nil ? true : defaults.bool(forKey: "linkPreviews")
+        cardSize = CardSize(rawValue: defaults.string(forKey: "cardSize") ?? "") ?? .medium
         excludedApps = []
         if let data = defaults.data(forKey: "excludedApps") {
             do {

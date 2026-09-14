@@ -100,3 +100,7 @@
 "Fetch link previews" = "Fetch link previews";
 "Privacy" = "Privacy";
 "A copied link is looked up once for its title and image. Off, nothing leaves this Mac." = "A copied link is looked up once for its title and image. Off, nothing leaves this Mac.";
+"Card size" = "Card size";
+"Small" = "Small";
+"Medium" = "Medium";
+"Large" = "Large";
