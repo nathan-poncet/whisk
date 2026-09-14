@@ -68,6 +68,17 @@ final class IsolatedDefaults {
         #expect(store.label(for: .switchChipGroup) == "⌃⇥")
     }
 
+    @Test func stored_bindings_that_will_not_decode_fall_back_to_defaults_and_say_so() throws {
+        let sandbox = try IsolatedDefaults()
+        sandbox.defaults.set(Data("not json".utf8), forKey: "keyBindings")
+        let logger = RecordingLogger()
+
+        let store = KeyBindingsStore(defaults: sandbox.defaults, logger: logger)
+
+        #expect(KeyAction.allCases.allSatisfy { !store.isCustomized($0) })
+        #expect(logger.messages.count == 1)
+    }
+
     @Test func a_binding_keeps_only_the_four_modifier_keys() {
         let clean = KeyBinding(keyCode: 1, modifiers: [.command])
         let noisy = KeyBinding(keyCode: 1, modifiers: [.command, .capsLock, .function, .numericPad])
@@ -180,6 +191,17 @@ final class IsolatedDefaults {
         #expect(!second.checkForUpdates)
         #expect(second.vimNavigation)
         #expect(second.excludedBundleIDs == ["com.apple.keychainaccess"])
+    }
+
+    @Test func stored_exclusions_that_will_not_decode_fall_back_to_none_and_say_so() throws {
+        let sandbox = try IsolatedDefaults()
+        sandbox.defaults.set(Data("not json".utf8), forKey: "excludedApps")
+        let logger = RecordingLogger()
+
+        let store = GeneralSettingsStore(defaults: sandbox.defaults, logger: logger)
+
+        #expect(store.excludedApps.isEmpty)
+        #expect(logger.messages.count == 1)
     }
 
     @Test func capacity_labels_read_naturally() {
