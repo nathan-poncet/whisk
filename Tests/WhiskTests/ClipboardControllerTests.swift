@@ -525,6 +525,26 @@ import Testing
         #expect(spy.last.cards.count == 2)
     }
 
+    @Test func in_a_right_to_left_layout_the_arrows_mirror() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("first")), anItem(.text("second"))]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        controller.setLayoutDirection(.rightToLeft)
+
+        controller.navigate(.left)
+        #expect(spy.last.cards.map(\.isSelected) == [false, true])
+
+        controller.navigate(.right)
+        #expect(spy.last.cards.map(\.isSelected) == [true, false])
+
+        controller.setLayoutDirection(.leftToRight)
+        controller.navigate(.right)
+        #expect(spy.last.cards.map(\.isSelected) == [false, true])
+    }
+
     @Test func the_history_loads_at_the_configured_capacity_not_the_default() throws {
         let store = InMemoryHistoryStore()
         store.stored = (0..<600).map { anItem(.text("item \($0)")) }
