@@ -61,4 +61,47 @@ import Testing
         #expect(!logged.isEmpty)
         #expect(!FileManager.default.fileExists(atPath: directory.path))
     }
+
+    @Test func a_legacy_json_history_is_imported_once_and_its_files_retired() throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let items = [anItem(.image(Data([0x89, 0x50, 0x4E, 0x47]))), anItem(.text("from json"))]
+        try FileHistoryStore(directory: directory).save(items)
+        let blobs = directory.appendingPathComponent("blobs", isDirectory: true)
+        #expect(FileManager.default.fileExists(atPath: blobs.path))
+
+        let store = silently(directory)
+
+        #expect(try store.load() == items)
+        #expect(!FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.json").path))
+        #expect(FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.json.migrated").path))
+        #expect(!FileManager.default.fileExists(atPath: blobs.path))
+    }
+
+    @Test func a_legacy_import_merges_behind_what_the_database_already_holds() throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let recent = anItem(.text("captured meanwhile"))
+        try silently(directory).save([recent])
+        let old = anItem(.text("from json"))
+        try FileHistoryStore(directory: directory).save([old])
+
+        #expect(try silently(directory).load() == [recent, old])
+    }
+
+    @Test func an_unreadable_legacy_history_stays_in_place_for_the_next_launch() throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let index = directory.appendingPathComponent("history.json")
+        try Data("{ not json".utf8).write(to: index)
+        var logged: [String] = []
+
+        let store = HistoryStorage.open(in: directory) { logged.append($0) }
+
+        #expect(try store.load().isEmpty)
+        #expect(FileManager.default.fileExists(atPath: index.path))
+        #expect(!FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.json.migrated").path))
+        #expect(!logged.isEmpty)
+    }
 }
