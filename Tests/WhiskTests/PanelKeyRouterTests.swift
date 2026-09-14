@@ -23,6 +23,8 @@ final class PanelActionSpy {
             stack: { [weak self] in self?.calls.append("stack:\($0)") },
             excludeSource: { [weak self] bundleID, name in self?.calls.append("excludeSource:\(bundleID):\(name)") },
             deleteAllFromSource: { [weak self] in self?.calls.append("deleteAllFromSource:\($0)") },
+            beginEditing: { [weak self] in self?.calls.append("beginEditing:\($0.id)") },
+            edit: { [weak self] id, text in self?.calls.append("edit:\(id):\(text)") },
             highlight: { [weak self] in self?.calls.append("highlight:\($0)") },
             activate: { [weak self] in self?.calls.append("activate") },
             activatePlain: { [weak self] in self?.calls.append("activatePlain") },
@@ -83,7 +85,7 @@ final class PanelActionSpy {
                 (.previewSelection, kVK_ANSI_Y, [.command]), (.pinSelection, kVK_ANSI_P, [.command]),
                 (.copySelection, kVK_ANSI_C, [.command]), (.openSelection, kVK_ANSI_O, [.command]),
                 (.revealSelection, kVK_ANSI_R, [.command]), (.saveSelection, kVK_ANSI_S, [.command]),
-                (.excludeSelectionSource, kVK_ANSI_X, [.control, .command]),
+                (.excludeSelectionSource, kVK_ANSI_X, [.control, .command]), (.editSelection, kVK_ANSI_E, [.command]),
             ]
             for (action, code, modifiers) in ansi {
                 keyBindings.set(KeyBinding(keyCode: UInt16(code), modifiers: modifiers), for: action)
@@ -245,6 +247,31 @@ final class PanelActionSpy {
                 "excludeSource:com.apple.Safari:Safari", "deleteAllFromSource:com.apple.Safari",
                 "revealFiles:/tmp/a,/tmp/b", "deleteAllFromSource:Notes",
             ])
+    }
+
+    @Test func editing_opens_for_textual_cards_and_takes_every_key_while_it_lasts() throws {
+        let fixture = try Fixture(vim: true)
+        fixture.pinLetterShortcutsToANSI()
+        let items = [anItem(.text("words")), anItem(.image(Data([0x01])))]
+        let presenter = HistoryPresenter()
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+
+        fixture.stateStore.update(presenter.present(items: items, query: "", now: now, selectedID: items[1].id))
+        #expect(try fixture.press(kVK_ANSI_E, typing: "e"))
+        #expect(fixture.spy.calls.isEmpty)
+
+        fixture.stateStore.update(presenter.present(items: items, query: "", now: now, selectedID: items[0].id))
+        #expect(try fixture.press(kVK_ANSI_E, typing: "e"))
+        #expect(fixture.spy.calls == ["beginEditing:\(items[0].id)"])
+
+        fixture.stateStore.beginEditing(fixture.stateStore.state.cards[0])
+        #expect(!(try fixture.press(kVK_ANSI_H, typing: "h")))
+        #expect(!(try fixture.press(kVK_Return, typing: "\r")))
+        #expect(fixture.spy.calls.count == 1)
+
+        fixture.stateStore.endEditing()
+        #expect(try fixture.press(kVK_ANSI_E, [.command], typing: "e"))
+        #expect(fixture.spy.calls.count == 2)
     }
 
     @Test func vim_keys_reach_the_same_card_actions() throws {

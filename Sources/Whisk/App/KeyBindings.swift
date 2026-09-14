@@ -23,6 +23,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
     case saveSelection
     case excludeSelectionSource
     case deleteSelectionSource
+    case editSelection
 
     var id: String { rawValue }
 
@@ -47,6 +48,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
         case .saveSelection: localized("Save the selection as a file")
         case .excludeSelectionSource: localized("Exclude the selection's application")
         case .deleteSelectionSource: localized("Delete everything from the selection's application")
+        case .editSelection: localized("Edit the selection")
         }
     }
 
@@ -240,6 +242,8 @@ final class KeyBindingsStore: ObservableObject {
                 keyCode: KeyboardLayout.keyCode(for: "x", orANSI: kVK_ANSI_X), modifiers: [.control, .command])
         case .deleteSelectionSource:
             return KeyBinding(keyCode: UInt16(kVK_Delete), modifiers: [.control, .command])
+        case .editSelection:
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "e", orANSI: kVK_ANSI_E), modifiers: [.command])
         }
     }
 

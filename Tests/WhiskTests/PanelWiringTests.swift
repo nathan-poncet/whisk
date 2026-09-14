@@ -13,6 +13,7 @@ import Testing
         private(set) var pastes = 0
         private(set) var drags = 0
         private(set) var system: [String] = []
+        private(set) var editorOpenings = 0
         let controller: ClipboardController<ScriptedPasteboard, FakeClock, InMemoryHistoryStore, RecordingLogger>
         private(set) var actions: PanelActions?
 
@@ -30,7 +31,8 @@ import Testing
                     openLink: { [unowned self] in system.append("open:\($0.absoluteString)") },
                     revealFiles: { [unowned self] in system.append("reveal:\($0.joined(separator: ","))") },
                     saveToDisk: { [unowned self] in system.append("save:\($0)") },
-                    excludeSource: { [unowned self] bundleID, name in system.append("exclude:\(bundleID):\(name)") }))
+                    excludeSource: { [unowned self] bundleID, name in system.append("exclude:\(bundleID):\(name)") },
+                    beginEditing: { [unowned self] _ in editorOpenings += 1 }))
         }
 
         convenience init(_ payloads: [Payload]) {
@@ -128,6 +130,21 @@ import Testing
                 "open:https://example.com", "reveal:/tmp/a", "save:text(\"x\")", "exclude:com.apple.Safari:Safari",
             ])
         #expect(fixture.spy.last.cards.map(\.preview) == [.link("https://example.com"), .text("kept")])
+    }
+
+    @Test func editing_flushes_the_query_and_rewrites_the_card_and_opening_the_editor_is_the_roots_call() throws {
+        let fixture = Fixture([.text("alpha"), .text("beta")])
+        let alpha = fixture.spy.last.cards[0]
+        let beta = fixture.spy.last.cards[1].id
+
+        try fixture.wired.search("bet")
+        try fixture.wired.edit(beta, "gamma")
+        try fixture.wired.beginEditing(alpha)
+
+        #expect(fixture.spy.last.query == "bet")
+        #expect(fixture.store.stored.map(\.payload) == [.text("alpha"), .text("gamma")])
+        #expect(fixture.editorOpenings == 1)
+        #expect(fixture.hides == 0)
     }
 
     @Test func an_empty_rail_position_neither_closes_nor_pastes() throws {

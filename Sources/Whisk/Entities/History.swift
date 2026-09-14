@@ -38,6 +38,14 @@ struct History: Equatable {
         return next
     }
 
+    /// Replaces what an item holds, in place; an unknown id changes nothing.
+    func replacingPayload(of id: UUID, with payload: Payload) -> History {
+        var next = self
+        guard let index = next.items.firstIndex(where: { $0.id == id }) else { return self }
+        next.items[index] = next.items[index].replacing(payload: payload)
+        return next
+    }
+
     /// Flips an item's pin. Unpinning may evict it if the history overflows.
     func togglingPin(_ id: UUID) -> History {
         var next = self

@@ -130,3 +130,9 @@
 "Save the selection as a file" = "Save the selection as a file";
 "Exclude the selection's application" = "Exclude the selection's application";
 "Delete everything from the selection's application" = "Delete everything from the selection's application";
+"Edit…" = "Edit…";
+"Edit the selection" = "Edit the selection";
+"Editing %@" = "Editing %@";
+"Editor" = "Editor";
+"Save" = "Save";
+"Cancel" = "Cancel";

@@ -287,6 +287,24 @@ import Testing
         #expect(SaveToDisk.proposal(for: .files(["/tmp/a"])) == nil)
     }
 
+    @Test func an_edited_card_is_drawn_anew_under_the_same_identity() {
+        let item = anItem(.text("plain words"), at: now)
+        let edited = item.replacing(payload: .text("func run() { start() }"))
+
+        let before = presenter.present(items: [item], query: "", now: now)
+        let after = presenter.present(items: [edited], query: "", now: now)
+
+        #expect(before.cards[0].preview == .text("plain words"))
+        #expect(after.cards[0].id == item.id)
+        #expect(after.cards[0].kindLabel == "code")
+        guard case .code(let text, _) = after.cards[0].preview else {
+            Issue.record("expected a code preview after the edit")
+            return
+        }
+        #expect(text == "func run() { start() }")
+        #expect(presenter.cachedPreviewCount == 1)
+    }
+
     @Test func every_transform_has_a_distinct_menu_label() {
         let labels = TextTransform.allCases.map(\.label)
 

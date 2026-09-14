@@ -58,7 +58,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     guard let self, !self.generalSettings.excludedApps.contains(where: { $0.bundleID == bundleID })
                     else { return }
                     self.generalSettings.excludedApps.append(ExcludedApp(bundleID: bundleID, name: name))
-                }
+                },
+                beginEditing: { stateStore.beginEditing($0) }
             )
         )
         let panelController = PanelController(

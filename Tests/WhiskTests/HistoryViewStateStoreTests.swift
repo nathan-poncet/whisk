@@ -60,6 +60,26 @@ import Testing
         #expect(PanelController.panelHeight(forCardSide: 250) == 480)
     }
 
+    @Test func only_a_textual_card_opens_the_editor_and_ending_closes_it() throws {
+        let store = HistoryViewStateStore()
+        let url = try #require(URL(string: "https://example.com"))
+        let state = HistoryPresenter().present(
+            items: [anItem(.text("words")), anItem(.image(Data([0x01]))), anItem(.link(url))], query: "",
+            now: Date(timeIntervalSince1970: 1_700_000_000))
+
+        store.beginEditing(state.cards[1])
+        #expect(store.editing == nil)
+
+        store.beginEditing(state.cards[0])
+        #expect(store.editing?.id == state.cards[0].id)
+        #expect(EditItemView.initialText(of: state.cards[0]) == "words")
+        #expect(EditItemView.initialText(of: state.cards[2]) == "https://example.com")
+        #expect(EditItemView.initialText(of: state.cards[1]) == "")
+
+        store.endEditing()
+        #expect(store.editing == nil)
+    }
+
     @Test func the_presented_state_is_what_the_views_read() {
         let store = HistoryViewStateStore()
         #expect(store.state == .empty)
