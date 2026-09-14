@@ -1,8 +1,4 @@
-"%lld characters" = "%lld characters";
-"%lld items" = "%lld items";
 "+ %lld more" = "+ %lld more";
-"1 character" = "1 character";
-"1 item" = "1 item";
 "24 hours" = "24 hours";
 "30 days" = "30 days";
 "7 days" = "7 days";
@@ -20,7 +16,6 @@
 "Focus the row above" = "Focus the row above";
 "Focus the row below" = "Focus the row below";
 "Forever" = "Forever";
-"General" = "General";
 "Get Started" = "Get Started";
 "History capacity" = "History capacity";
 "History lives on this Mac. Concealed content from password managers is never recorded." = "History lives on this Mac. Concealed content from password managers is never recorded.";
@@ -90,3 +85,6 @@
 "Press %@ to search" = "Press %@ to search";
 "Press %@" = "Press %@";
 "The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close." = "The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.";
+
+"Nothing selected" = "Nothing selected";
+"Launch at login needs the installed Whisk.app: %@" = "Launch at login needs the installed Whisk.app: %@";

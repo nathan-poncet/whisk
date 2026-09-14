@@ -37,7 +37,7 @@ struct HistoryViewState: Equatable {
 
     static let empty = HistoryViewState(
         cards: [],
-        countLabel: "0 items",
+        countLabel: localized("\(0) items"),
         query: "",
         selectedID: nil,
         filters: .empty,

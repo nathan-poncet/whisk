@@ -28,7 +28,7 @@ struct PreviewOverlayView: View {
                 }
                 .padding(20)
             } else {
-                Text("Nothing selected")
+                Text(localized("Nothing selected"))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -89,7 +89,7 @@ struct PreviewOverlayView: View {
                     Label(name, systemImage: "doc")
                 }
                 if overflow > 0 {
-                    Text("+ \(overflow) more")
+                    Text(localized("+ \(overflow) more"))
                         .foregroundStyle(.secondary)
                 }
             }

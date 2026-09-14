@@ -123,7 +123,8 @@ final class LoginItemManager: ObservableObject {
             }
             lastError = nil
         } catch {
-            lastError = "Launch at login needs the installed Whisk.app: \(error.localizedDescription)"
+            lastError = String(
+                format: localized("Launch at login needs the installed Whisk.app: %@"), error.localizedDescription)
         }
         isEnabled = SMAppService.mainApp.status == .enabled
     }

@@ -141,8 +141,7 @@ final class HistoryPresenter {
         guard case .text(let value) = item.payload,
             item.category == .text || item.category == .code
         else { return nil }
-        let count = value.count
-        return count == 1 ? localized("1 character") : localized("\(count) characters")
+        return localized("\(value.count) characters")
     }
 
     private static func kindLabel(_ category: ContentCategory) -> String {
@@ -280,7 +279,7 @@ final class HistoryPresenter {
     }
 
     private func countLabel(_ count: Int) -> String {
-        count == 1 ? localized("1 item") : localized("\(count) items")
+        localized("\(count) items")
     }
 
     private static let relativeFormatter: RelativeDateTimeFormatter = {
