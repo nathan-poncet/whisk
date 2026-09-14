@@ -545,6 +545,124 @@ import Testing
         #expect(spy.last.cards.map(\.isSelected) == [false, true])
     }
 
+    @Test func a_retention_save_failure_is_logged_and_the_stale_card_stays_visible() {
+        let clock = FakeClock()
+        let store = SaveFailingHistoryStore()
+        store.stored = [anItem(.text("stale"), at: clock.now().addingTimeInterval(-7_200))]
+        let logger = RecordingLogger()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: clock, logger: logger, present: spy.record
+        )
+
+        controller.applyRetention(RetentionPolicy(maxAge: 3_600))
+
+        #expect(spy.last.cards.map(\.preview) == [.text("stale")])
+        #expect(logger.messages == ["storage failure — unwritable(\"disk full\")"])
+    }
+
+    @Test func jumping_to_an_edge_moves_along_the_chip_row_when_it_holds_the_cursor() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Slack", bundle: "com.slack"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        controller.navigate(.up)
+
+        controller.jumpSelection(to: .end)
+        #expect(spy.last.filters.kinds.last?.isFocused == true)
+
+        controller.jumpSelection(to: .start)
+        #expect(spy.last.filters.apps.first?.isFocused == true)
+    }
+
+    @Test func activating_a_focused_app_chip_toggles_that_application_filter() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("func run() { start() }"), from: "Ghostty", bundle: "dev.ghostty"),
+            anItem(.text("plain words"), from: "Slack", bundle: "com.slack"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        controller.focusSourceChip("com.slack")
+
+        #expect(controller.activateFocused() == false)
+
+        #expect(spy.last.filters.apps.first { $0.id == "com.slack" }?.isActive == true)
+        #expect(spy.last.cards.map(\.sourceLabel) == ["Slack"])
+    }
+
+    @Test func clearing_removes_the_unpinned_cards_and_keeps_the_pinned_ones() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("loose")), anItem(.text("kept"), pinned: true)]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        controller.clear()
+
+        #expect(spy.last.cards.map(\.preview) == [.text("kept")])
+        #expect(store.stored.map(\.payload) == [.text("kept")])
+    }
+
+    @Test func an_app_chip_takes_its_bundle_id_from_whichever_item_carries_one() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("old era"), from: "Slack"),
+            anItem(.text("new era"), from: "Slack", bundle: "com.slack"),
+        ]
+        let spy = StateSpy()
+        _ = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+
+        #expect(spy.last.filters.apps.map(\.id) == ["com.slack"])
+        #expect(spy.last.filters.apps.first?.sourceBundleID == "com.slack")
+    }
+
+    @Test func the_pinned_filter_lets_go_when_its_last_pinned_card_disappears() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("loose")), anItem(.text("kept"), pinned: true)]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        controller.toggleCategoryFilter(pinnedChipID)
+        #expect(spy.last.cards.map(\.preview) == [.text("kept")])
+
+        controller.delete(spy.last.cards[0].id)
+
+        #expect(spy.last.cards.map(\.preview) == [.text("loose")])
+        #expect(spy.last.filters.pinned.isEmpty)
+    }
+
+    @Test func the_cursor_returns_to_the_rail_when_the_chip_row_empties() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("only"), from: "Slack", bundle: "com.slack")]
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: store, clock: FakeClock(), present: spy.record
+        )
+        controller.focusSourceChip("com.slack")
+        #expect(spy.last.filters.focusedChipID == "com.slack")
+
+        controller.delete(spy.last.cards[0].id)
+        #expect(spy.last.cards.isEmpty)
+        #expect(spy.last.filters.isEmpty)
+
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("fresh"), source: nil)]
+        controller.pollTick()
+        #expect(spy.last.cards.first?.isSelected == true)
+    }
+
     @Test func the_history_loads_at_the_configured_capacity_not_the_default() throws {
         let store = InMemoryHistoryStore()
         store.stored = (0..<600).map { anItem(.text("item \($0)")) }
