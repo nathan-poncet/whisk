@@ -161,6 +161,17 @@ import Testing
         #expect(matches.map(\.payload) == [.text("kept")])
     }
 
+    @Test func the_pinned_word_restricts_the_query_to_pinned_items() {
+        let history = History()
+            .recording(.text("loose plain"), from: nil, at: clock.now())
+            .recording(.text("kept plain"), from: nil, at: clock.now())
+        let pinned = history.togglingPin(history.items[0].id)
+
+        #expect(filter(pinned, filter: HistoryFilter(query: "pinned")).map(\.payload) == [.text("kept plain")])
+        #expect(filter(pinned, filter: HistoryFilter(query: "PINNED plain")).map(\.payload) == [.text("kept plain")])
+        #expect(filter(pinned, filter: HistoryFilter(query: "pinned loose")).isEmpty)
+    }
+
     @Test func retention_purges_old_unpinned_items_and_persists() throws {
         let clock = FakeClock()
         let store = InMemoryHistoryStore()
