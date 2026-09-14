@@ -82,6 +82,10 @@ enum PanelWiring {
                 searchDebounce.flush()
                 clipboard.edit(id, text: text)
             },
+            undo: {
+                searchDebounce.flush()
+                clipboard.undo()
+            },
             highlight: { clipboard.highlight($0) },
             activate: {
                 searchDebounce.flush()

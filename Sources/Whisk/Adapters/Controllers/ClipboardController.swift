@@ -74,7 +74,12 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let deleteItem: DeleteItem<Store>
     private let deleteMatching: DeleteMatching<Store>
     private let editItem: EditItem<Store>
+    private let restoreHistory: RestoreHistory<Store>
     private let clearUnpinned: ClearHistory<Store>
+    /// The history as it stood before each deletion, clear or edit, newest
+    /// last; a session's worth, since pins and pastes lose nothing.
+    private var undoStack: [History] = []
+    private static var undoDepth: Int { 20 }
     private let enforceRetention: EnforceRetention<Store>
     private let filterHistory = FilterHistory()
     private let presenter: HistoryPresenter
@@ -107,6 +112,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         deleteItem = DeleteItem(store: store)
         deleteMatching = DeleteMatching(store: store)
         editItem = EditItem(store: store)
+        restoreHistory = RestoreHistory(store: store)
         clearUnpinned = ClearHistory(store: store)
         enforceRetention = EnforceRetention(store: store)
         do {
@@ -438,6 +444,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 selectedID = successor?.id
             }
         }
+        remember()
         mutate { try deleteItem(id, in: $0) }
     }
 
@@ -447,17 +454,36 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func clear() {
+        remember()
         mutate { try clearUnpinned($0) }
     }
 
     /// Replaces a card's text with what the user rewrote.
     func edit(_ id: UUID, text: String) {
+        remember()
         mutate { try editItem(id, text: text, in: $0) }
     }
 
     /// Removes every unpinned card copied from one application.
     func deleteAll(fromSource key: String) {
+        remember()
         mutate { try deleteMatching({ $0.source?.filterKey == key }, in: $0) }
+    }
+
+    /// Puts the history back as it stood before the last deletion, clear
+    /// or edit. False when there is nothing left to undo.
+    @discardableResult
+    func undo() -> Bool {
+        guard let previous = undoStack.popLast() else { return false }
+        mutate { _ in try restoreHistory(previous) }
+        return true
+    }
+
+    private func remember() {
+        undoStack.append(history)
+        if undoStack.count > Self.undoDepth {
+            undoStack.removeFirst()
+        }
     }
 
     func panelWillShow() {

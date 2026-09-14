@@ -145,6 +145,10 @@ import Testing
         #expect(fixture.store.stored.map(\.payload) == [.text("alpha"), .text("gamma")])
         #expect(fixture.editorOpenings == 1)
         #expect(fixture.hides == 0)
+
+        try fixture.wired.undo()
+
+        #expect(fixture.store.stored.map(\.payload) == [.text("alpha"), .text("beta")])
     }
 
     @Test func an_empty_rail_position_neither_closes_nor_pastes() throws {

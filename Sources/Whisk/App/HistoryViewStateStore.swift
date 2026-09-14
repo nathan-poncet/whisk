@@ -105,6 +105,7 @@ struct PanelActions {
     let deleteAllFromSource: (String) -> Void
     let beginEditing: (CardViewState) -> Void
     let edit: (UUID, String) -> Void
+    let undo: () -> Void
     let highlight: (UUID) -> Void
     let activate: () -> Void
     let activatePlain: () -> Void

@@ -74,6 +74,7 @@ final class PanelKeyRouter {
             (.excludeSelectionSource, { self.excludeSelectedSource() }),
             (.deleteSelectionSource, { self.deleteFromSelectedSource() }),
             (.editSelection, { self.editSelected() }),
+            (.undoLastChange, { self.actions.undo() }),
         ]
         for (action, perform) in panelActions where keyBindings.binding(for: action).matches(event) {
             perform()
@@ -170,6 +171,7 @@ final class PanelKeyRouter {
         case .excludeSource: excludeSelectedSource()
         case .deleteFromSource: deleteFromSelectedSource()
         case .edit: editSelected()
+        case .undo: actions.undo()
         }
     }
 

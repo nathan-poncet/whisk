@@ -136,3 +136,5 @@
 "Editor" = "Éditeur";
 "Save" = "Enregistrer";
 "Cancel" = "Annuler";
+"Undo Last Change" = "Annuler la dernière modification";
+"Undo the last deletion or edit" = "Annuler la dernière suppression ou modification";

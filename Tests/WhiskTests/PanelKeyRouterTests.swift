@@ -25,6 +25,7 @@ final class PanelActionSpy {
             deleteAllFromSource: { [weak self] in self?.calls.append("deleteAllFromSource:\($0)") },
             beginEditing: { [weak self] in self?.calls.append("beginEditing:\($0.id)") },
             edit: { [weak self] id, text in self?.calls.append("edit:\(id):\(text)") },
+            undo: { [weak self] in self?.calls.append("undo") },
             highlight: { [weak self] in self?.calls.append("highlight:\($0)") },
             activate: { [weak self] in self?.calls.append("activate") },
             activatePlain: { [weak self] in self?.calls.append("activatePlain") },
@@ -86,6 +87,7 @@ final class PanelActionSpy {
                 (.copySelection, kVK_ANSI_C, [.command]), (.openSelection, kVK_ANSI_O, [.command]),
                 (.revealSelection, kVK_ANSI_R, [.command]), (.saveSelection, kVK_ANSI_S, [.command]),
                 (.excludeSelectionSource, kVK_ANSI_X, [.control, .command]), (.editSelection, kVK_ANSI_E, [.command]),
+                (.undoLastChange, kVK_ANSI_Z, [.command]),
             ]
             for (action, code, modifiers) in ansi {
                 keyBindings.set(KeyBinding(keyCode: UInt16(code), modifiers: modifiers), for: action)
@@ -288,12 +290,22 @@ final class PanelActionSpy {
         #expect(try fixture.press(kVK_ANSI_W, typing: "w"))
         #expect(try fixture.press(kVK_ANSI_X, [.shift], typing: "X"))
         #expect(try fixture.press(kVK_ANSI_D, [.shift], typing: "D"))
+        #expect(try fixture.press(kVK_ANSI_U, typing: "u"))
 
         #expect(
             fixture.spy.calls == [
                 "copySelected", "openLink:https://example.com", "saveToDisk:link(https://example.com)",
-                "excludeSource:com.apple.Safari:Safari", "deleteAllFromSource:com.apple.Safari",
+                "excludeSource:com.apple.Safari:Safari", "deleteAllFromSource:com.apple.Safari", "undo",
             ])
+    }
+
+    @Test func the_undo_shortcut_reaches_the_controller_with_or_without_a_selection() throws {
+        let fixture = try Fixture(vim: false)
+        fixture.pinLetterShortcutsToANSI()
+
+        #expect(try fixture.press(kVK_ANSI_Z, [.command], typing: "z"))
+
+        #expect(fixture.spy.calls == ["undo"])
     }
 
     @Test func in_vim_search_mode_return_commits_and_goes_back_to_normal() throws {
