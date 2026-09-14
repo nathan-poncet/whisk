@@ -104,3 +104,14 @@
 "Small" = "Small";
 "Medium" = "Medium";
 "Large" = "Large";
+"Paste as…" = "Paste as…";
+"Uppercase" = "Uppercase";
+"Lowercase" = "Lowercase";
+"Trimmed" = "Trimmed";
+"Single line" = "Single line";
+"Without accents" = "Without accents";
+"URL-encoded" = "URL-encoded";
+"URL-decoded" = "URL-decoded";
+"Base64-encoded" = "Base64-encoded";
+"Base64-decoded" = "Base64-decoded";
+"Formatted JSON" = "Formatted JSON";

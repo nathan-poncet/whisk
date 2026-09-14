@@ -47,6 +47,10 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   once, paste in order.
 - **Rich text** — formatting (RTF) is captured and pasted back; `⌥⏎`
   pastes as plain text instead.
+- **Paste as…** — right-click a text or link card to paste it rewritten:
+  upper or lower case, trimmed, on one line, without accents, URL- or
+  base64-encoded or decoded, formatted JSON. The card itself stays as
+  copied.
 - **Quick Look-style preview** — `⌘Y` opens a large preview of the
   selected card (full text, full-size image, file list).
 - **Drag & drop** — drag any card straight into another application.

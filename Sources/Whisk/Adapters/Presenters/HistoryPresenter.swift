@@ -148,6 +148,7 @@ final class HistoryPresenter {
             accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
             accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
             dragPayload: Self.dragPayload(of: item),
+            transformable: item.payload.transformableText != nil,
             matches: Self.matchSpans(of: words, in: item),
             preview: cardPreview
         )

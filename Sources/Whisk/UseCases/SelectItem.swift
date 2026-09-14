@@ -13,10 +13,17 @@ struct SelectItem<Board: Pasteboard, Time: Clock, Store: HistoryStore> {
     }
 
     /// Puts the item back on the pasteboard — rich text included unless a
-    /// plain paste was asked for.
-    func callAsFunction(_ id: UUID, in history: History, plain: Bool = false) throws -> History {
+    /// plain paste was asked for — or a rewritten stand-in for it, which
+    /// travels without formatting and leaves the item as it was.
+    func callAsFunction(
+        _ id: UUID, in history: History, plain: Bool = false, writing replacement: Payload? = nil
+    ) throws -> History {
         guard let item = history.items.first(where: { $0.id == id }) else { return history }
-        pasteboard.write(item.payload, rtf: plain ? nil : item.rtf)
+        if let replacement {
+            pasteboard.write(replacement, rtf: nil)
+        } else {
+            pasteboard.write(item.payload, rtf: plain ? nil : item.rtf)
+        }
         let next = history.selecting(id, at: clock.now())
         try store.save(next.items)
         return next

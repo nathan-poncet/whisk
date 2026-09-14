@@ -80,6 +80,7 @@ final class HistoryViewStateStore: ObservableObject {
 struct PanelActions {
     let search: (String) -> Void
     let select: (UUID) -> Void
+    let transform: (UUID, TextTransform) -> Void
     let highlight: (UUID) -> Void
     let activate: () -> Void
     let activatePlain: () -> Void

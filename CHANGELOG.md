@@ -18,6 +18,9 @@ live in the commit history.
   the panel's height follows.
 - The letters a search matched are washed in the accent color on text
   and code cards, so the eye lands on why a card is there.
+- "Paste as…" in a text or link card's menu pastes it rewritten: upper or
+  lower case, trimmed, single line, without accents, URL- or
+  base64-encoded or decoded, formatted JSON. The card stays as copied.
 
 ## [0.9.0] - 2026-09-14
 

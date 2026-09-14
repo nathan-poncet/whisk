@@ -216,6 +216,19 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         mutate { try selectItem(id, in: $0, plain: plain) }
     }
 
+    /// Puts a rewritten copy of the card's text on the pasteboard. False
+    /// when the card holds no text the transform can read — nothing is
+    /// written then, so the caller keeps the panel open.
+    @discardableResult
+    func select(_ id: UUID, transform: TextTransform) -> Bool {
+        guard let item = history.items.first(where: { $0.id == id }),
+            let text = item.payload.transformableText,
+            let rewritten = transform.apply(to: text)
+        else { return false }
+        mutate { try selectItem(id, in: $0, writing: .text(rewritten)) }
+        return true
+    }
+
     /// Moves the keyboard selection through the visible cards, clamped at
     /// both ends. refresh keeps the selection on a visible card, so a miss
     /// can only mean an empty rail.

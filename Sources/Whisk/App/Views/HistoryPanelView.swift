@@ -214,6 +214,7 @@ struct HistoryPanelView: View {
                                 onTogglePin: { actions.togglePin(card.id) },
                                 onDelete: { actions.delete(card.id) },
                                 onDragBegin: actions.dragBegan,
+                                onTransform: { actions.transform(card.id, $0) },
                                 showsSelection: !cursorOnSearch,
                                 side: store.cardSide
                             )
