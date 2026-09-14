@@ -28,7 +28,7 @@ struct FilterBarView: View {
                             onFocus: { onFocusKind(chip.id) }
                         ) {
                             HStack(spacing: 5) {
-                                kindIcon(chip.id)
+                                chipIcon(chip.icon)
                                 Text(chip.label)
                             }
                         }
@@ -68,7 +68,7 @@ struct FilterBarView: View {
                             onFocus: { onFocusKind(chip.id) }
                         ) {
                             HStack(spacing: 5) {
-                                kindIcon(chip.id)
+                                chipIcon(chip.icon)
                                 Text(chip.label)
                             }
                         }
@@ -98,29 +98,27 @@ struct FilterBarView: View {
             .padding(.horizontal, 4)
     }
 
-    @ViewBuilder private func kindIcon(_ id: String) -> some View {
-        if id == "code", let neovim = CategoryIcons.neovim {
-            Image(nsImage: neovim)
-                .resizable()
-                .frame(width: 16, height: 16)
-        } else {
-            Image(systemName: kindSymbol(id))
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
+    @ViewBuilder private func chipIcon(_ icon: ChipIcon?) -> some View {
+        switch icon {
+        case .resource(let name, let fallback):
+            if let image = CategoryIcons.image(named: name) {
+                Image(nsImage: image)
+                    .resizable()
+                    .frame(width: 16, height: 16)
+            } else {
+                symbol(fallback)
+            }
+        case .symbol(let name):
+            symbol(name)
+        case nil:
+            EmptyView()
         }
     }
 
-    private func kindSymbol(_ id: String) -> String {
-        switch id {
-        case "pinned": "pin.fill"
-        case "text": "text.alignleft"
-        case "code": "chevron.left.forwardslash.chevron.right"
-        case "color": "paintpalette"
-        case "link": "link"
-        case "image": "photo"
-        case "files": "folder"
-        default: "square"
-        }
+    private func symbol(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 12))
+            .foregroundStyle(.secondary)
     }
 }
 

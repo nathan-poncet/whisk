@@ -9,6 +9,8 @@ struct HistoryViewState: Equatable {
     let selectedID: UUID?
     let stackCount: Int
     let filters: FilterBarViewState
+    /// What the rail says when it has no card to show; nil while it has.
+    let emptyMessage: String?
 
     init(
         cards: [CardViewState],
@@ -16,7 +18,8 @@ struct HistoryViewState: Equatable {
         query: String,
         selectedID: UUID?,
         stackCount: Int = 0,
-        filters: FilterBarViewState
+        filters: FilterBarViewState,
+        emptyMessage: String? = nil
     ) {
         self.cards = cards
         self.countLabel = countLabel
@@ -24,6 +27,12 @@ struct HistoryViewState: Equatable {
         self.selectedID = selectedID
         self.stackCount = stackCount
         self.filters = filters
+        self.emptyMessage = emptyMessage
+    }
+
+    /// The card the preview overlay follows.
+    var selectedCard: CardViewState? {
+        cards.first(where: \.isSelected)
     }
 
     static let empty = HistoryViewState(
@@ -31,7 +40,8 @@ struct HistoryViewState: Equatable {
         countLabel: "0 items",
         query: "",
         selectedID: nil,
-        filters: .empty
+        filters: .empty,
+        emptyMessage: localized("Copy something to get started")
     )
 }
 
@@ -64,17 +74,30 @@ struct FilterBarViewState: Equatable {
     static let empty = FilterBarViewState(apps: [], kinds: [])
 }
 
+/// What a chip wears before its label. App chips carry their app's icon
+/// through `sourceBundleID` instead and have none.
+enum ChipIcon: Equatable {
+    case symbol(String)
+    /// A bundled image by resource name, with a symbol to fall back on
+    /// when the bundle lacks it.
+    case resource(String, fallback: String)
+}
+
 struct FilterChip: Equatable, Identifiable {
     let id: String
     let label: String
     let sourceBundleID: String?
+    let icon: ChipIcon?
     let isActive: Bool
     let isFocused: Bool
 
-    init(id: String, label: String, sourceBundleID: String?, isActive: Bool, isFocused: Bool) {
+    init(
+        id: String, label: String, sourceBundleID: String?, icon: ChipIcon? = nil, isActive: Bool, isFocused: Bool
+    ) {
         self.id = id
         self.label = label
         self.sourceBundleID = sourceBundleID
+        self.icon = icon
         self.isActive = isActive
         self.isFocused = isFocused
     }
