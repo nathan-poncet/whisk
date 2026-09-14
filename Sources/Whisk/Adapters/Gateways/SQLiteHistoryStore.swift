@@ -17,6 +17,9 @@ final class SQLiteHistoryStore: HistoryStore {
         guard sqlite3_open(databaseURL.path, &db) == SQLITE_OK else {
             throw HistoryStoreError.unwritable("cannot open \(databaseURL.lastPathComponent)")
         }
+        // Another connection mid-write — a second Whisk, a backup tool —
+        // makes a save wait its turn instead of failing on the spot.
+        sqlite3_busy_timeout(db, 2_000)
         try execute("PRAGMA journal_mode=WAL")
         try execute(
             """

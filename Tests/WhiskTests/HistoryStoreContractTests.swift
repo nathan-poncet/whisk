@@ -136,6 +136,26 @@ private func sampleItems() throws -> [ClipboardItem] {
         #expect(try store.load() == items)
     }
 
+    @Test func a_writer_waits_for_another_connection_instead_of_failing() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        try store.save([anItem(.text("first"))])
+        var raw: OpaquePointer?
+        guard sqlite3_open(harness.databaseURL.path, &raw) == SQLITE_OK,
+            sqlite3_exec(raw, "BEGIN IMMEDIATE", nil, nil, nil) == SQLITE_OK
+        else { throw RawSQLFailure() }
+        let holder = raw
+        DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) {
+            sqlite3_exec(holder, "COMMIT", nil, nil, nil)
+            sqlite3_close(holder)
+        }
+
+        try store.save([anItem(.text("second"))])
+
+        #expect(try store.load().map(\.payload) == [.text("second")])
+    }
+
     @Test func a_file_that_is_not_a_database_fails_to_open() throws {
         let harness = StoreHarness(.sqlite)
         defer { harness.tearDown() }
