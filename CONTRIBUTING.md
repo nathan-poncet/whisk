@@ -108,5 +108,9 @@ either language, missing from the catalogs, or no longer used.
 
 ## Reporting bugs & proposing features
 
+Security flaws go through the private channel described in
+[SECURITY.md](SECURITY.md), never through a public issue. Everyone taking
+part is held to the [code of conduct](CODE_OF_CONDUCT.md).
+
 Use the issue templates. For bugs, the macOS version and your keyboard
 layout matter more often than you'd think (shortcuts are layout-aware).
