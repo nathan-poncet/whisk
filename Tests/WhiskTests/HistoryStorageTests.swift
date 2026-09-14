@@ -21,9 +21,32 @@ import Testing
         defer { try? FileManager.default.removeItem(at: directory) }
         let item = anItem(.text("kept"))
 
-        try silently(directory).save([item])
+        try HistoryStorage.open(in: directory).save([item])
 
         #expect(try silently(directory).load() == [item])
+    }
+
+    @Test func the_default_directory_is_whisk_under_application_support() throws {
+        let directory = try HistoryStorage.defaultDirectory()
+
+        #expect(directory.lastPathComponent == "Whisk")
+        #expect(directory.deletingLastPathComponent().lastPathComponent == "Application Support")
+    }
+
+    @Test func a_legacy_import_that_cannot_be_retired_is_logged_and_the_index_stays() throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let old = anItem(.text("from json"))
+        try LegacyHistoryFixture.write([old], in: directory)
+        // Something already sits where the retired index would go.
+        try Data().write(to: directory.appendingPathComponent("history.json.migrated"))
+        var logged: [String] = []
+
+        let store = HistoryStorage.open(in: directory) { logged.append($0) }
+
+        #expect(try store.load() == [old])
+        #expect(FileManager.default.fileExists(atPath: directory.appendingPathComponent("history.json").path))
+        #expect(logged.count == 1)
     }
 
     @Test func an_unreadable_database_is_set_aside_and_a_fresh_one_takes_its_place() throws {

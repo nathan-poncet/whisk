@@ -108,6 +108,17 @@ enum LegacyHistoryFixture {
         #expect(try LegacyJSONHistory(directory: directory).load() == [valid])
     }
 
+    @Test func an_index_that_cannot_be_read_fails_as_unreadable() throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(
+            at: directory.appendingPathComponent("history.json"), withIntermediateDirectories: true)
+
+        #expect(throws: HistoryStoreError.self) {
+            try LegacyJSONHistory(directory: directory).load()
+        }
+    }
+
     @Test func an_unparseable_index_fails_as_unreadable() throws {
         let directory = temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

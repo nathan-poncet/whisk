@@ -244,10 +244,7 @@ final class HistoryPresenter {
         case .text(let value):
             switch item.category {
             case .color:
-                if let swatch = colorSwatch(for: item.payload) {
-                    return swatch
-                }
-                return .text(value)
+                return colorSwatch(for: item.payload) ?? .text(value)
             case .code:
                 return .code(text: value, tokens: CodeHighlighter.tokens(in: value))
             default:

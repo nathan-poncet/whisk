@@ -33,6 +33,7 @@ import Testing
         #expect(Payload.text("hsb(14, 79, 100)").category == .color)
 
         #expect(Payload.text("abc").category == .text)
+        #expect(Payload.text("cmyk(1, 2, 3)").category == .text)
         #expect(Payload.text("rgb(hello, there, friend)").category == .text)
         #expect(Payload.text("rgb(1, 2)").category == .text)
         #expect(Payload.text("I said rgb(1, 2, 3) in a sentence").category == .text)

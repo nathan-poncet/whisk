@@ -53,17 +53,24 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         lastChangeCount = board.changeCount
     }
 
+    private static func sourceApplication() -> NSRunningApplication? {
+        attributedSource(
+            frontmost: NSWorkspace.shared.frontmostApplication,
+            menuBarOwner: NSWorkspace.shared.menuBarOwningApplication)
+    }
+
     /// The application the user attributes the copy to. During a screenshot
     /// to the clipboard the frontmost "app" is loginwindow (the capture HUD
     /// runs under it) — an accessory agent, not what the user was looking
     /// at. When the frontmost application isn't a regular one, the menu bar
     /// owner is.
-    private static func sourceApplication() -> NSRunningApplication? {
-        let frontmost = NSWorkspace.shared.frontmostApplication
+    static func attributedSource(
+        frontmost: NSRunningApplication?, menuBarOwner: NSRunningApplication?
+    ) -> NSRunningApplication? {
         if let frontmost, frontmost.activationPolicy == .regular {
             return frontmost
         }
-        return NSWorkspace.shared.menuBarOwningApplication ?? frontmost
+        return menuBarOwner ?? frontmost
     }
 
     private func holdsConcealedContent() -> Bool {
