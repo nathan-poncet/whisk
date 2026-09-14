@@ -62,6 +62,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var focusedChipID: String?
     private var focusedChipIndex = 0
     private var layoutDirection: LayoutDirection = .leftToRight
+    /// The chip row and the rail as of the last refresh. Every input they
+    /// derive from changes only through methods that end in refresh, so a
+    /// key press reads them instead of filtering the history again.
+    private var cachedChips: [ChipEntry] = []
+    private var cachedVisible: [ClipboardItem] = []
 
     private let capture: CaptureClipboardChange<Board, Time, Store>
     private let selectItem: SelectItem<Board, Time, Store>
@@ -452,8 +457,13 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         return chips
     }
 
-    private var activeSources: [SourceApp] {
-        distinctSources(of: history.items).filter { activeSourceKeys.contains($0.filterKey) }
+    /// What the chip row derives from the history under the current
+    /// filters, computed once per refresh.
+    private struct Facets {
+        let sources: [SourceApp]
+        let categories: [ContentCategory]
+        let activeCategories: Set<ContentCategory>
+        let hasPinned: Bool
     }
 
     // Each facet narrows what the OTHER displays — selecting image hides
@@ -461,39 +471,31 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     // categories Spotify never yielded — but an ACTIVE chip is never
     // hidden, so a selection can never be dropped by ricochet. Impossible
     // combinations are unreachable because their chips vanish before they
-    // can be clicked.
-    private var availableSources: [SourceApp] {
-        let scoped = distinctSources(
-            of: filterHistory(
-                history,
-                filter: HistoryFilter(categories: activeCategories, pinnedOnly: pinnedOnly)
-            )
-        )
-        let strayActives = activeSources.filter { active in
-            !scoped.contains { $0.filterKey == active.filterKey }
-        }
-        return scoped + strayActives
-    }
-
-    private var availableCategories: [ContentCategory] {
-        let matches = filterHistory(
-            history,
-            filter: HistoryFilter(sources: activeSources, pinnedOnly: pinnedOnly)
-        )
-        let present = Set(matches.map(\.category)).union(activeCategories)
-        return ContentCategory.allCases.filter(present.contains)
-    }
-
-    private var hasPinnedInScope: Bool {
-        filterHistory(
-            history,
-            filter: HistoryFilter(sources: activeSources, categories: activeCategories)
+    // can be clicked. Active categories only fall when a history mutation
+    // (deletion, eviction) makes them impossible.
+    private func computeFacets() -> Facets {
+        let active = distinctSources(of: history.items).filter { activeSourceKeys.contains($0.filterKey) }
+        let underApps = filterHistory(history, filter: HistoryFilter(sources: active, pinnedOnly: pinnedOnly))
+        let reachable = Set(underApps.map(\.category))
+        let activeCategories = self.activeCategories.intersection(reachable)
+        let underCategories = filterHistory(
+            history, filter: HistoryFilter(categories: activeCategories, pinnedOnly: pinnedOnly))
+        let scopedSources = distinctSources(of: underCategories)
+        let strayActives = active.filter { stray in !scopedSources.contains { $0.filterKey == stray.filterKey } }
+        let hasPinned = filterHistory(
+            history, filter: HistoryFilter(sources: active, categories: activeCategories)
         ).contains(where: \.isPinned)
+        return Facets(
+            sources: scopedSources + strayActives,
+            categories: ContentCategory.allCases.filter(reachable.contains),
+            activeCategories: activeCategories,
+            hasPinned: hasPinned
+        )
     }
 
     /// The row the keyboard steers — the same list the presenter renders.
     private var chipEntries: [ChipEntry] {
-        ChipEntry.row(hasPinned: hasPinnedInScope, sources: availableSources, categories: availableCategories)
+        cachedChips
     }
 
     /// First flat index of each chip group actually present, for ⌃⇥.
@@ -510,14 +512,14 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private func currentFilter() -> HistoryFilter {
         HistoryFilter(
             query: query,
-            sources: activeSources,
+            sources: distinctSources(of: history.items).filter { activeSourceKeys.contains($0.filterKey) },
             categories: activeCategories,
             pinnedOnly: pinnedOnly
         )
     }
 
     private var visibleItems: [ClipboardItem] {
-        filterHistory(history, filter: currentFilter())
+        cachedVisible
     }
 
     private func mutate(_ transform: (History) throws -> History) {
@@ -533,37 +535,30 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private func refresh() {
-        // Reconcile the facets: app keys survive as long as the app exists
-        // in the history at all; active categories only fall when a history
-        // mutation (deletion, eviction) makes them impossible — the UI
-        // itself cannot build an impossible combination.
+        // App keys survive as long as the app exists in the history at all.
         activeSourceKeys = activeSourceKeys.filter { key in
             history.items.contains { $0.source?.filterKey == key }
         }
-        let scopedCategories = Set(
-            filterHistory(
-                history,
-                filter: HistoryFilter(sources: activeSources, pinnedOnly: pinnedOnly)
-            ).map(\.category)
-        )
-        activeCategories = activeCategories.intersection(scopedCategories)
-        if pinnedOnly, !hasPinnedInScope {
+        var facets = computeFacets()
+        if pinnedOnly, !facets.hasPinned {
             pinnedOnly = false
+            facets = computeFacets()
         }
-        let chips = chipEntries
-        focusedChipIndex = resolvedChipIndex(in: chips)
-        focusedChipID = chips.indices.contains(focusedChipIndex) ? chips[focusedChipIndex].id : nil
-        if focusZone == .chips, chips.isEmpty {
+        activeCategories = facets.activeCategories
+        cachedChips = ChipEntry.row(hasPinned: facets.hasPinned, sources: facets.sources, categories: facets.categories)
+        focusedChipIndex = resolvedChipIndex(in: cachedChips)
+        focusedChipID = cachedChips.indices.contains(focusedChipIndex) ? cachedChips[focusedChipIndex].id : nil
+        if focusZone == .chips, cachedChips.isEmpty {
             focusZone = .cards
         }
-        let visible = filterHistory(history, filter: currentFilter())
-        if selectedID == nil || !visible.contains(where: { $0.id == selectedID }) {
-            selectedID = visible.first?.id
+        cachedVisible = filterHistory(history, filter: currentFilter())
+        if selectedID == nil || !cachedVisible.contains(where: { $0.id == selectedID }) {
+            selectedID = cachedVisible.first?.id
         }
         pasteStack.removeAll { id in !history.items.contains(where: { $0.id == id }) }
         present(
             presenter.present(
-                items: visible,
+                items: cachedVisible,
                 query: query,
                 now: clock.now(),
                 // One cursor at a time: while the chip row holds it, no
@@ -572,7 +567,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 selectedID: focusZone == .cards ? selectedID : nil,
                 stack: pasteStack,
                 filters: FilterContext(
-                    chips: chips,
+                    chips: cachedChips,
                     activeSourceKeys: activeSourceKeys,
                     activeCategories: activeCategories,
                     pinnedOnly: pinnedOnly,
