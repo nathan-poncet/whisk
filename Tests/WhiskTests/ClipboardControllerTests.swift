@@ -219,18 +219,23 @@ import Testing
         #expect(spy.last.cards.first?.preview == .text("stepped to"))
     }
 
-    @Test func a_storage_failure_keeps_the_presented_state_alive() {
+    @Test func a_storage_failure_is_logged_and_the_presented_state_stays_alive() {
         let pasteboard = ScriptedPasteboard()
         pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("doomed"), source: nil)]
         let spy = StateSpy()
+        let logger = RecordingLogger()
         let controller = ClipboardController(
-            pasteboard: pasteboard, store: FailingHistoryStore(), clock: FakeClock(), present: spy.record
+            pasteboard: pasteboard, store: FailingHistoryStore(), clock: FakeClock(), logger: logger,
+            present: spy.record
         )
+        #expect(logger.messages.count == 1)
 
         controller.pollTick()
         controller.search("")
 
         #expect(spy.last.cards.isEmpty)
+        #expect(logger.messages.count == 2)
+        #expect(logger.messages.allSatisfy { $0.contains("failing store") })
     }
 
     @Test func highlighting_moves_the_selection_without_writing_back() {
