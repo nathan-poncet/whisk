@@ -8,6 +8,10 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Changed
+- In the editor, `Return` saves and `⇧⏎` breaks the line; `⌘S` and the
+  button still save, `Esc` still cancels, and the editor says so.
+
 ## [0.10.0] - 2026-09-14
 
 ### Added

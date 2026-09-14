@@ -138,3 +138,4 @@
 "Cancel" = "Annuler";
 "Undo Last Change" = "Annuler la dernière modification";
 "Undo the last deletion or edit" = "Annuler la dernière suppression ou modification";
+"Return saves, Shift-Return breaks the line, Escape cancels." = "Entrée enregistre, Maj-Entrée insère un saut de ligne, Échap annule.";

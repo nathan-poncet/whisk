@@ -166,6 +166,7 @@ struct HistoryPanelView: View {
     @ViewBuilder private var content: some View {
         if let editing = store.editing {
             EditItemView(
+                store: store,
                 card: editing,
                 onSave: { text in
                     actions.edit(editing.id, text)
