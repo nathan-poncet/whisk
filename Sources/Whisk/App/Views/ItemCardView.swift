@@ -213,7 +213,7 @@ struct ItemCardView: View, Equatable {
 
     /// Cards can be dragged straight into other applications; the presenter
     /// decided what travels, this only wraps it for the drag session.
-    private static func dragProvider(for payload: DragPayload) -> NSItemProvider {
+    static func dragProvider(for payload: DragPayload) -> NSItemProvider {
         switch payload {
         case .text(let value):
             return NSItemProvider(object: value as NSString)

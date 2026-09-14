@@ -51,7 +51,7 @@ final class LinkPreviewStore: ObservableObject {
         inFlight.remove(address)
     }
 
-    private nonisolated static func assemble(
+    nonisolated static func assemble(
         metadata: LPLinkMetadata?,
         host: String?,
         completion: @escaping (LinkPreview) -> Void
@@ -78,8 +78,7 @@ final class LinkPreviewStore: ObservableObject {
         }
     }
 
-    private nonisolated static func loadImage(from provider: NSItemProvider?, completion: @escaping (NSImage?) -> Void)
-    {
+    nonisolated static func loadImage(from provider: NSItemProvider?, completion: @escaping (NSImage?) -> Void) {
         guard let provider, provider.canLoadObject(ofClass: NSImage.self) else {
             completion(nil)
             return
