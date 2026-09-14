@@ -125,6 +125,17 @@ private func sampleItems() throws -> [ClipboardItem] {
         #expect(try harness.makeStore().load() == [valid])
     }
 
+    @Test func a_large_history_saves_and_loads_in_one_pass() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        let items = (0..<33_000).map { anItem(.text("item \($0)")) }
+
+        try store.save(items)
+
+        #expect(try store.load() == items)
+    }
+
     @Test func a_file_that_is_not_a_database_fails_to_open() throws {
         let harness = StoreHarness(.sqlite)
         defer { harness.tearDown() }

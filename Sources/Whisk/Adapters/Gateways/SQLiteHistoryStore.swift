@@ -71,13 +71,10 @@ final class SQLiteHistoryStore: HistoryStore {
     func save(_ items: [ClipboardItem]) throws {
         try execute("BEGIN IMMEDIATE")
         do {
-            let ids = items.map { $0.id.uuidString }
-            for item in items {
-                try insertContentIfNeeded(item)
-            }
+            try insertMissingContent(items)
             try execute("DELETE FROM ordering")
             try insertOrdering(items)
-            try deleteContent(notIn: ids)
+            try execute("DELETE FROM content WHERE id NOT IN (SELECT id FROM ordering)")
             try execute("COMMIT")
         } catch {
             try? execute("ROLLBACK")
@@ -87,7 +84,11 @@ final class SQLiteHistoryStore: HistoryStore {
 
     // MARK: - Rows
 
-    private func insertContentIfNeeded(_ item: ClipboardItem) throws {
+    // One statement prepared for the whole batch and reset per item: the
+    // insert is a no-op for content already stored, but compiling it once
+    // per item on every copy was not. Bindings are cleared between items
+    // because most columns are optional.
+    private func insertMissingContent(_ items: [ClipboardItem]) throws {
         let sql = """
             INSERT OR IGNORE INTO content
             (id, kind, text, link, image, rtf, files, source_app, source_bundle)
@@ -98,6 +99,17 @@ final class SQLiteHistoryStore: HistoryStore {
             throw HistoryStoreError.unwritable(lastMessage())
         }
         defer { sqlite3_finalize(statement) }
+        for item in items {
+            sqlite3_reset(statement)
+            sqlite3_clear_bindings(statement)
+            bindContent(of: item, to: statement)
+            guard sqlite3_step(statement) == SQLITE_DONE else {
+                throw HistoryStoreError.unwritable(lastMessage())
+            }
+        }
+    }
+
+    private func bindContent(of item: ClipboardItem, to statement: OpaquePointer?) {
         bindText(statement, 1, item.id.uuidString)
         switch item.payload {
         case .text(let value):
@@ -124,9 +136,6 @@ final class SQLiteHistoryStore: HistoryStore {
         if let bundleID = item.source?.bundleID {
             bindText(statement, 9, bundleID)
         }
-        guard sqlite3_step(statement) == SQLITE_DONE else {
-            throw HistoryStoreError.unwritable(lastMessage())
-        }
     }
 
     private func insertOrdering(_ items: [ClipboardItem]) throws {
@@ -145,25 +154,6 @@ final class SQLiteHistoryStore: HistoryStore {
             guard sqlite3_step(statement) == SQLITE_DONE else {
                 throw HistoryStoreError.unwritable(lastMessage())
             }
-        }
-    }
-
-    private func deleteContent(notIn ids: [String]) throws {
-        let placeholders = ids.isEmpty ? "" : String(repeating: "?,", count: ids.count - 1) + "?"
-        let sql =
-            ids.isEmpty
-            ? "DELETE FROM content"
-            : "DELETE FROM content WHERE id NOT IN (\(placeholders))"
-        var statement: OpaquePointer?
-        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
-            throw HistoryStoreError.unwritable(lastMessage())
-        }
-        defer { sqlite3_finalize(statement) }
-        for (index, id) in ids.enumerated() {
-            bindText(statement, Int32(index + 1), id)
-        }
-        guard sqlite3_step(statement) == SQLITE_DONE else {
-            throw HistoryStoreError.unwritable(lastMessage())
         }
     }
 
