@@ -9,9 +9,9 @@ Paste-style panel at the bottom of your screen.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S3V726AT7H)
 
-![Whisk in 50 seconds — copy-paste on repeat, then one panel: search, colors, paste stack, preview, drag & drop](docs/media/demo.gif)
+[![Whisk in 50 seconds — copy-paste on repeat, then one panel: search, colors, paste stack, preview, drag & drop. Click to play.](docs/media/demo-play.jpg)](docs/media/demo.mp4)
 
-*(Crisp MP4 with sound: [docs/media/demo.mp4](docs/media/demo.mp4), or watch it on the [website](https://nathan-poncet.github.io/whisk/).)*
+*▶ Click the frame to play the 50-second demo (1080p MP4 with sound), or watch it on the [website](https://nathan-poncet.github.io/whisk/).*
 
 
 Built in Swift/SwiftUI following Clean Architecture: a pure, synchronous
