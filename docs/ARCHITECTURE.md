@@ -23,7 +23,8 @@ Sources/Whisk/
 │                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3)
 └── App/                    frameworks & drivers + composition root (anything goes)
     ├── Views/              SwiftUI renderers of HistoryViewState
-    └── …                   AppDelegate · HistoryStorage · NSPanel · Timer · hot key · CGEvent
+    └── …                   AppDelegate · HistoryStorage · PanelWiring · PanelKeyRouter ·
+                            NSPanel · Timer · hot key · CGEvent
 ```
 
 ## The rings
@@ -56,8 +57,14 @@ Sources/Whisk/
    framework-shaped: SwiftUI views (dumb renderers of `HistoryViewState`),
    the floating `NSPanel`, the menu bar item, the polling `Timer`, the
    Carbon hot key, paste simulation. `HistoryStorage` opens the database,
-   sets an unreadable one aside, falls back to memory, and imports the
-   legacy history. Async lives here and only here.
+   reads it once before trusting it, sets an unreadable one aside, falls
+   back to memory, and imports the legacy history. Two pieces of this
+   ring hold rules rather than wiring and are kept apart so they can be
+   tested: `PanelWiring` builds the panel's action table (which actions
+   flush the search debounce, which close and paste), and `PanelKeyRouter`
+   turns key presses into actions — vim's normal mode, the user's
+   bindings, ⌘digits. `AppDelegate` only assembles. Async lives here and
+   only here.
 
 ## Invariants
 
@@ -78,15 +85,31 @@ Sources/Whisk/
 
 One `WhiskTests` target (`@testable import Whisk`) with deterministic
 doubles in `Fakes.swift`: `FakeClock`, `InMemoryHistoryStore`,
-`FailingHistoryStore`, `ScriptedPasteboard`, `RecordingLogger`. Kernel
-behaviour, controller orchestration, and presenter formatting each have
-their own suite; test names state behaviour
-(`a_storage_failure_is_logged_and_the_presented_state_stays_alive`). The
-`HistoryStore` contract is one parameterized suite run against every
-gateway (SQLite, in-memory) in a fresh temporary directory per test; a
-new gateway joins by adding a case. The legacy JSON reader is tested
-against a fixture of its on-disk format, the storage bootstrap against
-corrupt and legacy directories, the pasteboard gateway against a private
-pasteboard, and the string catalogs against the code that reads them.
-`scripts/coverage.sh` runs the suite with coverage and prints the report
-CI archives.
+`FailingHistoryStore`, `SaveFailingHistoryStore`, `ScriptedPasteboard`,
+`RecordingLogger`. Test names state behaviour
+(`a_storage_failure_is_logged_and_the_presented_state_stays_alive`).
+
+- **Kernel and adapters** are covered line by line: history behaviour,
+  every use case, the controller's navigation and facets, the presenter's
+  strings, icons and VoiceOver labels. The `HistoryStore` contract is one
+  parameterized suite run against every gateway (SQLite, in-memory) in a
+  fresh temporary directory per test; a raw connection sabotages the
+  schema to reach every error path. The legacy JSON reader is tested
+  against a fixture of its on-disk format, the storage bootstrap against
+  corrupt, drifted and legacy directories, the pasteboard gateway against
+  a private pasteboard, the string catalogs against the code that reads
+  them.
+- **The frameworks ring is tested without a screen.** Views are drawn
+  off screen with `ImageRenderer` in every state they can be in, and
+  hosted in a window that is never ordered in so the behind-window blur
+  gets a layer and a layout pass; the panel is fed state changes and
+  pumped through the run loop so its observers run. Key routing is driven
+  by synthetic `NSEvent`s, the debouncer by a hand-cranked scheduler, the
+  update check by canned replies, QuickLook and LinkPresentation by
+  awaiting their published values. A test never shows a window.
+- **Outside the suite, on purpose:** `AppDelegate` (status item, global
+  hot keys, timers — the composition root the release smoke test covers),
+  `HotKey` (registering one would hijack the tester's shortcut),
+  `PasteSimulator` (posts ⌘V to the frontmost app), `main`, and the
+  parts of `PanelController` that order windows in. `scripts/coverage.sh`
+  runs the suite with coverage and prints the report CI archives.

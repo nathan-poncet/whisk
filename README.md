@@ -160,7 +160,10 @@ fakes — frozen clock, scripted pasteboard, in-memory store, recording
 logger. One parameterized contract suite runs the `HistoryStore` port
 against every gateway (SQLite, in-memory) in temporary directories; the
 storage bootstrap, the legacy JSON import, the pasteboard gateway and the
-string catalogs have suites of their own. `./scripts/coverage.sh` runs
+string catalogs have suites of their own. Views render off screen in
+every state, key routing runs on synthetic key presses, and no test ever
+shows a window; only the composition root, the global hot key and the
+paste simulation stay outside the suite. `./scripts/coverage.sh` runs
 the tests with coverage and prints the report. The Dependency Rule is
 linted by `./scripts/check-dependency-rule.sh`. CI runs everything on
 every push and archives the coverage report.
