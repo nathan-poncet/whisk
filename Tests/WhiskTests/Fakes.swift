@@ -44,6 +44,20 @@ final class FailingHistoryStore: HistoryStore {
     }
 }
 
+/// Loads what it was given but refuses every save — a disk that filled up
+/// after launch.
+final class SaveFailingHistoryStore: HistoryStore {
+    var stored: [ClipboardItem] = []
+
+    init() {}
+
+    func load() throws -> [ClipboardItem] { stored }
+
+    func save(_ items: [ClipboardItem]) throws {
+        throw HistoryStoreError.unwritable("disk full")
+    }
+}
+
 final class RecordingLogger: Logger {
     private(set) var messages: [String] = []
 

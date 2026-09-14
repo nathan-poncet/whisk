@@ -212,17 +212,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     /// Moves the keyboard selection through the visible cards, clamped at
-    /// both ends.
+    /// both ends. refresh keeps the selection on a visible card, so a miss
+    /// can only mean an empty rail.
     func moveSelection(_ step: SelectionMove) {
         let items = visibleItems
-        guard !items.isEmpty else { return }
-        guard let current = selectedID,
-            let index = items.firstIndex(where: { $0.id == current })
-        else {
-            selectedID = items.first?.id
-            refresh()
-            return
-        }
+        guard let current = selectedID, let index = items.firstIndex(where: { $0.id == current }) else { return }
         let destination = step == .next ? min(index + 1, items.count - 1) : max(index - 1, 0)
         selectedID = items[destination].id
         refresh()
