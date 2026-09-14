@@ -19,19 +19,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var bindingsObserver: AnyCancellable?
     private var settingsWindow: NSWindow?
     private var stateStore: HistoryViewStateStore?
-    private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, SQLiteHistoryStore>?
+    private var clipboard: ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore>?
     private var pollTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let store: SQLiteHistoryStore
-        do {
-            store = try Self.openStore()
-        } catch {
-            fputs("Whisk: cannot open storage — \(error)\n", stderr)
-            NSApp.terminate(nil)
-            return
-        }
-
+        let store = Self.openStore()
         let stateStore = HistoryViewStateStore()
         let clipboard = ClipboardController(
             pasteboard: AppKitPasteboard(),
@@ -197,25 +189,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Opens the SQLite store, importing the legacy JSON history on first
-    /// run after the upgrade.
-    private static func openStore() throws -> SQLiteHistoryStore {
-        let directory = try FileHistoryStore.defaultDirectory()
-        let databaseURL = directory.appendingPathComponent("history.sqlite")
-        let legacyIndex = directory.appendingPathComponent("history.json")
-        let needsMigration =
-            !FileManager.default.fileExists(atPath: databaseURL.path)
-            && FileManager.default.fileExists(atPath: legacyIndex.path)
-        let store = try SQLiteHistoryStore(databaseURL: databaseURL)
-        if needsMigration {
-            let legacy = FileHistoryStore(directory: directory)
-            if let items = try? legacy.load(), !items.isEmpty {
-                try? store.save(items)
-            }
-            try? FileManager.default.moveItem(
-                at: legacyIndex, to: directory.appendingPathComponent("history.json.migrated"))
+    /// Launch never fails on storage: HistoryStorage recovers from a
+    /// database that will not open, and an unreachable Application
+    /// Support leaves the session running in memory.
+    private static func openStore() -> AnyHistoryStore {
+        do {
+            return HistoryStorage.open(in: try FileHistoryStore.defaultDirectory())
+        } catch {
+            NSLog(
+                "Whisk: Application Support unavailable — %@; history will not be saved this session",
+                String(describing: error))
+            return AnyHistoryStore(VolatileHistoryStore())
         }
-        return store
     }
 
     /// The user's binding when one is recorded; otherwise ⇧⌘V wherever the
@@ -245,7 +230,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func startPolling(_ clipboard: ClipboardController<AppKitPasteboard, SystemClock, SQLiteHistoryStore>) {
+    private func startPolling(_ clipboard: ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore>) {
         let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
             clipboard.pollTick()
         }
