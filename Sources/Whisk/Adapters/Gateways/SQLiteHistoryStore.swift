@@ -44,7 +44,10 @@ final class SQLiteHistoryStore: HistoryStore {
     }
 
     deinit {
-        sqlite3_close(db)
+        // close_v2 never leaves a handle behind: should a statement still
+        // be open, the connection is retired when the last one finalizes
+        // instead of failing with SQLITE_BUSY and leaking.
+        sqlite3_close_v2(db)
     }
 
     func load() throws -> [ClipboardItem] {
