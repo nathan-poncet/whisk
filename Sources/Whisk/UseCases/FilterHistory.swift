@@ -21,15 +21,13 @@ struct HistoryFilter: Equatable {
         self.categories = categories
         self.pinnedOnly = pinnedOnly
     }
-
-    static let none = HistoryFilter()
 }
 
 /// Narrows the history by query, source applications, and content
 /// categories. The query understands the `app:` and `type:` operators
-/// and the `pinned` word; free words fuzzy-match the content or the source application name — every
-/// word must land somewhere (AND) — and a live query ranks by match
-/// quality, recency breaking the ties.
+/// and the `pinned` word; free words fuzzy-match the content or the
+/// source application name — every word must land somewhere (AND) — and
+/// a live query ranks by match quality, recency breaking the ties.
 struct FilterHistory {
     init() {}
 
