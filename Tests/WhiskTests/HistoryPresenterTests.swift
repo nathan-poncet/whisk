@@ -201,6 +201,22 @@ import Testing
         #expect(state.filters.kinds.first?.accessibilityLabel == "Code, kind filter")
     }
 
+    @Test func what_leaves_on_a_drag_is_the_item_not_the_drawing() throws {
+        let url = try #require(URL(string: "https://example.com"))
+        let items = [
+            anItem(.text("plain")), anItem(.text(" #7d9471 ")), anItem(.link(url)), anItem(.image(Data([0x01]))),
+            anItem(.fileReferences(["/tmp/a.txt", "/tmp/b.txt"])),
+        ]
+
+        let state = presenter.present(items: items, query: "", now: now)
+
+        #expect(
+            state.cards.map(\.dragPayload) == [
+                .text("plain"), .text("#7d9471"), .link(url), .image(Data([0x01])),
+                .files(["/tmp/a.txt", "/tmp/b.txt"]),
+            ])
+    }
+
     @Test func the_count_label_is_singular_for_one_item() {
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)
