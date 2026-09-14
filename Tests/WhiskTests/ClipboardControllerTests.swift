@@ -683,6 +683,31 @@ import Testing
         #expect(spy.last.cards.map(\.transformable) == [true, false])
     }
 
+    @Test func a_card_can_be_stacked_by_id_and_an_application_emptied_of_its_unpinned_cards() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("slack one"), from: "Slack", bundle: "com.slack"),
+            anItem(.text("slack pinned"), from: "Slack", bundle: "com.slack", pinned: true),
+            anItem(.text("elsewhere"), from: "Notes", bundle: "com.apple.notes"),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        let elsewhere = spy.last.cards[2].id
+
+        controller.toggleStack(elsewhere)
+        controller.toggleStack(UUID())
+        #expect(spy.last.cards.map(\.stackPosition) == [nil, nil, 1])
+
+        controller.deleteAll(fromSource: "com.slack")
+
+        #expect(spy.last.cards.map(\.preview) == [.text("slack pinned"), .text("elsewhere")])
+        #expect(spy.last.cards.map(\.sourceKey) == ["com.slack", "com.apple.notes"])
+        #expect(spy.last.cards.map(\.saveable) == [true, true])
+        #expect(store.stored.count == 2)
+    }
+
     @Test func the_history_loads_at_the_configured_capacity_not_the_default() throws {
         let store = InMemoryHistoryStore()
         store.stored = (0..<600).map { anItem(.text("item \($0)")) }

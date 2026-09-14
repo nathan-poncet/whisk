@@ -6,12 +6,8 @@ import SwiftUI
 /// each selection move.
 struct ItemCardView: View, Equatable {
     let card: CardViewState
-    let onSelect: () -> Void
-    let onHighlight: () -> Void
-    let onTogglePin: () -> Void
-    let onDelete: () -> Void
-    let onDragBegin: () -> Void
-    var onTransform: (TextTransform) -> Void = { _ in }
+    /// Every menu entry, shortcut and gesture of the card lands here.
+    let actions: PanelActions
     /// One cursor at a time: while vim's search mode holds it, the ring
     /// stays off even though the selection survives underneath.
     var showsSelection = true
@@ -67,29 +63,19 @@ struct ItemCardView: View, Equatable {
         .contentShape(Rectangle())
         .grabPointer()
         .onDrag {
-            onDragBegin()
+            actions.dragBegan()
             return Self.dragProvider(for: card.dragPayload)
         }
-        .onTapGesture(perform: onSelect)
+        .onTapGesture { actions.select(card.id) }
         // Continuous, not enter/exit: after a keyboard scroll parks a card
         // under the pointer, the very first real movement inside it must
         // reclaim the selection — without crossing a card edge first.
         .onContinuousHover { phase in
             if case .active = phase, MouseActivity.movedRecently {
-                onHighlight()
+                actions.highlight(card.id)
             }
         }
-        .contextMenu {
-            Button(card.isPinned ? localized("Unpin") : localized("Pin"), action: onTogglePin)
-            if card.transformable {
-                Menu(localized("Paste as…")) {
-                    ForEach(TextTransform.allCases, id: \.rawValue) { transform in
-                        Button(transform.label) { onTransform(transform) }
-                    }
-                }
-            }
-            Button(localized("Delete"), role: .destructive, action: onDelete)
-        }
+        .contextMenu { contextMenu }
         // One VoiceOver element per card: the presenter's label and value
         // say it all, the icons and texts inside are decorative.
         .accessibilityElement(children: .ignore)
@@ -97,9 +83,53 @@ struct ItemCardView: View, Equatable {
         .accessibilityValue(card.accessibilityValue)
         .accessibilityHint(localized("Pastes this card"))
         .accessibilityAddTraits(card.isSelected && showsSelection ? [.isButton, .isSelected] : [.isButton])
-        .accessibilityAction(.default, onSelect)
-        .accessibilityAction(named: Text(card.isPinned ? localized("Unpin") : localized("Pin")), onTogglePin)
-        .accessibilityAction(named: Text(localized("Delete")), onDelete)
+        .accessibilityAction(.default) { actions.select(card.id) }
+        .accessibilityAction(named: Text(localized("Copy"))) { actions.copy(card.id) }
+        .accessibilityAction(named: Text(card.isPinned ? localized("Unpin") : localized("Pin"))) {
+            actions.togglePin(card.id)
+        }
+        .accessibilityAction(named: Text(localized("Delete"))) { actions.delete(card.id) }
+    }
+
+    /// Everything the card can do, in the order a hand reads it: put it
+    /// somewhere, act on what it holds, keep it, take it away.
+    @ViewBuilder private var contextMenu: some View {
+        Button(localized("Copy")) { actions.copy(card.id) }
+        Button(localized("Paste as Plain Text")) { actions.selectPlain(card.id) }
+        if card.transformable {
+            Menu(localized("Paste as…")) {
+                ForEach(TextTransform.allCases, id: \.rawValue) { transform in
+                    Button(transform.label) { actions.transform(card.id, transform) }
+                }
+            }
+        }
+        Divider()
+        if case .link(let url) = card.dragPayload {
+            Button(localized("Open Link")) { actions.openLink(url) }
+        }
+        if case .files(let paths) = card.dragPayload {
+            Button(localized("Reveal in Finder")) { actions.revealFiles(paths) }
+        }
+        if card.saveable {
+            Button(localized("Save As…")) { actions.saveToDisk(card.dragPayload) }
+        }
+        Divider()
+        Button(card.isPinned ? localized("Unpin") : localized("Pin")) { actions.togglePin(card.id) }
+        Button(card.stackPosition == nil ? localized("Add to Paste Stack") : localized("Remove from Paste Stack")) {
+            actions.stack(card.id)
+        }
+        Divider()
+        if let bundleID = card.sourceBundleID {
+            Button(String(format: localized("Exclude %@"), card.sourceLabel)) {
+                actions.excludeSource(bundleID, card.sourceLabel)
+            }
+        }
+        if let key = card.sourceKey {
+            Button(String(format: localized("Delete All from %@"), card.sourceLabel), role: .destructive) {
+                actions.deleteAllFromSource(key)
+            }
+        }
+        Button(localized("Delete"), role: .destructive) { actions.delete(card.id) }
     }
 
     @ViewBuilder private var selectionRing: some View {

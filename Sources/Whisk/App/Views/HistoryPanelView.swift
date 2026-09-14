@@ -209,12 +209,7 @@ struct HistoryPanelView: View {
                         if isMounted(index, selectedIndex: selectedIndex) {
                             ItemCardView(
                                 card: card,
-                                onSelect: { actions.select(card.id) },
-                                onHighlight: { actions.highlight(card.id) },
-                                onTogglePin: { actions.togglePin(card.id) },
-                                onDelete: { actions.delete(card.id) },
-                                onDragBegin: actions.dragBegan,
-                                onTransform: { actions.transform(card.id, $0) },
+                                actions: actions,
                                 showsSelection: !cursorOnSearch,
                                 side: store.cardSide
                             )

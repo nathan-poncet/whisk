@@ -129,6 +129,11 @@ struct CardViewState: Equatable, Identifiable {
     let dragPayload: DragPayload
     /// Whether the card holds text a paste-time transform can rewrite.
     let transformable: Bool
+    /// Whether "Save As…" applies: files already live on disk.
+    let saveable: Bool
+    /// The filter key of the card's application, for "delete all from"
+    /// and the exclusion; nil for a card without a source.
+    let sourceKey: String?
     /// Where the query's words landed in a textual preview, for the view
     /// to underline; empty without a live query.
     let matches: [MatchSpan]
@@ -148,6 +153,8 @@ struct CardViewState: Equatable, Identifiable {
         accessibilityValue: String,
         dragPayload: DragPayload,
         transformable: Bool = false,
+        saveable: Bool = false,
+        sourceKey: String? = nil,
         matches: [MatchSpan] = [],
         preview: CardPreview
     ) {
@@ -164,6 +171,8 @@ struct CardViewState: Equatable, Identifiable {
         self.accessibilityValue = accessibilityValue
         self.dragPayload = dragPayload
         self.transformable = transformable
+        self.saveable = saveable
+        self.sourceKey = sourceKey
         self.matches = matches
         self.preview = preview
     }

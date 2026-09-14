@@ -20,6 +20,12 @@ enum VimAction: String, CaseIterable, Identifiable {
     case search
     case clearSearch
     case closePanel
+    case copy
+    case open
+    case reveal
+    case save
+    case excludeSource
+    case deleteFromSource
 
     var id: String { rawValue }
 
@@ -40,6 +46,12 @@ enum VimAction: String, CaseIterable, Identifiable {
         case .search: localized("Start a search")
         case .clearSearch: localized("Clear the search")
         case .closePanel: localized("Close the panel")
+        case .copy: localized("Copy the selection without pasting")
+        case .open: localized("Open the selected link")
+        case .reveal: localized("Reveal the selected files in Finder")
+        case .save: localized("Save the selection as a file")
+        case .excludeSource: localized("Exclude the selection's application")
+        case .deleteFromSource: localized("Delete everything from the selection's application")
         }
     }
 
@@ -60,6 +72,12 @@ enum VimAction: String, CaseIterable, Identifiable {
         case .search: "s"
         case .clearSearch: "c"
         case .closePanel: "q"
+        case .copy: "y"
+        case .open: "o"
+        case .reveal: "r"
+        case .save: "w"
+        case .excludeSource: "X"
+        case .deleteFromSource: "D"
         }
     }
 }

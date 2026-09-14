@@ -149,6 +149,11 @@ final class HistoryPresenter {
             accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
             dragPayload: Self.dragPayload(of: item),
             transformable: item.payload.transformableText != nil,
+            saveable: {
+                if case .fileReferences = item.payload { return false }
+                return true
+            }(),
+            sourceKey: item.source?.filterKey,
             matches: Self.matchSpans(of: words, in: item),
             preview: cardPreview
         )

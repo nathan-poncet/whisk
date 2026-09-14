@@ -62,6 +62,12 @@ final class PanelKeyRouter {
             (.pinSelection, { self.actions.togglePinSelected() }),
             (.deleteSelection, { self.actions.deleteSelected() }),
             (.stackSelection, { self.actions.stackSelected() }),
+            (.copySelection, { self.actions.copySelected() }),
+            (.openSelection, { self.openSelected() }),
+            (.revealSelection, { self.revealSelected() }),
+            (.saveSelection, { self.saveSelected() }),
+            (.excludeSelectionSource, { self.excludeSelectedSource() }),
+            (.deleteSelectionSource, { self.deleteFromSelectedSource() }),
         ]
         for (action, perform) in panelActions where keyBindings.binding(for: action).matches(event) {
             perform()
@@ -151,7 +157,41 @@ final class PanelKeyRouter {
         case .search: stateStore.setSearchActive(true)
         case .clearSearch: actions.search("")
         case .closePanel: closePanel()
+        case .copy: actions.copySelected()
+        case .open: openSelected()
+        case .reveal: revealSelected()
+        case .save: saveSelected()
+        case .excludeSource: excludeSelectedSource()
+        case .deleteFromSource: deleteFromSelectedSource()
         }
+    }
+
+    // The card under the cursor decides whether a key does anything: a
+    // link opens, files reveal, anything but files saves.
+
+    private func openSelected() {
+        guard case .link(let url)? = stateStore.state.selectedCard?.dragPayload else { return }
+        actions.openLink(url)
+    }
+
+    private func revealSelected() {
+        guard case .files(let paths)? = stateStore.state.selectedCard?.dragPayload else { return }
+        actions.revealFiles(paths)
+    }
+
+    private func saveSelected() {
+        guard let card = stateStore.state.selectedCard, card.saveable else { return }
+        actions.saveToDisk(card.dragPayload)
+    }
+
+    private func excludeSelectedSource() {
+        guard let card = stateStore.state.selectedCard, let bundleID = card.sourceBundleID else { return }
+        actions.excludeSource(bundleID, card.sourceLabel)
+    }
+
+    private func deleteFromSelectedSource() {
+        guard let key = stateStore.state.selectedCard?.sourceKey else { return }
+        actions.deleteAllFromSource(key)
     }
 
     /// ⌘ + the digit the user actually typed → rail position 0…8. Shift is

@@ -270,6 +270,23 @@ import Testing
         #expect(state.cards[1].matches.isEmpty)
     }
 
+    @Test func cards_say_whether_they_save_and_which_application_they_belong_to() throws {
+        let url = try #require(URL(string: "https://example.com"))
+        let items = [
+            anItem(.text("t"), from: "Slack", bundle: "com.slack"), anItem(.link(url), from: "Safari"),
+            anItem(.image(Data([0x01])), from: nil), anItem(.fileReferences(["/tmp/a"]), from: "Finder"),
+        ]
+
+        let state = presenter.present(items: items, query: "", now: now)
+
+        #expect(state.cards.map(\.saveable) == [true, true, true, false])
+        #expect(state.cards.map(\.sourceKey) == ["com.slack", "Safari", nil, "Finder"])
+        #expect(SaveToDisk.proposal(for: .text("hi"))?.name == "Clipboard.txt")
+        #expect(SaveToDisk.proposal(for: .link(url))?.data == Data("https://example.com".utf8))
+        #expect(SaveToDisk.proposal(for: .image(Data([0x01])))?.name == "Clipboard.png")
+        #expect(SaveToDisk.proposal(for: .files(["/tmp/a"])) == nil)
+    }
+
     @Test func every_transform_has_a_distinct_menu_label() {
         let labels = TextTransform.allCases.map(\.label)
 

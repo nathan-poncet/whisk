@@ -13,7 +13,16 @@ final class PanelActionSpy {
         PanelActions(
             search: { [weak self] in self?.calls.append("search:\($0)") },
             select: { [weak self] in self?.calls.append("select:\($0)") },
+            selectPlain: { [weak self] in self?.calls.append("selectPlain:\($0)") },
+            copy: { [weak self] in self?.calls.append("copy:\($0)") },
+            copySelected: { [weak self] in self?.calls.append("copySelected") },
             transform: { [weak self] id, transform in self?.calls.append("transform:\(id):\(transform.rawValue)") },
+            openLink: { [weak self] in self?.calls.append("openLink:\($0.absoluteString)") },
+            revealFiles: { [weak self] in self?.calls.append("revealFiles:\($0.joined(separator: ","))") },
+            saveToDisk: { [weak self] in self?.calls.append("saveToDisk:\($0)") },
+            stack: { [weak self] in self?.calls.append("stack:\($0)") },
+            excludeSource: { [weak self] bundleID, name in self?.calls.append("excludeSource:\(bundleID):\(name)") },
+            deleteAllFromSource: { [weak self] in self?.calls.append("deleteAllFromSource:\($0)") },
             highlight: { [weak self] in self?.calls.append("highlight:\($0)") },
             activate: { [weak self] in self?.calls.append("activate") },
             activatePlain: { [weak self] in self?.calls.append("activatePlain") },
@@ -64,6 +73,21 @@ final class PanelActionSpy {
         func press(_ keyCode: Int, _ modifiers: NSEvent.ModifierFlags = [], typing text: String = "") throws -> Bool {
             let event = try #require(aKeyEvent(keyCode, modifiers, typing: text))
             return try #require(router).handle(event)
+        }
+
+        /// The letter shortcuts default to the live keyboard layout, so a
+        /// Dvorak tester's ⌘R would be ⌘P's key: pin them to ANSI codes.
+        func pinLetterShortcutsToANSI() {
+            let ansi: [(KeyAction, Int, NSEvent.ModifierFlags)] = [
+                (.togglePanel, kVK_ANSI_V, [.command, .shift]), (.pasteNextFromStack, kVK_ANSI_V, [.command, .option]),
+                (.previewSelection, kVK_ANSI_Y, [.command]), (.pinSelection, kVK_ANSI_P, [.command]),
+                (.copySelection, kVK_ANSI_C, [.command]), (.openSelection, kVK_ANSI_O, [.command]),
+                (.revealSelection, kVK_ANSI_R, [.command]), (.saveSelection, kVK_ANSI_S, [.command]),
+                (.excludeSelectionSource, kVK_ANSI_X, [.control, .command]),
+            ]
+            for (action, code, modifiers) in ansi {
+                keyBindings.set(KeyBinding(keyCode: UInt16(code), modifiers: modifiers), for: action)
+            }
         }
     }
 
@@ -182,6 +206,67 @@ final class PanelActionSpy {
         #expect(!(try fixture.press(kVK_F5, typing: "\u{F708}")))
 
         #expect(fixture.spy.calls == ["switchChipGroup", "togglePinSelected"])
+    }
+
+    @Test func card_actions_route_by_what_the_selected_card_holds() throws {
+        let fixture = try Fixture(vim: false)
+        fixture.pinLetterShortcutsToANSI()
+        let url = try #require(URL(string: "https://example.com"))
+        let items = [
+            anItem(.link(url), from: "Safari", bundle: "com.apple.Safari"),
+            anItem(.fileReferences(["/tmp/a", "/tmp/b"]), from: "Finder", bundle: "com.apple.finder"),
+            anItem(.text("plain"), from: "Notes"),
+        ]
+        let presenter = HistoryPresenter()
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        func select(_ index: Int) {
+            fixture.stateStore.update(
+                presenter.present(items: items, query: "", now: now, selectedID: items[index].id))
+        }
+
+        select(0)
+        #expect(try fixture.press(kVK_ANSI_C, [.command], typing: "c"))
+        #expect(try fixture.press(kVK_ANSI_O, [.command], typing: "o"))
+        #expect(try fixture.press(kVK_ANSI_R, [.command], typing: "r"))
+        #expect(try fixture.press(kVK_ANSI_S, [.command], typing: "s"))
+        #expect(try fixture.press(kVK_ANSI_X, [.control, .command], typing: "x"))
+        #expect(try fixture.press(kVK_Delete, [.control, .command]))
+        select(1)
+        #expect(try fixture.press(kVK_ANSI_O, [.command], typing: "o"))
+        #expect(try fixture.press(kVK_ANSI_R, [.command], typing: "r"))
+        #expect(try fixture.press(kVK_ANSI_S, [.command], typing: "s"))
+        select(2)
+        #expect(try fixture.press(kVK_ANSI_X, [.control, .command], typing: "x"))
+        #expect(try fixture.press(kVK_Delete, [.control, .command]))
+
+        #expect(
+            fixture.spy.calls == [
+                "copySelected", "openLink:https://example.com", "saveToDisk:link(https://example.com)",
+                "excludeSource:com.apple.Safari:Safari", "deleteAllFromSource:com.apple.Safari",
+                "revealFiles:/tmp/a,/tmp/b", "deleteAllFromSource:Notes",
+            ])
+    }
+
+    @Test func vim_keys_reach_the_same_card_actions() throws {
+        let fixture = try Fixture(vim: true)
+        let url = try #require(URL(string: "https://example.com"))
+        let item = anItem(.link(url), from: "Safari", bundle: "com.apple.Safari")
+        fixture.stateStore.update(
+            HistoryPresenter().present(
+                items: [item], query: "", now: Date(timeIntervalSince1970: 1_700_000_000), selectedID: item.id))
+
+        #expect(try fixture.press(kVK_ANSI_Y, typing: "y"))
+        #expect(try fixture.press(kVK_ANSI_O, typing: "o"))
+        #expect(try fixture.press(kVK_ANSI_R, typing: "r"))
+        #expect(try fixture.press(kVK_ANSI_W, typing: "w"))
+        #expect(try fixture.press(kVK_ANSI_X, [.shift], typing: "X"))
+        #expect(try fixture.press(kVK_ANSI_D, [.shift], typing: "D"))
+
+        #expect(
+            fixture.spy.calls == [
+                "copySelected", "openLink:https://example.com", "saveToDisk:link(https://example.com)",
+                "excludeSource:com.apple.Safari:Safari", "deleteAllFromSource:com.apple.Safari",
+            ])
     }
 
     @Test func in_vim_search_mode_return_commits_and_goes_back_to_normal() throws {

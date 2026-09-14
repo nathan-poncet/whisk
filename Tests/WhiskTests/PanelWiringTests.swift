@@ -12,6 +12,7 @@ import Testing
         private(set) var hides = 0
         private(set) var pastes = 0
         private(set) var drags = 0
+        private(set) var system: [String] = []
         let controller: ClipboardController<ScriptedPasteboard, FakeClock, InMemoryHistoryStore, RecordingLogger>
         private(set) var actions: PanelActions?
 
@@ -24,7 +25,12 @@ import Testing
                 searchDebounce: Debouncer(delay: 0.18, scheduler: clock.schedule),
                 hidePanel: { [unowned self] in hides += 1 },
                 paste: { [unowned self] in pastes += 1 },
-                dragBegan: { [unowned self] in drags += 1 })
+                dragBegan: { [unowned self] in drags += 1 },
+                system: PanelWiring.SystemActions(
+                    openLink: { [unowned self] in system.append("open:\($0.absoluteString)") },
+                    revealFiles: { [unowned self] in system.append("reveal:\($0.joined(separator: ","))") },
+                    saveToDisk: { [unowned self] in system.append("save:\($0)") },
+                    excludeSource: { [unowned self] bundleID, name in system.append("exclude:\(bundleID):\(name)") }))
         }
 
         convenience init(_ payloads: [Payload]) {
@@ -83,6 +89,45 @@ import Testing
         #expect(fixture.pasteboard.written == [.text("ALPHA")])
         #expect(fixture.hides == 1)
         #expect(fixture.pastes == 1)
+    }
+
+    @Test func copying_writes_and_closes_without_pasting_and_plain_pastes_strip_formatting() throws {
+        let fixture = Fixture([.text("alpha")])
+        let alpha = fixture.spy.last.cards[0].id
+
+        try fixture.wired.copy(alpha)
+        try fixture.wired.copySelected()
+        try fixture.wired.selectPlain(alpha)
+
+        #expect(fixture.pasteboard.written == [.text("alpha"), .text("alpha"), .text("alpha")])
+        #expect(fixture.hides == 3)
+        #expect(fixture.pastes == 1)
+    }
+
+    @Test func system_actions_close_the_panel_first_and_stack_and_source_deletion_reach_the_controller() throws {
+        let url = try #require(URL(string: "https://example.com"))
+        let fixture = Fixture([
+            anItem(.link(url), from: "Safari", bundle: "com.apple.Safari"),
+            anItem(.text("note"), from: "Notes", bundle: "com.apple.notes"),
+            anItem(.text("kept"), from: "Notes", bundle: "com.apple.notes", pinned: true),
+        ])
+        let link = fixture.spy.last.cards[0].id
+
+        try fixture.wired.openLink(url)
+        try fixture.wired.revealFiles(["/tmp/a"])
+        try fixture.wired.saveToDisk(.text("x"))
+        try fixture.wired.excludeSource("com.apple.Safari", "Safari")
+        try fixture.wired.stack(link)
+        #expect(fixture.spy.last.stackCount == 1)
+        try fixture.wired.deleteAllFromSource("com.apple.notes")
+
+        #expect(fixture.hides == 3)
+        #expect(fixture.pastes == 0)
+        #expect(
+            fixture.system == [
+                "open:https://example.com", "reveal:/tmp/a", "save:text(\"x\")", "exclude:com.apple.Safari:Safari",
+            ])
+        #expect(fixture.spy.last.cards.map(\.preview) == [.link("https://example.com"), .text("kept")])
     }
 
     @Test func an_empty_rail_position_neither_closes_nor_pastes() throws {
