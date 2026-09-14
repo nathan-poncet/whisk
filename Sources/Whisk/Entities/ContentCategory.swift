@@ -47,7 +47,9 @@ extension Payload {
                 score += 1
             }
         }
-        if let methodCall, methodCall.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil {
+        if let methodCallPattern,
+            methodCallPattern.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
+        {
             score += 2
         }
         return score >= 4
@@ -59,5 +61,7 @@ extension Payload {
         "=>", "->", "&&", "||", "==", "!=",
     ]
 
-    private static let methodCall = try? NSRegularExpression(pattern: "\\.[A-Za-z_]\\w*\\(")
+    /// Optional so a bad pattern degrades to "no match" instead of
+    /// trapping; a test compiles it once so it can never stay bad.
+    static let methodCallPattern = try? NSRegularExpression(pattern: "\\.[A-Za-z_]\\w*\\(")
 }

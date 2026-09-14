@@ -38,7 +38,9 @@ enum CodeHighlighter {
     }
 
     // Comments and strings run first so keywords inside them stay claimed.
-    private static let passes: [(CodeToken.Kind, NSRegularExpression?)] = [
+    // Optional patterns degrade to no color instead of trapping; a test
+    // compiles every one of them once.
+    static let passes: [(CodeToken.Kind, NSRegularExpression?)] = [
         (.comment, regex("//[^\\n]*|/\\*[\\s\\S]*?\\*/|(?<=^|\\s)#(?!include)[^\\n]*")),
         (.string, regex("\"(?:\\\\.|[^\"\\\\\\n])*\"|'(?:\\\\.|[^'\\\\\\n])*'")),
         (

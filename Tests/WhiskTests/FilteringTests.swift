@@ -38,6 +38,12 @@ import Testing
         #expect(Payload.text("I said rgb(1, 2, 3) in a sentence").category == .text)
     }
 
+    @Test func every_classification_and_highlighting_pattern_compiles() {
+        #expect(Payload.methodCallPattern != nil)
+        #expect(CodeHighlighter.passes.count == 4)
+        #expect(CodeHighlighter.passes.allSatisfy { $0.1 != nil })
+    }
+
     @Test func letter_only_words_are_not_read_as_bare_hex_colors() {
         #expect(Payload.text("facade").category == .text)
         #expect(Payload.text("decade").category == .text)
