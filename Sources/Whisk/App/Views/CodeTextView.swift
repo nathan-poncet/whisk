@@ -9,13 +9,15 @@ struct CodeTextView: View {
     var lineLimit: Int? = 8
 
     var body: some View {
-        Text(attributed)
+        Text(Self.attributed(text, tokens: tokens))
             .font(.system(size: 12, design: .monospaced))
             .lineSpacing(1.5)
             .lineLimit(lineLimit)
     }
 
-    private var attributed: AttributedString {
+    /// The text in the label color, each token recolored by kind; a token
+    /// pointing past the end is ignored rather than trusted.
+    static func attributed(_ text: String, tokens: [CodeToken]) -> AttributedString {
         let rendered = NSMutableAttributedString(string: text)
         let full = NSRange(location: 0, length: rendered.length)
         rendered.addAttribute(.foregroundColor, value: NSColor.labelColor, range: full)
@@ -27,7 +29,7 @@ struct CodeTextView: View {
         return AttributedString(rendered)
     }
 
-    private func color(for kind: CodeToken.Kind) -> NSColor {
+    static func color(for kind: CodeToken.Kind) -> NSColor {
         switch kind {
         case .keyword: return .systemPurple
         case .string: return .systemRed
