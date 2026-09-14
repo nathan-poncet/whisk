@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-14
+
 ### Added
 - Link previews can be switched off in Settings, under Privacy: no
   request leaves the Mac and link cards show the bare address, including
@@ -352,7 +354,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/nathan-poncet/whisk/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/nathan-poncet/whisk/compare/v0.8.5...v0.9.0
 [0.8.5]: https://github.com/nathan-poncet/whisk/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/nathan-poncet/whisk/compare/v0.8.3...v0.8.4
