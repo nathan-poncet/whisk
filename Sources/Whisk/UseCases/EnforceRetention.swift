@@ -14,7 +14,9 @@ struct EnforceRetention<Store: HistoryStore> {
         if let maxAge = policy.maxAge {
             next = next.removingUnpinned(olderThan: now.addingTimeInterval(-maxAge))
         }
-        guard next != history else { return history }
+        // A capacity that merely changed is adopted without a write: only
+        // the items decide whether the store has anything new to hold.
+        guard next.items != history.items else { return next }
         try store.save(next.items)
         return next
     }
