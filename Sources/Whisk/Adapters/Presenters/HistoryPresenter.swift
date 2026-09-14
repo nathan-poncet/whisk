@@ -1,36 +1,73 @@
 import Foundation
 
-/// What the controller knows about filtering, handed over for the chip bar.
-/// The focused index is flat across the whole row: pinned chip first, then
-/// the apps, then the categories.
-struct FilterContext: Equatable {
-    let sources: [SourceApp]
-    let categories: [ContentCategory]
-    let activeSourceKeys: Set<String>
-    let activeCategories: Set<ContentCategory>
-    let focusedChipIndex: Int?
-    let hasPinned: Bool
-    let pinnedOnly: Bool
+/// The pinned filter leads the chip row as its own group — it is neither
+/// an application nor a content category.
+let pinnedChipID = "pinned"
 
-    init(
-        sources: [SourceApp],
-        categories: [ContentCategory],
-        activeSourceKeys: Set<String> = [],
-        activeCategories: Set<ContentCategory> = [],
-        focusedChipIndex: Int? = nil,
-        hasPinned: Bool = false,
-        pinnedOnly: Bool = false
-    ) {
-        self.sources = sources
-        self.categories = categories
-        self.activeSourceKeys = activeSourceKeys
-        self.activeCategories = activeCategories
-        self.focusedChipIndex = focusedChipIndex
-        self.hasPinned = hasPinned
-        self.pinnedOnly = pinnedOnly
+/// The three groups of the chip row, in display order.
+enum ChipGroup: Equatable {
+    case pinned
+    case apps
+    case kinds
+}
+
+/// One chip of the filter row. The row's order is decided in `row` alone:
+/// the controller steers the keyboard along that list and the presenter
+/// renders it, so an index can never land on a chip other than the one
+/// drawn.
+enum ChipEntry: Equatable {
+    case pinned
+    case app(SourceApp)
+    case category(ContentCategory)
+
+    var id: String {
+        switch self {
+        case .pinned: pinnedChipID
+        case .app(let source): source.filterKey
+        case .category(let category): category.rawValue
+        }
     }
 
-    static let empty = FilterContext(sources: [], categories: [])
+    var group: ChipGroup {
+        switch self {
+        case .pinned: .pinned
+        case .app: .apps
+        case .category: .kinds
+        }
+    }
+
+    /// The pinned toggle first, then one chip per source application,
+    /// then one per content category.
+    static func row(hasPinned: Bool, sources: [SourceApp], categories: [ContentCategory]) -> [ChipEntry] {
+        (hasPinned ? [ChipEntry.pinned] : []) + sources.map(ChipEntry.app) + categories.map(ChipEntry.category)
+    }
+}
+
+/// What the controller knows about filtering, handed over for the chip
+/// bar: the row as steered, which chips are active, and which one holds
+/// the keyboard cursor.
+struct FilterContext: Equatable {
+    let chips: [ChipEntry]
+    let activeSourceKeys: Set<String>
+    let activeCategories: Set<ContentCategory>
+    let pinnedOnly: Bool
+    let focusedChipID: String?
+
+    init(
+        chips: [ChipEntry] = [],
+        activeSourceKeys: Set<String> = [],
+        activeCategories: Set<ContentCategory> = [],
+        pinnedOnly: Bool = false,
+        focusedChipID: String? = nil
+    ) {
+        self.chips = chips
+        self.activeSourceKeys = activeSourceKeys
+        self.activeCategories = activeCategories
+        self.pinnedOnly = pinnedOnly
+        self.focusedChipID = focusedChipID
+    }
+
+    static let empty = FilterContext()
 }
 
 /// Maps kernel entities to display-ready view state. Pure in behaviour —
@@ -157,48 +194,45 @@ final class HistoryPresenter {
         )
     }
 
-    // Pinned leads its own group, then the apps, then the categories; the
-    // controller mirrors this flat ordering for keyboard navigation.
+    // The row arrives already ordered; each entry lands in its group.
     private func filterBar(from context: FilterContext) -> FilterBarViewState {
-        var flatIndex = 0
         var pinned: [FilterChip] = []
-        if context.hasPinned {
-            pinned.append(
-                FilterChip(
-                    id: pinnedChipID,
-                    label: localized("Pinned"),
-                    sourceBundleID: nil,
-                    isActive: context.pinnedOnly,
-                    isFocused: flatIndex == context.focusedChipIndex
-                )
-            )
-            flatIndex += 1
-        }
         var apps: [FilterChip] = []
-        for source in context.sources {
-            apps.append(
-                FilterChip(
-                    id: source.filterKey,
-                    label: source.name ?? source.bundleID ?? localized("Unknown"),
-                    sourceBundleID: source.bundleID,
-                    isActive: context.activeSourceKeys.contains(source.filterKey),
-                    isFocused: flatIndex == context.focusedChipIndex
-                )
-            )
-            flatIndex += 1
-        }
         var kinds: [FilterChip] = []
-        for category in context.categories {
-            kinds.append(
-                FilterChip(
-                    id: category.rawValue,
-                    label: Self.kindLabel(category).capitalized,
-                    sourceBundleID: nil,
-                    isActive: context.activeCategories.contains(category),
-                    isFocused: flatIndex == context.focusedChipIndex
+        for entry in context.chips {
+            let isFocused = entry.id == context.focusedChipID
+            switch entry {
+            case .pinned:
+                pinned.append(
+                    FilterChip(
+                        id: entry.id,
+                        label: localized("Pinned"),
+                        sourceBundleID: nil,
+                        isActive: context.pinnedOnly,
+                        isFocused: isFocused
+                    )
                 )
-            )
-            flatIndex += 1
+            case .app(let source):
+                apps.append(
+                    FilterChip(
+                        id: entry.id,
+                        label: source.name ?? source.bundleID ?? localized("Unknown"),
+                        sourceBundleID: source.bundleID,
+                        isActive: context.activeSourceKeys.contains(entry.id),
+                        isFocused: isFocused
+                    )
+                )
+            case .category(let category):
+                kinds.append(
+                    FilterChip(
+                        id: entry.id,
+                        label: Self.kindLabel(category).capitalized,
+                        sourceBundleID: nil,
+                        isActive: context.activeCategories.contains(category),
+                        isFocused: isFocused
+                    )
+                )
+            }
         }
         return FilterBarViewState(pinned: pinned, apps: apps, kinds: kinds)
     }

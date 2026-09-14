@@ -20,22 +20,6 @@ enum PanelZone {
     case cards
 }
 
-/// One chip of the filter row, in display order: the pinned toggle first,
-/// then one chip per source application, then one per content category.
-enum ChipEntry: Equatable {
-    case pinned
-    case app(SourceApp)
-    case category(ContentCategory)
-
-    var id: String {
-        switch self {
-        case .pinned: pinnedChipID
-        case .app(let source): source.filterKey
-        case .category(let category): category.rawValue
-        }
-    }
-}
-
 /// A key-arrow press, routed by the controller to a zone change (up/down)
 /// or a move within the focused zone (left/right).
 enum ArrowDirection {
@@ -44,11 +28,6 @@ enum ArrowDirection {
     case left
     case right
 }
-
-/// The pinned filter leads the chip row as its own group — it is neither
-/// an application nor a content category; controller navigation and
-/// presenter rendering share this id.
-let pinnedChipID = "pinned"
 
 /// Translates UI and OS events into use case invocations and hands each
 /// result to the presenter. Owns the current history, search query and
@@ -504,29 +483,18 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         ).contains(where: \.isPinned)
     }
 
-    // Mirrors the presenter's chip ordering — pinned, then apps, then
-    // categories — so keyboard indices land on what is drawn.
+    /// The row the keyboard steers — the same list the presenter renders.
     private var chipEntries: [ChipEntry] {
-        (hasPinnedInScope ? [ChipEntry.pinned] : [])
-            + availableSources.map { ChipEntry.app($0) }
-            + availableCategories.map { ChipEntry.category($0) }
+        ChipEntry.row(hasPinned: hasPinnedInScope, sources: availableSources, categories: availableCategories)
     }
 
     /// First flat index of each chip group actually present, for ⌃⇥.
     private var chipGroupStarts: [Int] {
         var starts: [Int] = []
-        var offset = 0
-        if hasPinnedInScope {
-            starts.append(0)
-            offset += 1
-        }
-        let sources = availableSources
-        if !sources.isEmpty {
-            starts.append(offset)
-            offset += sources.count
-        }
-        if !availableCategories.isEmpty {
-            starts.append(offset)
+        var previous: ChipGroup?
+        for (index, chip) in chipEntries.enumerated() where chip.group != previous {
+            starts.append(index)
+            previous = chip.group
         }
         return starts
     }
@@ -564,7 +532,6 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         activeSourceKeys = activeSourceKeys.filter { key in
             history.items.contains { $0.source?.filterKey == key }
         }
-        let sources = availableSources
         let scopedCategories = Set(
             filterHistory(
                 history,
@@ -572,9 +539,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             ).map(\.category)
         )
         activeCategories = activeCategories.intersection(scopedCategories)
-        let categories = availableCategories
-        let pinnedInScope = hasPinnedInScope
-        if pinnedOnly, !pinnedInScope {
+        if pinnedOnly, !hasPinnedInScope {
             pinnedOnly = false
         }
         let chips = chipEntries
@@ -599,13 +564,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 selectedID: focusZone == .cards ? selectedID : nil,
                 stack: pasteStack,
                 filters: FilterContext(
-                    sources: sources,
-                    categories: categories,
+                    chips: chips,
                     activeSourceKeys: activeSourceKeys,
                     activeCategories: activeCategories,
-                    focusedChipIndex: focusZone == .chips ? focusedChipIndex : nil,
-                    hasPinned: pinnedInScope,
-                    pinnedOnly: pinnedOnly
+                    pinnedOnly: pinnedOnly,
+                    focusedChipID: focusZone == .chips ? focusedChipID : nil
                 )
             )
         )
