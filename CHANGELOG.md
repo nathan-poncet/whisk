@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-14
+
 ### Added
 - The search bar understands the `pinned` word, alongside `app:` and
   `type:`, as the README had promised.
@@ -323,7 +325,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v0.8.5...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/nathan-poncet/whisk/compare/v0.8.5...v0.9.0
 [0.8.5]: https://github.com/nathan-poncet/whisk/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/nathan-poncet/whisk/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/nathan-poncet/whisk/compare/v0.8.2...v0.8.3
