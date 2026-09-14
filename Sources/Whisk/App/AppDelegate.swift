@@ -125,6 +125,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         clipboard.applyRetention(generalSettings.policy)
         clipboard.applyExclusions(generalSettings.excludedBundleIDs)
+        clipboard.setLayoutDirection(
+            NSApp.userInterfaceLayoutDirection == .rightToLeft ? .rightToLeft : .leftToRight)
         // willSet semantics again: hop to the next cycle so the policy is
         // read after the setting has landed.
         settingsObserver = generalSettings.objectWillChange

@@ -20,6 +20,13 @@ enum PanelZone {
     case cards
 }
 
+/// Which way the rail and the chip row flow. Left and right arrows are
+/// visual: they mirror in a right-to-left layout.
+enum LayoutDirection {
+    case leftToRight
+    case rightToLeft
+}
+
 /// A key-arrow press, routed by the controller to a zone change (up/down)
 /// or a move within the focused zone (left/right).
 enum ArrowDirection {
@@ -54,6 +61,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// the row, and an index would land the cursor on a different chip.
     private var focusedChipID: String?
     private var focusedChipIndex = 0
+    private var layoutDirection: LayoutDirection = .leftToRight
 
     private let capture: CaptureClipboardChange<Board, Time, Store>
     private let selectItem: SelectItem<Board, Time, Store>
@@ -116,6 +124,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// Suspends or resumes capture; everything else keeps working.
     func setPaused(_ paused: Bool) {
         isPaused = paused
+    }
+
+    /// The arrows follow the direction the interface reads in.
+    func setLayoutDirection(_ direction: LayoutDirection) {
+        layoutDirection = direction
     }
 
     /// Applications whose copies must never be recorded.
@@ -274,7 +287,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     func navigate(_ direction: ArrowDirection) {
         switch direction {
         case .left, .right:
-            navigateHorizontally(direction == .right ? 1 : -1)
+            let forward = (direction == .right) == (layoutDirection == .leftToRight)
+            navigateHorizontally(forward ? 1 : -1)
         case .up:
             if focusZone == .cards, !chipEntries.isEmpty {
                 focusZone = .chips
