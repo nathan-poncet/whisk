@@ -16,3 +16,20 @@ ignore='(/Tests/|/\.build/)'
 xcrun llvm-cov export "$binary" -instr-profile "$profdata" -ignore-filename-regex="$ignore" -format=lcov \
   > .build/coverage.lcov
 xcrun llvm-cov report "$binary" -instr-profile "$profdata" -ignore-filename-regex="$ignore" -use-color=false
+
+# The gate measures what a unit test can reach. Four files stay out of
+# it because exercising them has side effects no test may have: the
+# composition root (status item, timers, global shortcuts), the Carbon
+# hot key, the paste simulation that sends ⌘V, and the entry point. They
+# are still in the report above.
+untestable='AppDelegate\.swift|HotKey\.swift|PasteSimulator\.swift|main\.swift'
+gated="$(xcrun llvm-cov report "$binary" -instr-profile "$profdata" \
+  -ignore-filename-regex="(/Tests/|/\.build/|$untestable)" -use-color=false \
+  | awk '$1 == "TOTAL" { print $10 }' | tr -d '%')"
+echo "Coverage gate: ${gated}% of testable lines (minimum ${COVERAGE_MIN:-not set})"
+if [ -n "${COVERAGE_MIN:-}" ]; then
+  awk -v got="$gated" -v min="$COVERAGE_MIN" 'BEGIN { exit (got + 0 >= min + 0) ? 0 : 1 }' || {
+    echo "Line coverage of the testable code fell under ${COVERAGE_MIN}%." >&2
+    exit 1
+  }
+fi

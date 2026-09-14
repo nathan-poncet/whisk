@@ -79,7 +79,10 @@ TDD is the house style: write the failing test first. Conventions:
   one case per state the view can show. A test must never put a window
   on screen, register a hot key or touch the general pasteboard.
 - `./scripts/coverage.sh` runs the suite with coverage and prints the
-  per-file report CI archives.
+  per-file report CI archives. CI fails under 90 % line coverage of the
+  testable code (everything but `AppDelegate`, `HotKey`, `PasteSimulator`
+  and `main`); run it as `COVERAGE_MIN=90 ./scripts/coverage.sh` before
+  pushing.
 
 ## User-facing strings
 
@@ -98,6 +101,9 @@ either language, missing from the catalogs, or no longer used.
   🐛 fix, ♻️ refactor, ✅ tests, 📝 docs, 👷 CI, 🌐 i18n, 🔒 security…
 - Keep PRs focused: one feature or fix per PR, with tests for behaviour
   changes.
+- Anything a user would notice gets a line under `[Unreleased]` in
+  [CHANGELOG.md](CHANGELOG.md); the release moves that section under the
+  new version and its notes are taken from it.
 - `main` is protected — all changes land through a PR with CI green.
 
 ## Reporting bugs & proposing features
