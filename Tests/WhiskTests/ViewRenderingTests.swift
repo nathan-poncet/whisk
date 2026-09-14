@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import SwiftUI
 import Testing
 
@@ -81,19 +82,29 @@ enum ViewFixtures {
         FileThumbnailStore.shared.store(swatch, for: thumbnailed)
     }
 
-    static func state(selecting index: Int? = 0, query: String = "", pinnedOnly: Bool = false) -> HistoryViewState {
-        let items = items()
+    static func chipRow() -> [ChipEntry] {
         let sources = [
             SourceApp(name: "Slack", bundleID: "com.slack"), SourceApp(name: "Ghostty", bundleID: "dev.ghostty"),
             SourceApp(name: "Figma"), SourceApp(name: "Safari"),
+            SourceApp(name: "Finder", bundleID: "com.apple.finder"),
         ].compactMap { $0 }
-        let row = ChipEntry.row(hasPinned: true, sources: sources, categories: ContentCategory.allCases)
+        return ChipEntry.row(hasPinned: true, sources: sources, categories: ContentCategory.allCases)
+    }
+
+    static func state(selecting index: Int? = 0, query: String = "", pinnedOnly: Bool = false) -> HistoryViewState {
+        let items = items()
         return HistoryPresenter().present(
             items: items, query: query, now: now.addingTimeInterval(90),
             selectedID: index.map { items[$0].id }, stack: [items[1].id, items[2].id],
             filters: FilterContext(
-                chips: row, activeSourceKeys: ["com.slack"], activeCategories: [.code], pinnedOnly: pinnedOnly,
+                chips: chipRow(), activeSourceKeys: ["com.slack"], activeCategories: [.code], pinnedOnly: pinnedOnly,
                 focusedChipID: "dev.ghostty"))
+    }
+
+    /// Enough cards that the rail's mounting window leaves placeholders.
+    static func longState() -> HistoryViewState {
+        let items = (0..<24).map { anItem(.text("entry \($0)"), at: now) }
+        return HistoryPresenter().present(items: items, query: "", now: now, selectedID: items[0].id)
     }
 
     static func card(_ card: CardViewState, showsSelection: Bool = true) -> ItemCardView {
@@ -140,8 +151,8 @@ enum ViewFixtures {
     @Test func the_chip_row_renders_active_focused_and_suppressed_chips() {
         let filters = ViewFixtures.state().filters
         let bar = FilterBarView(
-            filters: filters, cursorSuppressed: false, onToggleApp: { _ in }, onToggleKind: { _ in },
-            onFocusApp: { _ in }, onFocusKind: { _ in })
+            filters: filters, onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in },
+            onFocusKind: { _ in })
         let suppressed = FilterBarView(
             filters: filters, cursorSuppressed: true, onToggleApp: { _ in }, onToggleKind: { _ in },
             onFocusApp: { _ in }, onFocusKind: { _ in })
@@ -150,12 +161,85 @@ enum ViewFixtures {
         #expect(render(suppressed, 900, 44) != nil)
         #expect(hostOffscreen(bar, 900, 44).contentView != nil)
     }
+
+    @Test func chips_fall_back_when_their_resource_is_missing_or_they_have_no_icon() {
+        let odd = FilterBarViewState(
+            pinned: [],
+            apps: [],
+            kinds: [
+                FilterChip(
+                    id: "a", label: "Odd", sourceBundleID: nil, icon: .resource("no-such-icon", fallback: "square"),
+                    accessibilityLabel: "Odd", isActive: true, isFocused: false),
+                FilterChip(
+                    id: "b", label: "Bare", sourceBundleID: nil, icon: nil, accessibilityLabel: "Bare",
+                    isActive: false, isFocused: true),
+            ])
+        let bar = FilterBarView(
+            filters: odd, onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in }, onFocusKind: { _ in })
+
+        #expect(render(bar, 400, 44) != nil)
+    }
+
+    @Test func a_hosted_chip_row_scrolls_to_the_chip_that_takes_the_cursor() throws {
+        let store = HistoryViewStateStore()
+        let spy = PanelActionSpy()
+        store.update(ViewFixtures.state())
+        let window = hostOffscreen(HistoryPanelView(store: store, actions: spy.actions), 1200, 430)
+        let hosting = try #require(window.contentView)
+        pump(hosting)
+
+        let items = ViewFixtures.items()
+        let moved = HistoryPresenter().present(
+            items: items, query: "", now: ViewFixtures.now, selectedID: nil,
+            filters: FilterContext(chips: ViewFixtures.chipRow(), focusedChipID: "pinned"))
+        store.update(moved)
+        pump(hosting)
+
+        #expect(store.state.filters.focusedChipID == "pinned")
+    }
+}
+
+/// Lets SwiftUI process the state changes a hosted view observes.
+@MainActor
+private func pump(_ hosting: NSView) {
+    RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+    hosting.layoutSubtreeIfNeeded()
+    hosting.displayIfNeeded()
 }
 
 @MainActor
 @Suite struct PanelRendering {
+    private let spy = PanelActionSpy()
+
     private func panel(_ store: HistoryViewStateStore) -> HistoryPanelView {
-        HistoryPanelView(store: store, actions: PanelActionSpy().actions)
+        HistoryPanelView(store: store, actions: spy.actions)
+    }
+
+    @Test func a_hosted_panel_follows_state_changes_selection_focus_modes_and_close() throws {
+        let store = HistoryViewStateStore()
+        store.update(ViewFixtures.longState())
+        let window = hostOffscreen(panel(store), 1200, 430)
+        let hosting = try #require(window.contentView)
+        pump(hosting)
+
+        store.update(
+            HistoryPresenter().present(
+                items: ViewFixtures.items(), query: "arrive", now: ViewFixtures.now,
+                selectedID: ViewFixtures.items()[0].id))
+        pump(hosting)
+        store.requestSearchFocus()
+        pump(hosting)
+        store.configureInput(vim: true, searchKey: "s")
+        store.setSearchActive(true)
+        pump(hosting)
+        store.setSearchActive(false)
+        pump(hosting)
+        store.update(HistoryPresenter().present(items: ViewFixtures.items(), query: "", now: ViewFixtures.now))
+        pump(hosting)
+        store.panelDidClose()
+        pump(hosting)
+
+        #expect(store.closeRevision == 1)
     }
 
     @Test func the_panel_renders_populated_empty_and_in_every_vim_mode() {
@@ -235,5 +319,68 @@ enum ViewFixtures {
         #expect(glass.contentView != nil)
         #expect(BackdropBlurTuner.backdropLayer(in: CALayer()) == nil)
         #expect(!BackdropBlurTuner.tune(nil, radius: 3))
+    }
+}
+
+@MainActor
+@Suite struct DragProviders {
+    @Test func each_payload_kind_becomes_an_item_provider() throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("whisk-drag-\(UUID().uuidString).txt")
+        defer { try? FileManager.default.removeItem(at: file) }
+        try Data("dragged".utf8).write(to: file)
+        let url = try #require(URL(string: "https://example.com"))
+
+        #expect(ItemCardView.dragProvider(for: .text("hello")).canLoadObject(ofClass: NSString.self))
+        #expect(ItemCardView.dragProvider(for: .link(url)).canLoadObject(ofClass: NSURL.self))
+        #expect(ItemCardView.dragProvider(for: .image(ViewFixtures.png)).canLoadObject(ofClass: NSImage.self))
+        #expect(!ItemCardView.dragProvider(for: .image(Data([0x01]))).canLoadObject(ofClass: NSImage.self))
+        #expect(!ItemCardView.dragProvider(for: .files([file.path])).registeredTypeIdentifiers.isEmpty)
+        #expect(ItemCardView.dragProvider(for: .files([])).registeredTypeIdentifiers.isEmpty)
+    }
+}
+
+@MainActor
+@Suite struct DefaultArguments {
+    @Test func the_defaults_of_the_views_and_helpers_construct() throws {
+        let sandbox = try IsolatedDefaults()
+        let store = HistoryViewStateStore()
+        let card = ViewFixtures.state().cards[0]
+
+        _ = ItemCardView(card: card, onSelect: {}, onHighlight: {}, onTogglePin: {}, onDelete: {}, onDragBegin: {})
+        #expect(render(CodeTextView(text: "let a = 1", tokens: []), 200, 100) != nil)
+        _ = UpdateChecker()
+        _ = PanelKeyRouter(
+            stateStore: store, actions: PanelActionSpy().actions,
+            keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+            vimBindings: VimBindingsStore(defaults: sandbox.defaults), togglePreview: {}, closePanel: {})
+
+        let bindings = KeyBindingsStore(defaults: sandbox.defaults)
+        bindings.set(KeyBinding(keyCode: 0xFF, modifiers: []), for: .pinSelection)
+        bindings.set(KeyBinding(keyCode: 1, modifiers: []), for: .deleteSelection)
+        #expect(bindings.label(for: .pinSelection) == "key 255")
+        bindings.resetAll()
+        #expect(!bindings.isCustomized(.pinSelection) && !bindings.isCustomized(.deleteSelection))
+    }
+
+    @Test func a_backdrop_view_tunes_its_blur_when_it_has_a_layer() {
+        _ = NSApplication.shared
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 120, height: 80), styleMask: .borderless, backing: .buffered,
+            defer: false)
+        window.isReleasedWhenClosed = false
+        let backdrop = BackdropView()
+        backdrop.wantsLayer = true
+        backdrop.cornerRadius = 8
+        window.contentView = backdrop
+        backdrop.layoutSubtreeIfNeeded()
+        backdrop.updateLayer()
+        let veil = GradientVeilView()
+        veil.wantsLayer = true
+        veil.frame = NSRect(x: 0, y: 0, width: 120, height: 80)
+        veil.layoutSubtreeIfNeeded()
+        veil.updateLayer()
+
+        #expect(backdrop.maskImage != nil)
+        #expect(veil.maskImage != nil)
     }
 }

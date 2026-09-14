@@ -56,6 +56,8 @@ import Testing
         let database = directory.appendingPathComponent("history.sqlite")
         let garbage = Data(repeating: 0x42, count: 8192)
         try garbage.write(to: database)
+        try Data([0x01]).write(to: URL(fileURLWithPath: database.path + "-wal"))
+        try Data([0x01]).write(to: URL(fileURLWithPath: database.path + "-shm"))
         var logged: [String] = []
 
         let store = HistoryStorage.open(in: directory) { logged.append($0) }
@@ -68,6 +70,17 @@ import Testing
         let item = anItem(.text("after recovery"))
         try store.save([item])
         #expect(try SQLiteHistoryStore(databaseURL: database).load() == [item])
+    }
+
+    @Test func without_a_log_of_its_own_the_bootstrap_still_recovers_and_writes_to_the_console() throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try Data(repeating: 0x42, count: 8192).write(to: directory.appendingPathComponent("history.sqlite"))
+
+        let store = HistoryStorage.open(in: directory)
+
+        #expect(try store.load().isEmpty)
     }
 
     @Test func a_database_that_opens_but_will_not_load_is_set_aside_too() throws {

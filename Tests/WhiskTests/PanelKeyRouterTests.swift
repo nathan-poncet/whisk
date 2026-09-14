@@ -11,26 +11,26 @@ final class PanelActionSpy {
 
     var actions: PanelActions {
         PanelActions(
-            search: { [unowned self] in calls.append("search:\($0)") },
-            select: { [unowned self] in calls.append("select:\($0)") },
-            highlight: { [unowned self] in calls.append("highlight:\($0)") },
-            activate: { [unowned self] in calls.append("activate") },
-            activatePlain: { [unowned self] in calls.append("activatePlain") },
-            activateCard: { [unowned self] in calls.append("activateCard:\($0)") },
-            navigate: { [unowned self] in calls.append("navigate:\($0)") },
-            jumpToEdge: { [unowned self] in calls.append("jump:\($0)") },
-            switchChipGroup: { [unowned self] in calls.append("switchChipGroup") },
-            toggleSourceFilter: { [unowned self] in calls.append("toggleSource:\($0)") },
-            toggleCategoryFilter: { [unowned self] in calls.append("toggleCategory:\($0)") },
-            focusSourceChip: { [unowned self] in calls.append("focusSource:\($0)") },
-            focusCategoryChip: { [unowned self] in calls.append("focusCategory:\($0)") },
-            togglePin: { [unowned self] in calls.append("togglePin:\($0)") },
-            delete: { [unowned self] in calls.append("delete:\($0)") },
-            dragBegan: { [unowned self] in calls.append("dragBegan") },
-            togglePinSelected: { [unowned self] in calls.append("togglePinSelected") },
-            deleteSelected: { [unowned self] in calls.append("deleteSelected") },
-            stackSelected: { [unowned self] in calls.append("stackSelected") },
-            panelWillShow: { [unowned self] in calls.append("panelWillShow") }
+            search: { [weak self] in self?.calls.append("search:\($0)") },
+            select: { [weak self] in self?.calls.append("select:\($0)") },
+            highlight: { [weak self] in self?.calls.append("highlight:\($0)") },
+            activate: { [weak self] in self?.calls.append("activate") },
+            activatePlain: { [weak self] in self?.calls.append("activatePlain") },
+            activateCard: { [weak self] in self?.calls.append("activateCard:\($0)") },
+            navigate: { [weak self] in self?.calls.append("navigate:\($0)") },
+            jumpToEdge: { [weak self] in self?.calls.append("jump:\($0)") },
+            switchChipGroup: { [weak self] in self?.calls.append("switchChipGroup") },
+            toggleSourceFilter: { [weak self] in self?.calls.append("toggleSource:\($0)") },
+            toggleCategoryFilter: { [weak self] in self?.calls.append("toggleCategory:\($0)") },
+            focusSourceChip: { [weak self] in self?.calls.append("focusSource:\($0)") },
+            focusCategoryChip: { [weak self] in self?.calls.append("focusCategory:\($0)") },
+            togglePin: { [weak self] in self?.calls.append("togglePin:\($0)") },
+            delete: { [weak self] in self?.calls.append("delete:\($0)") },
+            dragBegan: { [weak self] in self?.calls.append("dragBegan") },
+            togglePinSelected: { [weak self] in self?.calls.append("togglePinSelected") },
+            deleteSelected: { [weak self] in self?.calls.append("deleteSelected") },
+            stackSelected: { [weak self] in self?.calls.append("stackSelected") },
+            panelWillShow: { [weak self] in self?.calls.append("panelWillShow") }
         )
     }
 }
