@@ -88,3 +88,12 @@
 
 "Nothing selected" = "Nothing selected";
 "Launch at login needs the installed Whisk.app: %@" = "Launch at login needs the installed Whisk.app: %@";
+
+"Pastes this card" = "Pastes this card";
+"Pinned card" = "Pinned card";
+"Paste stack position %lld" = "Paste stack position %lld";
+"Pinned items, filter" = "Pinned items, filter";
+"%@, application filter" = "%@, application filter";
+"%@, kind filter" = "%@, kind filter";
+"Search mode" = "Search mode";
+"Normal mode" = "Normal mode";

@@ -88,16 +88,20 @@ struct FilterChip: Equatable, Identifiable {
     let label: String
     let sourceBundleID: String?
     let icon: ChipIcon?
+    /// What VoiceOver reads: the label plus the group the chip filters on.
+    let accessibilityLabel: String
     let isActive: Bool
     let isFocused: Bool
 
     init(
-        id: String, label: String, sourceBundleID: String?, icon: ChipIcon? = nil, isActive: Bool, isFocused: Bool
+        id: String, label: String, sourceBundleID: String?, icon: ChipIcon? = nil, accessibilityLabel: String,
+        isActive: Bool, isFocused: Bool
     ) {
         self.id = id
         self.label = label
         self.sourceBundleID = sourceBundleID
         self.icon = icon
+        self.accessibilityLabel = accessibilityLabel
         self.isActive = isActive
         self.isFocused = isFocused
     }
@@ -116,6 +120,11 @@ struct CardViewState: Equatable, Identifiable {
     let isSelected: Bool
     /// 1-based rank in the paste stack, nil when the card isn't queued.
     let stackPosition: Int?
+    /// What VoiceOver reads for the whole card: source, kind, a one-line
+    /// summary of the content. The icons and texts inside are decorative.
+    let accessibilityLabel: String
+    /// The card's state for VoiceOver: pin, paste-stack rank, age.
+    let accessibilityValue: String
     let preview: CardPreview
 
     init(
@@ -128,6 +137,8 @@ struct CardViewState: Equatable, Identifiable {
         isPinned: Bool,
         isSelected: Bool,
         stackPosition: Int? = nil,
+        accessibilityLabel: String,
+        accessibilityValue: String,
         preview: CardPreview
     ) {
         self.id = id
@@ -139,6 +150,8 @@ struct CardViewState: Equatable, Identifiable {
         self.isPinned = isPinned
         self.isSelected = isSelected
         self.stackPosition = stackPosition
+        self.accessibilityLabel = accessibilityLabel
+        self.accessibilityValue = accessibilityValue
         self.preview = preview
     }
 }

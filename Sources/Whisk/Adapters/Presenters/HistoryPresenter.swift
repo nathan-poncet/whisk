@@ -121,18 +121,63 @@ final class HistoryPresenter {
         for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?
     ) -> CardViewState {
         let kind = Self.kindLabel(item.category)
+        let source = item.source?.name ?? item.source?.bundleID ?? kind.capitalized
+        let time = timeLabel(for: item, now: now)
+        let cardPreview = preview(for: item)
         return CardViewState(
             id: item.id,
-            sourceLabel: item.source?.name ?? item.source?.bundleID ?? kind.capitalized,
+            sourceLabel: source,
             sourceBundleID: item.source?.bundleID,
             kindLabel: kind,
-            timeLabel: timeLabel(for: item, now: now),
+            timeLabel: time,
             detailLabel: Self.detailLabel(for: item),
             isPinned: item.isPinned,
             isSelected: isSelected,
             stackPosition: stackPosition,
-            preview: preview(for: item)
+            accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
+            accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
+            preview: cardPreview
         )
+    }
+
+    private static func accessibilityLabel(source: String, kind: String, preview: CardPreview) -> String {
+        var parts = [source, kind]
+        if let summary = summary(of: preview) {
+            parts.append(summary)
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    private static let summaryLimit = 140
+
+    /// One spoken line per card: whitespace collapsed, long text cut short.
+    private static func summary(of preview: CardPreview) -> String? {
+        switch preview {
+        case .text(let value), .code(let value, _):
+            let collapsed = value.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+            guard !collapsed.isEmpty else { return nil }
+            return collapsed.count > summaryLimit ? String(collapsed.prefix(summaryLimit)) + "…" : collapsed
+        case .color(let code, _):
+            return code
+        case .link(let address):
+            return address
+        case .image:
+            return nil
+        case .files(let names, let overflow, _):
+            return (names + (overflow > 0 ? [localized("+ \(overflow) more")] : [])).joined(separator: ", ")
+        }
+    }
+
+    private static func accessibilityValue(of item: ClipboardItem, stackPosition: Int?, time: String) -> String {
+        var parts: [String] = []
+        if item.isPinned {
+            parts.append(localized("Pinned card"))
+        }
+        if let stackPosition {
+            parts.append(localized("Paste stack position \(stackPosition)"))
+        }
+        parts.append(time)
+        return parts.joined(separator: ", ")
     }
 
     /// Textual payloads carry their size in the footer, whether or not the
@@ -230,27 +275,32 @@ final class HistoryPresenter {
                         label: localized("Pinned"),
                         sourceBundleID: nil,
                         icon: .symbol("pin.fill"),
+                        accessibilityLabel: localized("Pinned items, filter"),
                         isActive: context.pinnedOnly,
                         isFocused: isFocused
                     )
                 )
             case .app(let source):
+                let label = source.name ?? source.bundleID ?? localized("Unknown")
                 apps.append(
                     FilterChip(
                         id: entry.id,
-                        label: source.name ?? source.bundleID ?? localized("Unknown"),
+                        label: label,
                         sourceBundleID: source.bundleID,
+                        accessibilityLabel: localized("\(label), application filter"),
                         isActive: context.activeSourceKeys.contains(entry.id),
                         isFocused: isFocused
                     )
                 )
             case .category(let category):
+                let label = Self.kindLabel(category).capitalized
                 kinds.append(
                     FilterChip(
                         id: entry.id,
-                        label: Self.kindLabel(category).capitalized,
+                        label: label,
                         sourceBundleID: nil,
                         icon: Self.chipIcon(category),
+                        accessibilityLabel: localized("\(label), kind filter"),
                         isActive: context.activeCategories.contains(category),
                         isFocused: isFocused
                     )

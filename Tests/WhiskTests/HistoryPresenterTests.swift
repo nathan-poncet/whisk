@@ -164,6 +164,43 @@ import Testing
         #expect(unfocused.selectedCard == nil)
     }
 
+    @Test func cards_describe_themselves_for_voiceover() {
+        let pinned = anItem(.text("hello\n  world"), from: "Safari", at: now, pinned: true)
+        let files = anItem(.fileReferences(["/tmp/a.txt", "/tmp/b.txt"]), from: "Finder", at: now)
+        let picture = anItem(.image(Data([0x01])), from: "Preview", at: now)
+
+        let state = presenter.present(items: [pinned, files, picture], query: "", now: now, stack: [files.id])
+
+        #expect(state.cards[0].accessibilityLabel == "Safari, text, hello world")
+        #expect(state.cards[0].accessibilityValue == "Pinned card, now")
+        #expect(state.cards[1].accessibilityLabel == "Finder, files, a.txt, b.txt")
+        #expect(state.cards[1].accessibilityValue == "Paste stack position 1, now")
+        #expect(state.cards[2].accessibilityLabel == "Preview, image")
+        #expect(state.cards[2].accessibilityValue == "now")
+    }
+
+    @Test func a_long_text_is_cut_short_for_voiceover() {
+        let long = String(repeating: "word ", count: 60)
+
+        let state = presenter.present(items: [anItem(.text(long), from: "Notes", at: now)], query: "", now: now)
+
+        let label = state.cards[0].accessibilityLabel
+        #expect(label.hasPrefix("Notes, text, word word"))
+        #expect(label.hasSuffix("…"))
+        #expect(label.count < 170)
+    }
+
+    @Test func chips_describe_their_group_for_voiceover() throws {
+        let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
+        let row = ChipEntry.row(hasPinned: true, sources: [slack], categories: [.code])
+
+        let state = presenter.present(items: [], query: "", now: now, filters: FilterContext(chips: row))
+
+        #expect(state.filters.pinned.first?.accessibilityLabel == "Pinned items, filter")
+        #expect(state.filters.apps.first?.accessibilityLabel == "Slack, application filter")
+        #expect(state.filters.kinds.first?.accessibilityLabel == "Code, kind filter")
+    }
+
     @Test func the_count_label_is_singular_for_one_item() {
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)
