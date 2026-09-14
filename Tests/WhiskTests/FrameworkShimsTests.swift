@@ -5,7 +5,7 @@ import Testing
 
 /// A clock the test cranks by hand: work items pile up until `fire` runs
 /// them, so the debouncer's timing is asserted without waiting.
-private final class HandCrankedScheduler {
+final class HandCrankedScheduler {
     private(set) var queued: [DispatchWorkItem] = []
 
     func schedule(_ delay: TimeInterval, _ work: DispatchWorkItem) {
