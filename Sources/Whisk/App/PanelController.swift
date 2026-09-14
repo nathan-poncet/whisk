@@ -121,7 +121,7 @@ final class PanelController {
         let frame = screen.frame
         // Taller than the content: the top band is empty backdrop, so the
         // blur veil begins above the search capsule instead of at its edge.
-        let height: CGFloat = 430
+        let height = Self.panelHeight(forCardSide: stateStore.cardSide)
         panel.setFrame(
             NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
             display: true
@@ -142,6 +142,12 @@ final class PanelController {
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             veilPanel.animator().alphaValue = 1
         }
+    }
+
+    /// The chrome above and below the rail is constant; the card decides
+    /// the rest. 430 points for the medium card, as the panel always was.
+    static func panelHeight(forCardSide side: CGFloat) -> CGFloat {
+        side + 230
     }
 
     /// Reduce Motion turns every fade into a cut.
@@ -254,7 +260,7 @@ final class PanelController {
         preview.setFrame(
             NSRect(
                 x: frame.midX - size.width / 2,
-                y: frame.minY + 476,
+                y: frame.minY + Self.panelHeight(forCardSide: stateStore.cardSide) + 46,
                 width: size.width,
                 height: size.height
             ),

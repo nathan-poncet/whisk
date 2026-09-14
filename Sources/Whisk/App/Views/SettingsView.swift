@@ -41,6 +41,13 @@ struct SettingsView: View {
                     localized("Check for updates at launch"), symbol: "arrow.triangle.2.circlepath", tint: .blue)
             }
             .toggleStyle(.switch)
+            Picker(selection: $general.cardSize) {
+                ForEach(CardSize.allCases) { size in
+                    Text(size.label).tag(size)
+                }
+            } label: {
+                SettingsRowLabel(localized("Card size"), symbol: "rectangle.3.group", tint: .indigo)
+            }
         }
     }
 

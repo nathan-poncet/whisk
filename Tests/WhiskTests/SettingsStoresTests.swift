@@ -228,6 +228,7 @@ final class IsolatedDefaults {
         #expect(store.checkForUpdates)
         #expect(!store.vimNavigation)
         #expect(store.linkPreviews)
+        #expect(store.cardSize == .medium)
         #expect(store.excludedApps.isEmpty)
         #expect(store.policy == .standard)
     }
@@ -253,6 +254,7 @@ final class IsolatedDefaults {
         first.checkForUpdates = false
         first.vimNavigation = true
         first.linkPreviews = false
+        first.cardSize = .large
         first.excludedApps = [ExcludedApp(bundleID: "com.apple.keychainaccess", name: "Keychain Access")]
 
         let second = GeneralSettingsStore(defaults: sandbox.defaults)
@@ -262,6 +264,7 @@ final class IsolatedDefaults {
         #expect(!second.checkForUpdates)
         #expect(second.vimNavigation)
         #expect(!second.linkPreviews)
+        #expect(second.cardSize == .large)
         #expect(second.excludedBundleIDs == ["com.apple.keychainaccess"])
     }
 
@@ -274,6 +277,17 @@ final class IsolatedDefaults {
 
         #expect(store.excludedApps.isEmpty)
         #expect(logger.messages.count == 1)
+    }
+
+    @Test func card_sizes_grow_in_order_and_label_themselves() {
+        let sides = CardSize.allCases.map(\.side)
+        let labels = CardSize.allCases.map(\.label)
+
+        #expect(sides == sides.sorted())
+        #expect(Set(sides).count == sides.count)
+        #expect(CardSize.medium.side == 200)
+        #expect(Set(labels).count == labels.count)
+        #expect(CardSize.allCases.map(\.id) == CardSize.allCases.map(\.rawValue))
     }
 
     @Test func retention_periods_and_excluded_apps_identify_and_label_themselves() {
