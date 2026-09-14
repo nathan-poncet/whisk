@@ -161,6 +161,20 @@ import Testing
     }
 }
 
+@Suite struct HistoryRestoring {
+    @Test func restoring_persists_the_remembered_items_as_they_were() throws {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        let remembered = History().recording(.text("back"), from: nil, at: clock.now())
+        let restore = RestoreHistory(store: store)
+
+        let restored = try restore(remembered)
+
+        #expect(restored == remembered)
+        #expect(store.stored == remembered.items)
+    }
+}
+
 @Suite struct ItemEditing {
     let clock = FakeClock()
     let store = InMemoryHistoryStore()

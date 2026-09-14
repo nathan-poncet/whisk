@@ -41,6 +41,8 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   image, files); chips combine with each other and with the search query.
 - **Pins** — pin a card (`⌘P` or right-click) and filter to pinned items
   with one chip; pinned items survive *Clear*, eviction and retention.
+- **Undo** — `⌘Z` brings back what the last deletion, clear or edit took,
+  twenty steps deep within a session.
 - **Paste stack** — queue several cards with `⇧⏎` (press again to
   unqueue; stacked cards wear a numbered badge showing their rank), then
   pop them one by one anywhere with `⌥⌘V` (global, rebindable): collect
@@ -161,6 +163,8 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   copied from it (pins survive).
 - **`⌘E`**: edit the selected card's text in place; `⌘S` saves, `Esc`
   cancels. A rewrite that reads as a web address becomes a link again.
+- **`⌘Z`**: undo the last deletion, clear or edit, up to twenty steps
+  back in the session (also in the menu bar menu).
 - **Right-click a card**: everything above, plus paste as plain text and
   "Paste as…" rewrites, in one menu.
 - **Esc** or click outside: close the panel.

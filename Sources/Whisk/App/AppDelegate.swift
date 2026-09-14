@@ -213,6 +213,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 title: isPaused ? localized("Resume Capture") : localized("Pause Capture"),
                 action: #selector(togglePause)))
         menu.addItem(menuItem(title: localized("Clear Unpinned Items"), action: #selector(clearHistory)))
+        menu.addItem(menuItem(title: localized("Undo Last Change"), action: #selector(undoLastChange)))
         if let version = updateChecker.availableVersion {
             menu.addItem(.separator())
             menu.addItem(
@@ -286,6 +287,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func clearHistory() {
         clipboard?.clear()
+    }
+
+    @objc private func undoLastChange() {
+        clipboard?.undo()
     }
 
     @objc private func quit() {

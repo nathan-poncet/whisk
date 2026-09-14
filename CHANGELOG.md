@@ -31,6 +31,9 @@ live in the commit history.
   an editor inside the panel, `⌘S` saves, `Esc` cancels. The card keeps
   its position, pin and source; formatting is dropped; a rewrite that
   reads as a web address becomes a link.
+- Deletions, clears, per-application deletions and edits can be undone:
+  `⌘Z`, the vim `u` or "Undo Last Change" in the menu bar, twenty steps
+  deep within a session.
 
 ## [0.9.0] - 2026-09-14
 

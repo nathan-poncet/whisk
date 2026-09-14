@@ -724,6 +724,62 @@ import Testing
         #expect(store.stored.map(\.payload) == [.text("first"), .text("second")])
     }
 
+    @Test func undo_brings_back_what_a_deletion_a_clear_an_edit_or_a_source_purge_took() {
+        let store = InMemoryHistoryStore()
+        store.stored = [
+            anItem(.text("one"), from: "Slack", bundle: "com.slack"), anItem(.text("two")),
+            anItem(.text("kept"), pinned: true),
+        ]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        let one = spy.last.cards[0].id
+        let two = spy.last.cards[1].id
+
+        controller.delete(one)
+        controller.edit(two, text: "deux")
+        controller.deleteAll(fromSource: "com.slack")
+        controller.clear()
+        #expect(spy.last.cards.map(\.preview) == [.text("kept")])
+
+        #expect(controller.undo())
+        #expect(spy.last.cards.map(\.preview) == [.text("deux"), .text("kept")])
+        #expect(controller.undo())
+        #expect(controller.undo())
+        #expect(spy.last.cards.map(\.preview) == [.text("two"), .text("kept")])
+        #expect(controller.undo())
+        #expect(spy.last.cards.map(\.preview) == [.text("one"), .text("two"), .text("kept")])
+        #expect(store.stored.count == 3)
+        #expect(!controller.undo())
+    }
+
+    @Test func undo_remembers_twenty_steps_and_pins_are_not_steps() {
+        let store = InMemoryHistoryStore()
+        store.stored = (0..<25).map { anItem(.text("card \($0)")) }
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record
+        )
+        let ids = spy.last.cards.map(\.id)
+
+        controller.togglePin(ids[24])
+        #expect(!controller.undo())
+
+        for id in ids.prefix(24) {
+            controller.delete(id)
+        }
+        #expect(spy.last.cards.count == 1)
+
+        var undone = 0
+        while controller.undo() {
+            undone += 1
+        }
+
+        #expect(undone == 20)
+        #expect(spy.last.cards.count == 21)
+    }
+
     @Test func the_history_loads_at_the_configured_capacity_not_the_default() throws {
         let store = InMemoryHistoryStore()
         store.stored = (0..<600).map { anItem(.text("item \($0)")) }

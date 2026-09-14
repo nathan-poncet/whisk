@@ -27,6 +27,7 @@ enum VimAction: String, CaseIterable, Identifiable {
     case excludeSource
     case deleteFromSource
     case edit
+    case undo
 
     var id: String { rawValue }
 
@@ -54,6 +55,7 @@ enum VimAction: String, CaseIterable, Identifiable {
         case .excludeSource: localized("Exclude the selection's application")
         case .deleteFromSource: localized("Delete everything from the selection's application")
         case .edit: localized("Edit the selection")
+        case .undo: localized("Undo the last deletion or edit")
         }
     }
 
@@ -81,6 +83,7 @@ enum VimAction: String, CaseIterable, Identifiable {
         case .excludeSource: "X"
         case .deleteFromSource: "D"
         case .edit: "e"
+        case .undo: "u"
         }
     }
 }

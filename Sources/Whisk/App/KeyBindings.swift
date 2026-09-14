@@ -24,6 +24,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
     case excludeSelectionSource
     case deleteSelectionSource
     case editSelection
+    case undoLastChange
 
     var id: String { rawValue }
 
@@ -49,6 +50,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
         case .excludeSelectionSource: localized("Exclude the selection's application")
         case .deleteSelectionSource: localized("Delete everything from the selection's application")
         case .editSelection: localized("Edit the selection")
+        case .undoLastChange: localized("Undo the last deletion or edit")
         }
     }
 
@@ -244,6 +246,8 @@ final class KeyBindingsStore: ObservableObject {
             return KeyBinding(keyCode: UInt16(kVK_Delete), modifiers: [.control, .command])
         case .editSelection:
             return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "e", orANSI: kVK_ANSI_E), modifiers: [.command])
+        case .undoLastChange:
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "z", orANSI: kVK_ANSI_Z), modifiers: [.command])
         }
     }
 
