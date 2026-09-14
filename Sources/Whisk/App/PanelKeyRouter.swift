@@ -41,8 +41,8 @@ final class PanelKeyRouter {
     /// the search field's caret. True when the key was consumed.
     func handle(_ event: NSEvent) -> Bool {
         // While the editor is open the keys are the editor's, but for one:
-        // Return saves, Shift-Return breaks the line. ⌘S reaches the
-        // button through SwiftUI, Escape the panel's own cancel path.
+        // Return saves, Shift-Return breaks the line — before either input
+        // mode gets a say. Escape takes the panel's own cancel path.
         if let editing = stateStore.editing {
             let isReturn = event.specialKey == .carriageReturn || event.specialKey == .enter
             guard isReturn, !event.modifierFlags.contains(.shift) else { return false }
