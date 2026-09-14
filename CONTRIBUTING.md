@@ -72,14 +72,19 @@ TDD is the house style: write the failing test first. Conventions:
 - Deterministic always — frozen clocks, scripted pasteboards, temporary
   directories. No sleeps, no real pasteboard, no network.
 - A port gets a **contract suite** that runs against every gateway
-  implementing it (see `FileHistoryStoreTests`, which exercises both the
-  JSON and SQLite stores).
+  implementing it (see `HistoryStoreContractTests`, parameterized over the
+  SQLite and in-memory stores — a new gateway joins by adding a case).
+- `./scripts/coverage.sh` runs the suite with coverage and prints the
+  per-file report CI archives.
 
 ## User-facing strings
 
 Every user-visible string goes through the `localized()` helper and needs
 an entry in **both** `Sources/Whisk/Resources/en.lproj/Localizable.strings`
-and `fr.lproj/Localizable.strings` (the key is the English text).
+and `fr.lproj/Localizable.strings` (the key is the English text). Counts
+that change with a number go in `Localizable.stringsdict` instead, one
+plural rule per language. `LocalizationTests` fails on a key missing from
+either language, missing from the catalogs, or no longer used.
 
 ## Commits & PRs
 
