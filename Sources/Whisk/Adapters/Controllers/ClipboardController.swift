@@ -61,7 +61,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var activeSourceKeys: Set<String> = []
     private var activeCategories: Set<ContentCategory> = []
     private var pinnedOnly = false
-    private var retention = RetentionPolicy.standard
+    private var retention: RetentionPolicy
     private var isPaused = false
     private var excludedBundleIDs: Set<String> = []
     private var pasteStack: [UUID] = []
@@ -84,10 +84,14 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let pasteboard: Board
     private let present: (HistoryViewState) -> Void
 
+    /// The retention policy shapes the history from the first load: a
+    /// history rebuilt at the default capacity would evict what a roomier
+    /// setting had kept, and the next save would make that permanent.
     init(
         pasteboard: Board,
         store: Store,
         clock: Time,
+        retention: RetentionPolicy = .standard,
         presenter: HistoryPresenter = HistoryPresenter(),
         present: @escaping (HistoryViewState) -> Void
     ) {
@@ -95,6 +99,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         self.presenter = presenter
         self.pasteboard = pasteboard
         self.present = present
+        self.retention = retention
         capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
         selectItem = SelectItem(pasteboard: pasteboard, clock: clock, store: store)
         togglePinItem = TogglePin(store: store)
@@ -102,10 +107,10 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         clearUnpinned = ClearHistory(store: store)
         enforceRetention = EnforceRetention(store: store)
         do {
-            history = try LoadHistory(store: store)()
+            history = try LoadHistory(store: store, capacity: retention.capacity)()
         } catch {
             NSLog("Whisk: could not load history — %@", String(describing: error))
-            history = History()
+            history = History(capacity: retention.capacity)
         }
         refresh()
     }
