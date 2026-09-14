@@ -27,6 +27,10 @@ enum PanelWiring {
                 clipboard.select(id)
                 consume(true)
             },
+            transform: { id, transform in
+                searchDebounce.flush()
+                consume(clipboard.select(id, transform: transform))
+            },
             highlight: { clipboard.highlight($0) },
             activate: {
                 searchDebounce.flush()

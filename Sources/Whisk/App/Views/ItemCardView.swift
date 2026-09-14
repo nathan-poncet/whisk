@@ -11,6 +11,7 @@ struct ItemCardView: View, Equatable {
     let onTogglePin: () -> Void
     let onDelete: () -> Void
     let onDragBegin: () -> Void
+    var onTransform: (TextTransform) -> Void = { _ in }
     /// One cursor at a time: while vim's search mode holds it, the ring
     /// stays off even though the selection survives underneath.
     var showsSelection = true
@@ -80,6 +81,13 @@ struct ItemCardView: View, Equatable {
         }
         .contextMenu {
             Button(card.isPinned ? localized("Unpin") : localized("Pin"), action: onTogglePin)
+            if card.transformable {
+                Menu(localized("Paste as…")) {
+                    ForEach(TextTransform.allCases, id: \.rawValue) { transform in
+                        Button(transform.label) { onTransform(transform) }
+                    }
+                }
+            }
             Button(localized("Delete"), role: .destructive, action: onDelete)
         }
         // One VoiceOver element per card: the presenter's label and value

@@ -270,6 +270,13 @@ import Testing
         #expect(state.cards[1].matches.isEmpty)
     }
 
+    @Test func every_transform_has_a_distinct_menu_label() {
+        let labels = TextTransform.allCases.map(\.label)
+
+        #expect(labels.allSatisfy { !$0.isEmpty })
+        #expect(Set(labels).count == labels.count)
+    }
+
     @Test func the_count_label_is_singular_for_one_item() {
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)

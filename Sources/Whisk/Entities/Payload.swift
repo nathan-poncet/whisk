@@ -8,6 +8,16 @@ enum Payload: Equatable, Hashable {
     case image(Data)
     case fileReferences([String])
 
+    /// The text a paste-time transform can rewrite: what the card holds
+    /// as text, or a link's address. Files and images have none.
+    var transformableText: String? {
+        switch self {
+        case .text(let value): return value
+        case .link(let url): return url.absoluteString
+        case .image, .fileReferences: return nil
+        }
+    }
+
     /// The text a search can look at; image bytes are opaque.
     var searchableText: String? {
         switch self {

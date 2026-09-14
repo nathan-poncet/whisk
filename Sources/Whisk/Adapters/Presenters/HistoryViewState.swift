@@ -127,6 +127,8 @@ struct CardViewState: Equatable, Identifiable {
     let accessibilityValue: String
     /// What leaves the app when the card is dragged out.
     let dragPayload: DragPayload
+    /// Whether the card holds text a paste-time transform can rewrite.
+    let transformable: Bool
     /// Where the query's words landed in a textual preview, for the view
     /// to underline; empty without a live query.
     let matches: [MatchSpan]
@@ -145,6 +147,7 @@ struct CardViewState: Equatable, Identifiable {
         accessibilityLabel: String,
         accessibilityValue: String,
         dragPayload: DragPayload,
+        transformable: Bool = false,
         matches: [MatchSpan] = [],
         preview: CardPreview
     ) {
@@ -160,6 +163,7 @@ struct CardViewState: Equatable, Identifiable {
         self.accessibilityLabel = accessibilityLabel
         self.accessibilityValue = accessibilityValue
         self.dragPayload = dragPayload
+        self.transformable = transformable
         self.matches = matches
         self.preview = preview
     }

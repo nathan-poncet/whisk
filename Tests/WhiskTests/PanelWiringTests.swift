@@ -72,6 +72,19 @@ import Testing
         #expect(fixture.pastes == 2)
     }
 
+    @Test func a_transformed_paste_closes_and_pastes_only_when_the_card_could_be_rewritten() throws {
+        let fixture = Fixture([.text("alpha"), .image(Data([0x01]))])
+        let text = fixture.spy.last.cards[0].id
+        let image = fixture.spy.last.cards[1].id
+
+        try fixture.wired.transform(text, .uppercase)
+        try fixture.wired.transform(image, .uppercase)
+
+        #expect(fixture.pasteboard.written == [.text("ALPHA")])
+        #expect(fixture.hides == 1)
+        #expect(fixture.pastes == 1)
+    }
+
     @Test func an_empty_rail_position_neither_closes_nor_pastes() throws {
         let fixture = Fixture([.text("alpha")])
 

@@ -13,6 +13,7 @@ final class PanelActionSpy {
         PanelActions(
             search: { [weak self] in self?.calls.append("search:\($0)") },
             select: { [weak self] in self?.calls.append("select:\($0)") },
+            transform: { [weak self] id, transform in self?.calls.append("transform:\(id):\(transform.rawValue)") },
             highlight: { [weak self] in self?.calls.append("highlight:\($0)") },
             activate: { [weak self] in self?.calls.append("activate") },
             activatePlain: { [weak self] in self?.calls.append("activatePlain") },

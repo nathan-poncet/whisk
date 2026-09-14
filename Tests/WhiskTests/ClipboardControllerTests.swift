@@ -663,6 +663,26 @@ import Testing
         #expect(spy.last.cards.first?.isSelected == true)
     }
 
+    @Test func a_transformed_paste_writes_the_rewrite_and_leaves_the_card_untouched() {
+        let store = InMemoryHistoryStore()
+        store.stored = [anItem(.text("  shout  ")), anItem(.image(Data([0x01])))]
+        let pasteboard = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: store, clock: FakeClock(), present: spy.record
+        )
+        let text = spy.last.cards[0].id
+        let image = spy.last.cards[1].id
+
+        #expect(controller.select(text, transform: .uppercase))
+        #expect(!controller.select(image, transform: .uppercase))
+        #expect(!controller.select(text, transform: .prettyJSON))
+
+        #expect(pasteboard.written == [.text("  SHOUT  ")])
+        #expect(spy.last.cards[0].preview == .text("  shout  "))
+        #expect(spy.last.cards.map(\.transformable) == [true, false])
+    }
+
     @Test func the_history_loads_at_the_configured_capacity_not_the_default() throws {
         let store = InMemoryHistoryStore()
         store.stored = (0..<600).map { anItem(.text("item \($0)")) }
