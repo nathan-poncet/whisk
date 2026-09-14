@@ -246,15 +246,23 @@ final class PanelController {
         stateStore.configureInput(vim: vimMode(), searchKey: vimBindings.key(for: .search))
         stateStore.requestSearchFocus()
         panel.makeKeyAndOrderFront(nil)
+        // The veil is something to see through; Reduce Transparency asks
+        // for exactly the opposite.
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency else { return }
         veilGeneration += 1
         veilPanel.setFrame(panel.frame, display: true)
         veilPanel.alphaValue = 0
         veilPanel.order(.below, relativeTo: panel.windowNumber)
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.22
+            context.duration = Self.fadeDuration(0.22)
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
             veilPanel.animator().alphaValue = 1
         }
+    }
+
+    /// Reduce Motion turns every fade into a cut.
+    private static func fadeDuration(_ nominal: TimeInterval) -> TimeInterval {
+        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? 0 : nominal
     }
 
     func hide() {
@@ -267,7 +275,7 @@ final class PanelController {
         let generation = veilGeneration
         NSAnimationContext.runAnimationGroup(
             { context in
-                context.duration = 0.22
+                context.duration = Self.fadeDuration(0.22)
                 context.timingFunction = CAMediaTimingFunction(name: .easeOut)
                 veilPanel.animator().alphaValue = 0
             },
@@ -296,7 +304,7 @@ final class PanelController {
             guard let self else { return }
             panel.ignoresMouseEvents = true
             NSAnimationContext.runAnimationGroup { context in
-                context.duration = 0.18
+                context.duration = Self.fadeDuration(0.18)
                 context.timingFunction = CAMediaTimingFunction(name: .easeOut)
                 self.panel.animator().alphaValue = 0
                 // The veil clears too: the drop target may sit right

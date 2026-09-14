@@ -8,6 +8,7 @@ import SwiftUI
 /// hovering moves that same focus with the mouse.
 struct FilterBarView: View {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let filters: FilterBarViewState
     /// One cursor at a time: vim's search mode swallows the chip focus.
     var cursorSuppressed = false
@@ -84,7 +85,7 @@ struct FilterBarView: View {
             .defaultScrollAnchor(.center)
             .onChange(of: filters.focusedChipID) { _, id in
                 guard let id else { return }
-                withAnimation(.easeOut(duration: 0.12)) {
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.12)) {
                     proxy.scrollTo(id)
                 }
             }
@@ -132,6 +133,7 @@ private struct ChipButton<Label: View>: View {
     let onToggle: () -> Void
     let onFocus: () -> Void
     @ViewBuilder let label: () -> Label
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isFocused: Bool {
         chip.isFocused && focusVisible
@@ -167,8 +169,8 @@ private struct ChipButton<Label: View>: View {
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
             }
         }
-        .animation(.easeOut(duration: 0.14), value: isFocused)
-        .animation(.easeOut(duration: 0.14), value: chip.isActive)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: isFocused)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: chip.isActive)
         .onContinuousHover { phase in
             if case .active = phase, MouseActivity.movedRecently {
                 onFocus()
