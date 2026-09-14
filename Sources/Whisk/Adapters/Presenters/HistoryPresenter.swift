@@ -136,8 +136,23 @@ final class HistoryPresenter {
             stackPosition: stackPosition,
             accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
             accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
+            dragPayload: Self.dragPayload(of: item),
             preview: cardPreview
         )
+    }
+
+    // A color travels as its code alone, the way the swatch shows it.
+    private static func dragPayload(of item: ClipboardItem) -> DragPayload {
+        switch item.payload {
+        case .text(let value):
+            return .text(item.category == .color ? value.trimmingCharacters(in: .whitespacesAndNewlines) : value)
+        case .link(let url):
+            return .link(url)
+        case .image(let data):
+            return .image(data)
+        case .fileReferences(let paths):
+            return .files(paths)
+        }
     }
 
     private static func accessibilityLabel(source: String, kind: String, preview: CardPreview) -> String {

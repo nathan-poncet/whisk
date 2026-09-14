@@ -61,7 +61,7 @@ struct ItemCardView: View, Equatable {
         .grabPointer()
         .onDrag {
             onDragBegin()
-            return Self.dragProvider(for: card.preview)
+            return Self.dragProvider(for: card.dragPayload)
         }
         .onTapGesture(perform: onSelect)
         // Continuous, not enter/exit: after a keyboard scroll parks a card
@@ -211,25 +211,22 @@ struct ItemCardView: View, Equatable {
         .padding(.bottom, 12)
     }
 
-    /// Cards can be dragged straight into other applications.
-    private static func dragProvider(for preview: CardPreview) -> NSItemProvider {
-        switch preview {
-        case .text(let value), .code(let value, _):
+    /// Cards can be dragged straight into other applications; the presenter
+    /// decided what travels, this only wraps it for the drag session.
+    private static func dragProvider(for payload: DragPayload) -> NSItemProvider {
+        switch payload {
+        case .text(let value):
             return NSItemProvider(object: value as NSString)
-        case .color(let code, _):
-            return NSItemProvider(object: code as NSString)
-        case .link(let address):
-            if let url = URL(string: address) {
-                return NSItemProvider(object: url as NSURL)
-            }
-            return NSItemProvider(object: address as NSString)
+        case .link(let url):
+            return NSItemProvider(object: url as NSURL)
         case .image(let data):
             if let image = NSImage(data: data) {
                 return NSItemProvider(object: image)
             }
             return NSItemProvider()
-        case .files(_, _, let thumbnailPath):
-            if let path = thumbnailPath,
+        case .files(let paths):
+            // One provider per drag session: the first file travels.
+            if let path = paths.first,
                 let provider = NSItemProvider(contentsOf: URL(fileURLWithPath: path))
             {
                 return provider

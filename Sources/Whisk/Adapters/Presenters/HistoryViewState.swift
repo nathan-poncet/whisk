@@ -125,6 +125,8 @@ struct CardViewState: Equatable, Identifiable {
     let accessibilityLabel: String
     /// The card's state for VoiceOver: pin, paste-stack rank, age.
     let accessibilityValue: String
+    /// What leaves the app when the card is dragged out.
+    let dragPayload: DragPayload
     let preview: CardPreview
 
     init(
@@ -139,6 +141,7 @@ struct CardViewState: Equatable, Identifiable {
         stackPosition: Int? = nil,
         accessibilityLabel: String,
         accessibilityValue: String,
+        dragPayload: DragPayload,
         preview: CardPreview
     ) {
         self.id = id
@@ -152,8 +155,18 @@ struct CardViewState: Equatable, Identifiable {
         self.stackPosition = stackPosition
         self.accessibilityLabel = accessibilityLabel
         self.accessibilityValue = accessibilityValue
+        self.dragPayload = dragPayload
         self.preview = preview
     }
+}
+
+/// What a dragged card hands to the drop target — the item itself, never
+/// a detail of how the card happens to be drawn.
+enum DragPayload: Equatable {
+    case text(String)
+    case link(URL)
+    case image(Data)
+    case files([String])
 }
 
 /// What a card shows, decided by the presenter. Image bytes stay opaque.
