@@ -241,22 +241,128 @@
     .tryit .hint { margin-top: 12px; color: var(--muted); font-size: 13px; }
     .tryit .hint kbd { font-size: 11px; }
 
-    /* Feature clips */
-    .card.has-clip { cursor: pointer; position: relative; }
-    .card.has-clip::after {
-      content: "▶ watch"; position: absolute; top: 14px; right: 16px;
-      font-size: 11px; color: var(--accent); opacity: 0.85;
+    /* Feature showcase: a step list drives one stage video */
+    .features .sub { color: var(--muted); max-width: 580px; margin: 10px auto 0; text-align: center; }
+    .showcase {
+      display: grid; grid-template-columns: minmax(270px, 360px) 1fr; gap: 22px; align-items: start;
+      margin-top: 36px;
     }
-    .clip-modal {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.72);
-      display: none; align-items: center; justify-content: center; z-index: 10;
-      backdrop-filter: blur(6px);
+    .steps { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .step {
+      position: relative; display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start;
+      padding: 13px 16px 15px; border-radius: 14px; cursor: pointer; text-align: left;
+      border: 1px solid transparent;
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
-    .clip-modal.open { display: flex; }
-    .clip-modal video {
-      max-width: min(1000px, 92vw); max-height: 82vh; border-radius: 14px;
-      border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+    .step:hover { background: rgba(255, 255, 255, 0.04); }
+    .step.active { background: var(--panel); border-color: var(--border); }
+    .step:focus-visible { outline: 1px solid var(--accent); }
+    .step .icon { font-size: 20px; line-height: 1.4; }
+    .step h3 { font-size: 15px; font-weight: 650; margin: 0; }
+    .step p { color: var(--muted); font-size: 13.5px; margin-top: 4px; line-height: 1.5; display: none; }
+    .step.active p { display: block; }
+    .step .keys { display: none; gap: 4px; margin-top: 9px; }
+    .step.active .keys { display: flex; }
+    .step .keys kbd { font-size: 11.5px; }
+    .step .bar {
+      position: absolute; left: 16px; right: 16px; bottom: 0; height: 2px; border-radius: 2px; overflow: hidden;
+      background: rgba(255, 255, 255, 0.08); opacity: 0;
     }
+    .step.active .bar { opacity: 1; }
+    .step .bar i { display: block; height: 100%; width: calc(100% * var(--prog, 0)); background: var(--accent); }
+    .stage {
+      position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
+      background: #060a08; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5); aspect-ratio: 1300 / 840; cursor: pointer;
+    }
+    .stage video, .stage img.poster {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .stage img.poster { transition: opacity 0.35s ease; pointer-events: none; }
+    .stage.playing img.poster { opacity: 0; }
+    .stage .callout {
+      position: absolute; left: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 12px; border-radius: 12px; background: rgba(6, 10, 8, 0.74); border: 1px solid var(--border);
+      backdrop-filter: blur(10px); font-size: 13px; color: var(--text); pointer-events: none;
+    }
+    .stage .callout kbd { font-size: 12px; }
+    .stage .callout span { margin-left: 3px; }
+    .stage .pausemark {
+      position: absolute; top: 12px; right: 14px; padding: 4px 9px; border-radius: 999px; font-size: 11px;
+      background: rgba(6, 10, 8, 0.74); border: 1px solid var(--border); color: var(--muted); display: none;
+    }
+    .stage.paused .pausemark { display: block; }
+    @media (max-width: 860px) {
+      .showcase { grid-template-columns: 1fr; gap: 14px; }
+      .steps { flex-direction: row; overflow-x: auto; scrollbar-width: none; gap: 6px; padding: 2px 2px 6px; order: 2; }
+      .steps::-webkit-scrollbar { display: none; }
+      .step { grid-template-columns: auto; flex: 0 0 auto; padding: 9px 13px 11px; white-space: nowrap; }
+      .step .icon, .step .keys, .step p { display: none !important; }
+      .step .bar { left: 10px; right: 10px; }
+    }
+
+    /* Explainer widgets inside the feature cards */
+    .explain { margin-top: 28px; }
+    .explain .card { display: flex; flex-direction: column; }
+    .widget {
+      margin-top: 14px; border-radius: 12px; padding: 12px;
+      background: rgba(0, 0, 0, 0.28); border: 1px solid var(--border); font-size: 12.5px;
+    }
+    .widget:focus { outline: 1px solid var(--accent); }
+    .widget .hint { color: var(--muted); font-size: 11px; margin-top: 9px; }
+    .modes { display: flex; gap: 6px; margin-bottom: 10px; }
+    .modes button {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; cursor: pointer;
+      background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border); color: var(--muted); font-size: 12px;
+    }
+    .modes button.on { color: var(--text); border-color: var(--accent); background: rgba(127, 216, 164, 0.14); }
+    .modes button kbd { font-size: 11px; }
+    .sheet { background: #f5f2ea; color: #333; border-radius: 9px; padding: 10px 12px; font-size: 12px; line-height: 1.55; min-height: 96px; }
+    .sheet .plain, [data-mode="plain"] .sheet .rich { display: none; }
+    [data-mode="plain"] .sheet .plain { display: block; }
+    .mrail { overflow: hidden; padding: 6px 2px 4px; }
+    .mtrack { display: flex; gap: 6px; transition: transform 0.25s ease; }
+    .mcard {
+      position: relative; flex: 0 0 auto; width: 88px; height: 54px; border-radius: 9px; padding: 6px 8px;
+      font-size: 10.5px; line-height: 1.35; color: var(--text); overflow: hidden;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.10);
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.3s ease;
+    }
+    .mcard.sel { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 0 14px rgba(127, 216, 164, 0.3); }
+    .mcard.prev { transform: scale(1.14) translateY(-3px); z-index: 1; background: rgba(127, 216, 164, 0.2); }
+    .mcard small { display: block; color: var(--muted); font-size: 9px; margin-top: 3px; }
+    .mcard.pinned { border-color: rgba(127, 216, 164, 0.45); }
+    .mcard.ghost { opacity: 0.16; transform: scale(0.94); }
+    .keep .mtrack { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .keep .mcard { width: auto; height: 58px; padding: 6px 7px; font-size: 10px; -webkit-line-clamp: 3; }
+    .vim .mcard { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 10px; background: rgba(0, 0, 0, 0.35); }
+    .mkeys { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .mkeys kbd { transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease; }
+    .mkeys kbd.hit { background: var(--accent); color: #06130b; transform: translateY(1px); border-bottom-width: 1px; }
+    .mtoast { margin-top: 8px; font-size: 11.5px; color: var(--accent); min-height: 16px; opacity: 0; transition: opacity 0.2s ease; }
+    .mtoast.show { opacity: 1; }
+    .flow svg { display: block; width: 100%; height: auto; }
+    .flow text { fill: var(--muted); font-size: 8.5px; font-family: inherit; }
+    .flow .lane { fill: none; stroke: rgba(255, 255, 255, 0.16); stroke-width: 1; }
+    .flow .lane.blocked { stroke-dasharray: 3 3; stroke: rgba(255, 120, 120, 0.45); }
+    .flow .dot { fill: var(--accent); transition: opacity 0.3s ease; }
+    .flow.paused .dot { opacity: 0.15; }
+    .flow .cloud { fill: none; stroke: rgba(255, 255, 255, 0.22); stroke-width: 1; }
+    .flow .strike { stroke: rgba(255, 120, 120, 0.8); stroke-width: 1.4; }
+    .switch { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; cursor: pointer; font-size: 12px; color: var(--text); }
+    .switch input { appearance: none; width: 30px; height: 18px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); position: relative; cursor: pointer; transition: background 0.2s ease; margin: 0; }
+    .switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s ease; }
+    .switch input:checked { background: var(--accent); }
+    .switch input:checked::after { transform: translateX(12px); }
+    .rings { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; }
+    .rings svg { width: 150px; height: 150px; display: block; }
+    .rings circle { fill: rgba(127, 216, 164, 0.05); stroke: var(--border); stroke-width: 1; cursor: pointer; transition: fill 0.2s ease, stroke 0.2s ease; }
+    .rings g:hover circle, .rings g.on circle { fill: rgba(127, 216, 164, 0.16); stroke: var(--accent); }
+    .rings text { fill: var(--text); font-size: 9.5px; font-weight: 600; text-anchor: middle; pointer-events: none; font-family: inherit; }
+    .rings .cap { font-size: 12px; color: var(--text); line-height: 1.5; }
+    .rings .cap b { color: var(--accent); display: block; font-size: 12px; }
+    .rings .cap a { color: var(--muted); font-size: 11.5px; }
+    @media (max-width: 400px) { .rings { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
 
     /* 90vh of growth, then 60vh of dwell: the screen holds its full
        size for a stretch of scroll before the page moves on. */
@@ -355,58 +461,185 @@
     </div>
   </section>
 
-  <section id="features">
+  <section id="features" class="features">
     <h2>Everything a clipboard should have kept</h2>
-    <div class="grid">
-      <div class="card" data-clip="media/clips/paste-stack.mp4">
-        <div class="icon">🥞</div>
-        <h3>Paste stack</h3>
-        <p>Copy five things, paste five things. Queue cards with <kbd>⇧⏎</kbd>, then pop them one by one into any form or document with a single global shortcut — collect once, paste in order, never alt-tab back.</p>
+    <p class="sub">Real footage, no mock-ups. Pick a step, or let it play through.</p>
+
+    <div class="showcase">
+      <ol class="steps" role="tablist" aria-label="Whisk features">
+        <li class="step" role="tab" tabindex="0" data-clip="panel">
+          <span class="icon">🗂️</span>
+          <div>
+            <h3>Everything you copied, one panel</h3>
+            <p>Text, links, colors, images, files, code — each card wears the icon and tint of the app it came from, newest first.</p>
+            <span class="keys"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>V</kbd></span>
+          </div>
+          <span class="bar"><i></i></span>
+        </li>
+        <li class="step" role="tab" tabindex="0" data-clip="search">
+          <span class="icon">🔍</span>
+          <div>
+            <h3>Search &amp; filters that understand</h3>
+            <p>Type <code>slack invoice</code> and find the invoice you copied from Slack. <code>app:</code> and <code>type:</code> scope it tight; chips narrow by app or kind, and never build a dead end.</p>
+          </div>
+          <span class="bar"><i></i></span>
+        </li>
+        <li class="step" role="tab" tabindex="0" data-clip="color">
+          <span class="icon">🎨</span>
+          <div>
+            <h3>You see what you paste</h3>
+            <p>Colors render as swatches, links show their title and cover, code arrives highlighted, files get thumbnails. Click a card and it lands right where you type.</p>
+            <span class="keys"><kbd>⏎</kbd></span>
+          </div>
+          <span class="bar"><i></i></span>
+        </li>
+        <li class="step" role="tab" tabindex="0" data-clip="stack">
+          <span class="icon">🥞</span>
+          <div>
+            <h3>Paste stack</h3>
+            <p>Queue cards with <kbd>⇧⏎</kbd>, then pop them one by one into any form with <kbd>⌥⌘V</kbd> — collect once, paste in order, never alt-tab back.</p>
+            <span class="keys"><kbd>⇧</kbd><kbd>⏎</kbd><span style="color: var(--muted); font-size: 11px; align-self: center">then</span><kbd>⌥</kbd><kbd>⌘</kbd><kbd>V</kbd></span>
+          </div>
+          <span class="bar"><i></i></span>
+        </li>
+        <li class="step" role="tab" tabindex="0" data-clip="preview">
+          <span class="icon">👁️</span>
+          <div>
+            <h3>Look first, then paste</h3>
+            <p><kbd>⌘Y</kbd> opens any card full size — the whole text, the full image, the file list. <kbd>⌘Y</kbd> or <kbd>Esc</kbd> closes it.</p>
+            <span class="keys"><kbd>⌘</kbd><kbd>Y</kbd></span>
+          </div>
+          <span class="bar"><i></i></span>
+        </li>
+        <li class="step" role="tab" tabindex="0" data-clip="drag">
+          <span class="icon">🖱️</span>
+          <div>
+            <h3>Drag &amp; drop</h3>
+            <p>Every card is draggable — an image into Mail, a file into Finder, text into a doc. The panel floats over your work, so the drop target is already on screen.</p>
+          </div>
+          <span class="bar"><i></i></span>
+        </li>
+      </ol>
+      <div class="stage" id="stage" title="Click to pause or resume">
+        <img class="poster" id="stage-poster" alt="" src="media/clips/panel.jpg">
+        <video id="stage-video" muted playsinline preload="auto" aria-label="Whisk feature demo"></video>
+        <div class="callout" id="stage-callout"></div>
+        <div class="pausemark">Paused</div>
       </div>
-      <div class="card" data-clip="media/clips/search.mp4">
-        <div class="icon">🔍</div>
-        <h3>Search that understands</h3>
-        <p>Type <code>slack invoice</code> and find the invoice you copied from Slack. Free words search content and source app together; <code>app:</code> and <code>type:</code> scope it tight.</p>
-      </div>
-      <div class="card" data-clip="media/clips/filters.mp4">
-        <div class="icon">🏷️</div>
-        <h3>Filters that think</h3>
-        <p>One chip per app, one per content kind, pinned items up front. Stack them freely — each facet narrows the other, so a dead-end filter simply cannot be built.</p>
-      </div>
-      <div class="card" data-clip="media/clips/drag-drop.mp4">
-        <div class="icon">🖱️</div>
-        <h3>Drag &amp; drop</h3>
-        <p>Every card is draggable — text into an email, an image into a deck, a file into Finder. The panel floats over your work, so the drop target is already on screen.</p>
-      </div>
-      <div class="card" data-clip="media/clips/previews.mp4">
-        <div class="icon">✨</div>
-        <h3>You see what you paste</h3>
-        <p>Links show their title and cover, code arrives syntax-highlighted, colors render as swatches in any notation — hex, <code>rgb()</code>, <code>hsl()</code> — and files get QuickLook thumbnails.</p>
-      </div>
-      <div class="card" data-clip="media/clips/rich-text.mp4">
+    </div>
+
+    <div class="grid explain">
+      <div class="card">
         <div class="icon">📝</div>
         <h3>Paste, minus the mess</h3>
         <p>Formatting is kept when you want it and stripped when you don't: <kbd>⏎</kbd> pastes rich, <kbd>⌥⏎</kbd> pastes plain. Never paste white-on-white text again.</p>
+        <div class="widget" id="w-rich" data-mode="rich">
+          <div class="modes">
+            <button type="button" data-mode="rich"><kbd>⏎</kbd> rich</button>
+            <button type="button" data-mode="plain"><kbd>⌥⏎</kbd> plain</button>
+          </div>
+          <div class="sheet">
+            <div class="rich">
+              <b style="font-size: 14px; font-family: Georgia, serif">Matcha Tasting — Saturday, 3 PM</b><br>
+              <span style="color: #b7472a; font-weight: 600">RSVP by Friday</span> · <a style="color: #3f9d68">matcha.club</a><br>
+              <span style="background: #1d1f22; color: #e8ede9; padding: 1px 5px; border-radius: 4px; font-family: Menlo, monospace; font-size: 11px">copied from a dark app</span>
+              <span style="color: #f5f2ea">and this line was white text — invisible here.</span>
+            </div>
+            <div class="plain">
+              Matcha Tasting — Saturday, 3 PM<br>
+              RSVP by Friday · matcha.club<br>
+              copied from a dark app and this line was white text — invisible here.
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="card" data-clip="media/clips/keyboard.mp4">
+      <div class="card">
         <div class="icon">⌨️</div>
         <h3>Hands stay on the keyboard</h3>
         <p>Arrows, <kbd>⏎</kbd> in place, <kbd>⌘1…9</kbd> direct hits, <kbd>⌘Y</kbd> for a big preview. Every shortcut is remappable and follows your actual layout — Dvorak and AZERTY included.</p>
+        <div class="widget" id="w-keys" tabindex="0" aria-label="Keyboard demo: use the arrow keys, Enter and Y">
+          <div class="mrail"><div class="mtrack"></div></div>
+          <div class="mkeys"><kbd data-k="left">←</kbd><kbd data-k="right">→</kbd><kbd data-k="enter">⏎</kbd><kbd data-k="y">⌘Y</kbd><kbd data-k="esc">Esc</kbd></div>
+          <div class="mtoast"></div>
+          <div class="hint">Click here, then use your own <kbd>←</kbd> <kbd>→</kbd> <kbd>⏎</kbd> (<kbd>Y</kbd> previews).</div>
+        </div>
       </div>
-      <div class="card" data-clip="media/clips/vim.mp4">
+      <div class="card">
         <div class="icon">🟩</div>
         <h3>Speaks fluent Vim</h3>
         <p>Flip one switch and the panel opens in normal mode — <kbd>hjkl</kbd> to move, <kbd>gg</kbd> and <kbd>G</kbd> to jump, <kbd>p</kbd> to paste, <kbd>dd</kbd> to delete, <kbd>/</kbd> to search. Every key rebindable.</p>
+        <div class="widget vim" id="w-vim" tabindex="0" aria-label="Vim demo: use h, l, gg, G, p and dd">
+          <div class="mrail"><div class="mtrack"></div></div>
+          <div class="mkeys"><kbd data-k="h">h</kbd><kbd data-k="l">l</kbd><kbd data-k="gg">gg</kbd><kbd data-k="G">G</kbd><kbd data-k="p">p</kbd><kbd data-k="dd">dd</kbd></div>
+          <div class="mtoast"></div>
+          <div class="hint">Click here and type <kbd>h</kbd> <kbd>l</kbd> <kbd>gg</kbd> <kbd>G</kbd> <kbd>p</kbd> <kbd>dd</kbd>.</div>
+        </div>
       </div>
-      <div class="card" data-clip="media/clips/privacy.mp4">
+      <div class="card">
         <div class="icon">🔒</div>
         <h3>Private by design</h3>
         <p>Your history never leaves your Mac — no cloud, no account, no analytics. Password managers stay unrecorded, capture pauses in one click, and any app can be excluded for good.</p>
+        <div class="widget flow" id="w-privacy">
+          <svg viewBox="0 0 320 150" aria-hidden="true">
+            <path class="cloud" d="M138 22 a9 9 0 0 1 17 -4 a8 8 0 0 1 15 4 a7 7 0 0 1 -1 14 h-30 a7 7 0 0 1 -1 -14 z"/>
+            <line class="strike" x1="136" y1="8" x2="172" y2="40"/>
+            <text x="160" y="50" text-anchor="middle">no cloud · no account · no analytics</text>
+            <path id="lane-a" class="lane" d="M52 68 C 90 68, 110 88, 146 88"/>
+            <path id="lane-b" class="lane" d="M52 92 C 90 92, 110 88, 146 88"/>
+            <path id="lane-c" class="lane" d="M52 116 C 90 116, 110 92, 146 90"/>
+            <path id="lane-d" class="lane blocked" d="M52 138 C 90 138, 110 100, 140 96"/>
+            <path id="lane-out" class="lane" d="M178 88 C 210 88, 230 88, 262 88"/>
+            <text x="12" y="71">Safari</text>
+            <text x="12" y="95">Mail</text>
+            <text x="12" y="119">Notes</text>
+            <text x="12" y="141">Password manager</text>
+            <text x="90" y="148" style="fill: rgba(255,120,120,0.85)">✕ never recorded</text>
+            <image href="media/logo-cup.png" x="149" y="72" width="24" height="32"/>
+            <rect x="264" y="72" width="44" height="32" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.16)"/>
+            <text x="286" y="86" text-anchor="middle">SQLite</text>
+            <text x="286" y="97" text-anchor="middle" style="font-size: 7px">on this Mac</text>
+            <circle class="dot" r="2.6"><animateMotion dur="2.2s" repeatCount="indefinite"><mpath href="#lane-a"/></animateMotion></circle>
+            <circle class="dot" r="2.6"><animateMotion dur="2.6s" begin="0.7s" repeatCount="indefinite"><mpath href="#lane-b"/></animateMotion></circle>
+            <circle class="dot" r="2.6"><animateMotion dur="2.4s" begin="1.3s" repeatCount="indefinite"><mpath href="#lane-c"/></animateMotion></circle>
+            <circle class="dot" r="2.6"><animateMotion dur="1.8s" begin="0.4s" repeatCount="indefinite"><mpath href="#lane-out"/></animateMotion></circle>
+            <circle class="dot" r="2.6"><animateMotion dur="1.8s" begin="1.3s" repeatCount="indefinite"><mpath href="#lane-out"/></animateMotion></circle>
+          </svg>
+          <label class="switch"><input type="checkbox" id="w-pause"> Pause capture</label>
+        </div>
+      </div>
+      <div class="card">
+        <div class="icon">📌</div>
+        <h3>Keeps what matters, forgets the rest</h3>
+        <p>Pin a card and it survives <em>Clear</em>, eviction and retention. Let the rest expire after 24 hours, 7 days or 30 days — or keep everything, forever, with an unlimited capacity.</p>
+        <div class="widget keep" id="w-keep">
+          <div class="modes">
+            <button type="button" data-days="0" class="on">Forever</button>
+            <button type="button" data-days="1">24 h</button>
+            <button type="button" data-days="7">7 days</button>
+            <button type="button" data-days="30">30 days</button>
+          </div>
+          <div class="mrail"><div class="mtrack">
+            <div class="mcard" data-age="0.2">#73E2A7<small>5 h ago</small></div>
+            <div class="mcard" data-age="3">Emma L.<small>3 days ago</small></div>
+            <div class="mcard" data-age="12">recipe 🍵<small>12 days ago</small></div>
+            <div class="mcard pinned" data-age="60">📌 brew…<small>60 d · pinned</small></div>
+          </div></div>
+          <div class="hint" id="keep-hint">Everything stays, as long as you like.</div>
+        </div>
       </div>
       <div class="card">
         <div class="icon"><img src="media/logo-cup.png" alt="" height="28" style="vertical-align: -4px"></div>
         <h3>Yours, not rented</h3>
         <p>Free and open source, GPL — no subscription, no lock-in. Built in Swift with a clean, tested architecture: read it, build it, improve it.</p>
+        <div class="widget rings" id="w-arch">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <g data-name="App" data-cap="Frameworks, drivers and the composition root: the only place that knows every concrete type."><circle cx="100" cy="100" r="96"/><text x="100" y="17">App</text></g>
+            <g data-name="Adapters" data-cap="Controllers, presenters and gateways translate between the kernel and the outside world. Only gateways may import AppKit."><circle cx="100" cy="100" r="72"/><text x="100" y="41">Adapters</text></g>
+            <g data-name="Use cases" data-cap="The clipboard rules — capture, dedup, pins, search — behind ports. Foundation only, fully unit-tested."><circle cx="100" cy="100" r="48"/><text x="100" y="65">Use cases</text></g>
+            <g data-name="Entities" data-cap="Plain values with no dependencies at all: the history, an item, a shortcut."><circle cx="100" cy="100" r="24"/><text x="100" y="103">Entities</text></g>
+          </svg>
+          <div class="cap" id="arch-cap"><b>Dependencies point inward</b>Hover a ring. A lint script enforces the rule on every push.<br><a href="https://github.com/nathan-poncet/whisk/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Read the architecture →</a></div>
+        </div>
       </div>
     </div>
   </section>
@@ -449,7 +682,6 @@
   </footer>
 </main>
 
-<div class="clip-modal" id="clip-modal"><video id="clip-video" controls autoplay loop muted playsinline></video></div>
 <script>
 (() => {
   const APPS = {
@@ -587,21 +819,154 @@
     })
     .catch(() => {});
 
-  // Feature clips: cards advertise a video only when the file exists.
-  document.querySelectorAll(".card[data-clip]").forEach((card) => {
-    fetch(card.dataset.clip, { method: "HEAD" }).then((r) => {
-      if (!r.ok) return;
-      card.classList.add("has-clip");
-      card.addEventListener("click", () => {
-        el("clip-video").src = card.dataset.clip;
-        el("clip-modal").classList.add("open");
-      });
-    }).catch(() => {});
+  // Feature showcase: one stage video, driven by the step list and by time.
+  const CLIPS = {
+    panel:   { keys: ["⇧", "⌘", "V"], say: "opens over any app" },
+    search:  { keys: [], say: "app:mail · type:color · any words" },
+    color:   { keys: ["⏎"], say: "a color card lands where you type" },
+    stack:   { keys: ["⇧", "⏎"], say: "queue three · ⌥⌘V pops them in order" },
+    preview: { keys: ["⌘", "Y"], say: "full-size preview of any card" },
+    drag:    { keys: [], say: "drag a card into any app" },
+  };
+  const stage = el("stage"), vid = el("stage-video"), poster = el("stage-poster"), callout = el("stage-callout");
+  const steps = [...document.querySelectorAll(".step")];
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const narrow = () => matchMedia("(max-width: 860px)").matches;
+  let cur = -1, auto = !reduced, inView = false;
+  const play = () => { if (inView || !auto) vid.play().catch(() => {}); };
+  const show = (i, byUser) => {
+    if (byUser) auto = false;
+    if (i === cur) { if (byUser) play(); return; }
+    cur = i;
+    const id = steps[i].dataset.clip, c = CLIPS[id];
+    steps.forEach((s, n) => {
+      s.classList.toggle("active", n === i); s.setAttribute("aria-selected", n === i); s.style.setProperty("--prog", 0);
+    });
+    // The horizontal strip on phones must reveal the active chip; on desktop the list is fully visible.
+    if (narrow()) steps[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    poster.src = `media/clips/${id}.jpg`; stage.classList.remove("playing", "paused");
+    callout.innerHTML = c.keys.map((k) => `<kbd>${k}</kbd>`).join("") + `<span>${c.say}</span>`;
+    vid.src = `media/clips/${id}.mp4`; vid.load(); play();
+  };
+  vid.addEventListener("playing", () => stage.classList.add("playing"));
+  vid.addEventListener("timeupdate", () => {
+    if (vid.duration && cur >= 0) steps[cur].style.setProperty("--prog", (vid.currentTime / vid.duration).toFixed(3));
   });
-  el("clip-modal").addEventListener("click", () => {
-    el("clip-modal").classList.remove("open");
-    el("clip-video").pause();
-    el("clip-video").removeAttribute("src");
+  vid.addEventListener("ended", () => { if (auto) show((cur + 1) % steps.length); else vid.play().catch(() => {}); });
+  steps.forEach((s, i) => {
+    s.addEventListener("click", () => show(i, true));
+    s.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(i, true); } });
+  });
+  stage.addEventListener("click", () => {
+    auto = false;
+    if (vid.paused) { stage.classList.remove("paused"); vid.play().catch(() => {}); }
+    else { stage.classList.add("paused"); vid.pause(); }
+  });
+  if (reduced) vid.controls = true;
+  new IntersectionObserver((entries) => {
+    inView = entries[0].isIntersecting;
+    if (inView) { if (!stage.classList.contains("paused")) play(); } else vid.pause();
+  }, { threshold: 0.2 }).observe(stage);
+  show(0);
+
+  // Rich vs plain: alternates on its own until someone picks a side.
+  const richBox = el("w-rich"); let richAuto = true;
+  const setMode = (m) => {
+    richBox.dataset.mode = m;
+    richBox.querySelectorAll(".modes button").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
+  };
+  richBox.querySelectorAll(".modes button").forEach((b) => b.addEventListener("click", () => { richAuto = false; setMode(b.dataset.mode); }));
+  setMode("rich");
+  if (!reduced) setInterval(() => { if (richAuto) setMode(richBox.dataset.mode === "rich" ? "plain" : "rich"); }, 2600);
+
+  // Mini rails: a scripted loop until the visitor takes the keys themselves.
+  const miniRail = (root, script, keymap) => {
+    const base = ["Emma Larsson", "#73E2A7", "git rebase -i", "matcha.club", "Iced Matcha 🍵"];
+    const railEl = root.querySelector(".mrail"), track = root.querySelector(".mtrack");
+    const keysEl = root.querySelector(".mkeys"), toast = root.querySelector(".mtoast");
+    let items = base.slice(), sel = 0, preview = false, userDriven = false, step = 0;
+    const render = () => {
+      track.innerHTML = items.map((t, i) =>
+        `<div class="mcard ${i === sel ? "sel" : ""} ${preview && i === sel ? "prev" : ""}">${t}</div>`).join("");
+      // Like the real rail, the track slides so the selected card is always on screen.
+      const cw = 94, vis = railEl.clientWidth, total = items.length * cw - 6;
+      const off = Math.max(0, Math.min(sel * cw - (vis - 88) / 2, total - vis));
+      track.style.transform = `translateX(${-off}px)`;
+    };
+    const flash = (k) => {
+      const b = [...keysEl.children].find((x) => x.dataset.k === k); if (!b) return;
+      b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 380);
+    };
+    const say = (t) => { toast.textContent = t; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 1000); };
+    const act = (a) => {
+      flash(a);
+      if (a === "left" || a === "h") sel = Math.max(0, sel - 1);
+      else if (a === "right" || a === "l") sel = Math.min(items.length - 1, sel + 1);
+      else if (a === "gg") sel = 0;
+      else if (a === "G") sel = items.length - 1;
+      else if (a === "enter" || a === "p") say(`Pasted “${items[sel]}”`);
+      else if (a === "y") preview = !preview;
+      else if (a === "esc") preview = false;
+      else if (a === "dd") {
+        const gone = items.splice(sel, 1)[0]; sel = Math.min(sel, items.length - 1); say(`Deleted “${gone}”`);
+        setTimeout(() => { items = base.slice(); sel = Math.min(sel, items.length - 1); render(); }, 1800);
+      }
+      render();
+    };
+    if (!reduced) setInterval(() => { if (!userDriven) act(script[step++ % script.length]); }, 950);
+    root.addEventListener("keydown", (e) => {
+      const a = keymap(e.key); if (!a) return;
+      e.preventDefault(); userDriven = true; if (a !== "wait") act(a);
+    });
+    root.addEventListener("focus", () => { userDriven = true; });
+    root.addEventListener("blur", () => { userDriven = false; preview = false; render(); });
+    render();
+  };
+  miniRail(el("w-keys"), ["right", "right", "y", "esc", "left", "enter", "right", "right", "y", "esc", "left", "left", "enter"],
+    (k) => ({ ArrowLeft: "left", ArrowRight: "right", Enter: "enter", y: "y", Y: "y", Escape: "esc" })[k]);
+  let chord = "";
+  miniRail(el("w-vim"), ["l", "l", "G", "gg", "l", "dd", "p", "l", "l", "G", "gg", "p"], (k) => {
+    // gg and dd are two-key chords: the first key waits briefly for its twin.
+    if (k === "g" || k === "d") {
+      if (chord === k) { chord = ""; return k + k; }
+      chord = k; setTimeout(() => { chord = ""; }, 700); return "wait";
+    }
+    chord = "";
+    return { h: "h", l: "l", G: "G", p: "p", Escape: "esc" }[k];
+  });
+
+  // Retention: cards older than the chosen window fade out; the pinned one never does.
+  const keep = el("w-keep"), keepButtons = [...keep.querySelectorAll(".modes button")]; let keepAuto = true, keepIdx = 0;
+  const setKeep = (b) => {
+    const days = Number(b.dataset.days); let gone = 0;
+    keepButtons.forEach((x) => x.classList.toggle("on", x === b));
+    keep.querySelectorAll(".mcard").forEach((c) => {
+      const out = days > 0 && !c.classList.contains("pinned") && Number(c.dataset.age) > days;
+      c.classList.toggle("ghost", out); gone += out;
+    });
+    el("keep-hint").textContent = days ? `${gone} card${gone === 1 ? "" : "s"} expired · the pinned one stays.` : "Everything stays, as long as you like.";
+  };
+  keepButtons.forEach((b) => b.addEventListener("click", () => { keepAuto = false; setKeep(b); }));
+  if (!reduced) setInterval(() => { if (keepAuto) setKeep(keepButtons[++keepIdx % keepButtons.length]); }, 2400);
+
+  // Privacy flow: the switch really stops the capture animation.
+  const flow = el("w-privacy"), flowSvg = flow.querySelector("svg");
+  el("w-pause").addEventListener("change", (e) => {
+    flow.classList.toggle("paused", e.target.checked);
+    e.target.checked ? flowSvg.pauseAnimations() : flowSvg.unpauseAnimations();
+  });
+
+  // Architecture rings: hover or tap a ring to read what lives there.
+  const archCap = el("arch-cap"), archDefault = archCap.innerHTML;
+  document.querySelectorAll("#w-arch g").forEach((g) => {
+    const on = () => {
+      document.querySelectorAll("#w-arch g").forEach((x) => x.classList.toggle("on", x === g));
+      archCap.innerHTML = `<b>${g.dataset.name}</b>${g.dataset.cap}`;
+    };
+    g.addEventListener("mouseenter", on); g.addEventListener("click", on);
+  });
+  el("w-arch").addEventListener("mouseleave", () => {
+    document.querySelectorAll("#w-arch g").forEach((x) => x.classList.remove("on")); archCap.innerHTML = archDefault;
   });
 })();
 </script>
