@@ -27,10 +27,18 @@ import Testing
     }
 
     @Test func the_default_directory_is_whisk_under_application_support() throws {
-        let directory = try HistoryStorage.defaultDirectory()
+        let directory = try HistoryStorage.defaultDirectory(environment: [:])
 
         #expect(directory.lastPathComponent == "Whisk")
         #expect(directory.deletingLastPathComponent().lastPathComponent == "Application Support")
+    }
+
+    @Test func the_environment_can_point_the_data_directory_elsewhere() throws {
+        let elsewhere = try HistoryStorage.defaultDirectory(environment: ["WHISK_DATA_DIR": "/tmp/whisk-under-test"])
+        let blank = try HistoryStorage.defaultDirectory(environment: ["WHISK_DATA_DIR": ""])
+
+        #expect(elsewhere.path == "/tmp/whisk-under-test")
+        #expect(blank.lastPathComponent == "Whisk")
     }
 
     @Test func a_legacy_import_that_cannot_be_retired_is_logged_and_the_index_stays() throws {

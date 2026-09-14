@@ -25,8 +25,19 @@ enum HistoryStorage {
     static let legacyIndexName = "history.json"
     static let retiredSuffix = ".migrated"
 
-    /// `~/Library/Application Support/Whisk`.
-    static func defaultDirectory(fileManager: FileManager = .default) throws -> URL {
+    /// Overrides the data directory, so a build under test runs beside an
+    /// installed Whisk without the two writing the same database.
+    static let directoryOverride = "WHISK_DATA_DIR"
+
+    /// `~/Library/Application Support/Whisk`, unless the environment points
+    /// elsewhere.
+    static func defaultDirectory(
+        fileManager: FileManager = .default,
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) throws -> URL {
+        if let override = environment[directoryOverride], !override.isEmpty {
+            return URL(fileURLWithPath: override, isDirectory: true)
+        }
         let base = try fileManager.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
