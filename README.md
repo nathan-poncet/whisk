@@ -9,10 +9,9 @@ Paste-style panel at the bottom of your screen.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S3V726AT7H)
 
-[![Whisk in 50 seconds — copy-paste on repeat, then one panel: search, colors, paste stack, preview, drag & drop. Click to play.](docs/media/demo-play.jpg)](docs/media/demo.mp4)
+https://github.com/user-attachments/assets/25bc53ce-697b-4259-a951-a1324fcc205d
 
-*▶ Click the frame to play the 50-second demo (1080p MP4 with sound), or watch it on the [website](https://nathan-poncet.github.io/whisk/).*
-
+*Whisk in 30 seconds — clipboard history, search, paste stack, preview, and drag & drop. 1080p with sound.*
 
 Built in Swift/SwiftUI following Clean Architecture: a pure, synchronous
 kernel behind ports, adapters at the edges, and a composition root that wires
@@ -64,9 +63,10 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Privacy** — history stays on disk in
   `~/Library/Application Support/Whisk` (SQLite); password managers marking
   their content as concealed (`org.nspasteboard.ConcealedType`) are never
-  recorded. Two exceptions to "nothing leaves your machine": link previews
-  fetch metadata from the copied URL (cached, once per link), and the
-  optional update check queries the GitHub releases API at launch.
+  recorded. Two exceptions to "nothing leaves your machine", each with its
+  switch in Settings: link previews fetch metadata from the copied URL
+  (cached, once per link), and the update check queries the GitHub
+  releases API at launch.
 - **English & French** — the interface follows your system language.
 
 ## Requirements

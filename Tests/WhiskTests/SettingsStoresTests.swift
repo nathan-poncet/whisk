@@ -227,6 +227,7 @@ final class IsolatedDefaults {
         #expect(store.capacity == 500)
         #expect(store.checkForUpdates)
         #expect(!store.vimNavigation)
+        #expect(store.linkPreviews)
         #expect(store.excludedApps.isEmpty)
         #expect(store.policy == .standard)
     }
@@ -251,6 +252,7 @@ final class IsolatedDefaults {
         first.retentionPeriod = .month
         first.checkForUpdates = false
         first.vimNavigation = true
+        first.linkPreviews = false
         first.excludedApps = [ExcludedApp(bundleID: "com.apple.keychainaccess", name: "Keychain Access")]
 
         let second = GeneralSettingsStore(defaults: sandbox.defaults)
@@ -259,6 +261,7 @@ final class IsolatedDefaults {
         #expect(second.retentionPeriod == .month)
         #expect(!second.checkForUpdates)
         #expect(second.vimNavigation)
+        #expect(!second.linkPreviews)
         #expect(second.excludedBundleIDs == ["com.apple.keychainaccess"])
     }
 

@@ -65,6 +65,12 @@ final class GeneralSettingsStore: ObservableObject {
         didSet { defaults.set(vimNavigation, forKey: "vimNavigation") }
     }
 
+    /// Whether copied links are looked up for their title and image — the
+    /// one request that tells a site its address was copied.
+    @Published var linkPreviews: Bool {
+        didSet { defaults.set(linkPreviews, forKey: "linkPreviews") }
+    }
+
     @Published var excludedApps: [ExcludedApp] {
         didSet {
             do {
@@ -87,6 +93,7 @@ final class GeneralSettingsStore: ObservableObject {
         checkForUpdates =
             defaults.object(forKey: "checkForUpdates") == nil ? true : defaults.bool(forKey: "checkForUpdates")
         vimNavigation = defaults.bool(forKey: "vimNavigation")
+        linkPreviews = defaults.object(forKey: "linkPreviews") == nil ? true : defaults.bool(forKey: "linkPreviews")
         excludedApps = []
         if let data = defaults.data(forKey: "excludedApps") {
             do {

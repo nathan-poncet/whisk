@@ -59,6 +59,26 @@ import Testing
 }
 
 @MainActor
+@Suite struct LinkPreviewOptOut {
+    @Test func switched_off_the_store_neither_fetches_nor_shows_what_it_already_holds() {
+        let store = LinkPreviewStore()
+        let address = "https://example.com/private"
+        store.store(LinkPreview(title: "Private", host: "example.com", icon: nil, image: nil), for: address)
+        #expect(store.preview(for: address) != nil)
+
+        store.setEnabled(false)
+        store.load("https://example.com/another")
+
+        #expect(!store.isEnabled)
+        #expect(store.preview(for: address) == nil)
+        #expect(store.previews["https://example.com/another"] == nil)
+
+        store.setEnabled(true)
+        #expect(store.preview(for: address)?.title == "Private")
+    }
+}
+
+@MainActor
 @Suite struct PreviewCacheBounds {
     @Test func the_link_and_thumbnail_caches_let_everything_go_past_their_limit() {
         // Instances of their own: the shared ones serve other suites

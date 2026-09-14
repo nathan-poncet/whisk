@@ -70,6 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         clipboard.applyRetention(generalSettings.policy)
         clipboard.applyExclusions(generalSettings.excludedBundleIDs)
+        LinkPreviewStore.shared.setEnabled(generalSettings.linkPreviews)
         clipboard.setLayoutDirection(
             NSApp.userInterfaceLayoutDirection == .rightToLeft ? .rightToLeft : .leftToRight)
         // willSet semantics again: hop to the next cycle so the policy is
@@ -80,6 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self else { return }
                 self.clipboard?.applyRetention(self.generalSettings.policy)
                 self.clipboard?.applyExclusions(self.generalSettings.excludedBundleIDs)
+                LinkPreviewStore.shared.setEnabled(self.generalSettings.linkPreviews)
             }
         startPolling(clipboard)
 

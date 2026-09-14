@@ -14,6 +14,7 @@ struct SettingsView: View {
         // scrolls, so the vim section can appear and disappear freely.
         Form {
             generalSection
+            privacySection
             historySection
             excludedSection
             vimSection
@@ -40,6 +41,19 @@ struct SettingsView: View {
                     localized("Check for updates at launch"), symbol: "arrow.triangle.2.circlepath", tint: .blue)
             }
             .toggleStyle(.switch)
+        }
+    }
+
+    private var privacySection: some View {
+        Section {
+            Toggle(isOn: $general.linkPreviews) {
+                SettingsRowLabel(localized("Fetch link previews"), symbol: "link", tint: .teal)
+            }
+            .toggleStyle(.switch)
+        } header: {
+            Text(localized("Privacy"))
+        } footer: {
+            Text(localized("A copied link is looked up once for its title and image. Off, nothing leaves this Mac."))
         }
     }
 

@@ -22,14 +22,21 @@ final class LinkPreviewStore: ObservableObject {
     static let shared = LinkPreviewStore()
 
     @Published private(set) var previews: [String: LinkPreview] = [:]
+    /// Off, no request leaves the machine and cards show the bare address,
+    /// including for links already looked up.
+    @Published private(set) var isEnabled = true
     private var inFlight: Set<String> = []
 
+    func setEnabled(_ enabled: Bool) {
+        isEnabled = enabled
+    }
+
     func preview(for address: String) -> LinkPreview? {
-        previews[address]
+        isEnabled ? previews[address] : nil
     }
 
     func load(_ address: String) {
-        guard previews[address] == nil, !inFlight.contains(address),
+        guard isEnabled, previews[address] == nil, !inFlight.contains(address),
             let url = URL(string: address)
         else { return }
         inFlight.insert(address)
