@@ -37,6 +37,16 @@ import Testing
         #expect(!panel.isVisible)
     }
 
+    @Test func the_panel_rises_on_the_screen_under_the_pointer_or_the_primary_one() {
+        let primary = CGRect(x: 0, y: 0, width: 1920, height: 1080)
+        let secondary = CGRect(x: 1920, y: 200, width: 1440, height: 900)
+
+        #expect(PanelController.screenIndex(under: CGPoint(x: 100, y: 100), frames: [primary, secondary]) == 0)
+        #expect(PanelController.screenIndex(under: CGPoint(x: 2500, y: 600), frames: [primary, secondary]) == 1)
+        #expect(PanelController.screenIndex(under: CGPoint(x: -50, y: 5000), frames: [primary, secondary]) == 0)
+        #expect(PanelController.screenIndex(under: .zero, frames: []) == nil)
+    }
+
     @Test func the_panel_controller_hides_idempotently_and_ignores_drags_while_hidden() throws {
         _ = NSApplication.shared
         let sandbox = try IsolatedDefaults()

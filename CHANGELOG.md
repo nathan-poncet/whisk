@@ -12,6 +12,8 @@ live in the commit history.
 - Link previews can be switched off in Settings, under Privacy: no
   request leaves the Mac and link cards show the bare address, including
   for links already looked up.
+- The panel rises on the screen where the pointer is, and the preview
+  follows it, instead of always on the main screen.
 
 ## [0.9.0] - 2026-09-14
 

@@ -102,8 +102,19 @@ final class PanelController {
         }
     }
 
+    /// The screen the panel rises on: the one under the pointer, else the
+    /// first — the primary display — when the pointer sits on no screen.
+    static func screenIndex(under point: CGPoint, frames: [CGRect]) -> Int? {
+        guard !frames.isEmpty else { return nil }
+        return frames.firstIndex { $0.contains(point) } ?? 0
+    }
+
     func show() {
-        guard let screen = NSScreen.main else { return }
+        let screens = NSScreen.screens
+        guard let index = Self.screenIndex(under: NSEvent.mouseLocation, frames: screens.map(\.frame)) else {
+            return
+        }
+        let screen = screens[index]
         resetDragGhost()
         // The full frame, not visibleFrame: the panel floats above the
         // Dock, flush with the physical bottom edge of the screen.
@@ -237,7 +248,7 @@ final class PanelController {
             preview.contentView = NSHostingView(rootView: PreviewOverlayView(store: stateStore))
             previewPanel = preview
         }
-        guard let preview = previewPanel, let screen = NSScreen.main else { return }
+        guard let preview = previewPanel, let screen = panel.screen ?? NSScreen.main else { return }
         let size = NSSize(width: 700, height: 480)
         let frame = screen.frame
         preview.setFrame(

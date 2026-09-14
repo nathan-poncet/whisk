@@ -22,8 +22,9 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 - **Clipboard history** — every copy is captured and persisted locally,
   newest first, deduplicated.
-- **Liquid Glass panel** — `⇧⌘V` opens a floating glass panel (the macOS 26
-  look, translucent materials on earlier systems); click a card to copy it
+- **Liquid Glass panel** — `⇧⌘V` opens a floating glass panel on the
+  screen where your pointer is (the macOS 26 look, translucent materials
+  on earlier systems); click a card to copy it
   back (and paste it directly when Accessibility access is granted). The
   shortcut follows your keyboard layout — `V` is wherever your layout
   prints it (Dvorak, AZERTY, Colemak, …), re-resolved live when you switch
