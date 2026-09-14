@@ -26,8 +26,8 @@ struct HistoryFilter: Equatable {
 }
 
 /// Narrows the history by query, source applications, and content
-/// categories. The query understands `app:` and `type:` operators; free
-/// words fuzzy-match the content or the source application name — every
+/// categories. The query understands the `app:` and `type:` operators
+/// and the `pinned` word; free words fuzzy-match the content or the source application name — every
 /// word must land somewhere (AND) — and a live query ranks by match
 /// quality, recency breaking the ties.
 struct FilterHistory {
@@ -60,10 +60,12 @@ struct FilterHistory {
     }
 }
 
-/// `app:slack type:code keyboard` → app terms, type terms, free words.
+/// `app:slack type:code pinned keyboard` → app terms, type terms, the
+/// pinned gate, free words.
 struct ParsedQuery: Equatable {
     private(set) var appTerms: [String] = []
     private(set) var typeTerms: [String] = []
+    private(set) var pinnedOnly = false
     private(set) var words: [String] = []
 
     init(_ raw: String) {
@@ -75,6 +77,8 @@ struct ParsedQuery: Equatable {
             } else if lowered.hasPrefix("type:") || lowered.hasPrefix("kind:") {
                 let term = String(lowered.drop(while: { $0 != ":" }).dropFirst())
                 if !term.isEmpty { typeTerms.append(term) }
+            } else if lowered == "pinned" {
+                pinnedOnly = true
             } else {
                 words.append(String(token))
             }
@@ -85,6 +89,7 @@ struct ParsedQuery: Equatable {
     /// gates; each free word contributes its best fuzzy score across the
     /// content and the source application.
     func score(_ item: ClipboardItem) -> Int? {
+        if pinnedOnly, !item.isPinned { return nil }
         for term in appTerms where !sourceMatches(item, term) {
             return nil
         }
