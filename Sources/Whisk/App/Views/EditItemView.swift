@@ -2,9 +2,10 @@ import SwiftUI
 
 /// The in-panel editor for a card's text: replaces the rail while it is
 /// open, so the panel keeps the keyboard. The text lives on the store, so
-/// the panel's key router saves it on Return and lets Shift-Return break
-/// the line; ⌘S and the button save too, Escape cancels through the
-/// panel's cancel path.
+/// the panel's key router saves it on Return — in either input mode, it
+/// sees the key first — and lets Shift-Return break the line. The button
+/// saves too; Escape cancels through the panel's cancel path. ⌘S is the
+/// card's Save As… shortcut and stays out of here.
 struct EditItemView: View {
     @ObservedObject var store: HistoryViewStateStore
     let card: CardViewState
@@ -34,7 +35,6 @@ struct EditItemView: View {
                 Button(localized("Cancel"), action: onCancel)
                     .keyboardShortcut(.cancelAction)
                 Button(localized("Save")) { onSave(store.editingText) }
-                    .keyboardShortcut("s", modifiers: .command)
                     .buttonStyle(.borderedProminent)
                     .disabled(isBlank)
             }
