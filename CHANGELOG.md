@@ -17,6 +17,9 @@ live in the commit history.
 - Reduce Motion turns every fade and zoom into a cut; Reduce Transparency
   puts the frosted surfaces on a solid background and drops the blur veil.
 - The left and right arrows mirror in right-to-left layouts.
+- `WHISK_DATA_DIR` in the environment points Whisk at another data
+  directory, so a build under test runs beside an installed copy without
+  touching its history.
 
 ### Changed
 - Item and character counts follow each language's plural rules.
