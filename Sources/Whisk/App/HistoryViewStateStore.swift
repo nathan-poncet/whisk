@@ -35,6 +35,20 @@ final class HistoryViewStateStore: ObservableObject {
         searchActive = active
     }
 
+    /// One cursor at a time: while vim's search mode holds it, neither a
+    /// card nor a chip may wear one. With vim off the field never holds a
+    /// cursor of its own.
+    var cursorOnSearch: Bool {
+        vimEnabled && searchActive
+    }
+
+    /// The capsule stays folded while it has nothing to show: it stretches
+    /// on the first typed character, or the moment vim's search mode
+    /// engages, even empty.
+    func searchExpanded(typed text: String) -> Bool {
+        !text.isEmpty || cursorOnSearch
+    }
+
     /// The panel just went away: the rail rewinds to its leading edge
     /// while nobody is looking, so every open starts at position zero
     /// with no visible travel.

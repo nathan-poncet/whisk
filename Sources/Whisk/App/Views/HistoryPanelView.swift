@@ -36,17 +36,12 @@ struct HistoryPanelView: View {
         )
     }
 
-    /// The capsule stays folded while it has nothing to show: it stretches
-    /// on the first typed character — or the moment vim's search mode
-    /// engages, even empty.
     private var searchExpanded: Bool {
-        !searchText.isEmpty || cursorOnSearch
+        store.searchExpanded(typed: searchText)
     }
 
-    /// One cursor at a time: while vim's search mode holds it, neither a
-    /// card nor a chip may wear one.
     private var cursorOnSearch: Bool {
-        store.vimEnabled && store.searchActive
+        store.cursorOnSearch
     }
 
     var body: some View {
