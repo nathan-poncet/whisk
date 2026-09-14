@@ -38,10 +38,17 @@ final class LinkPreviewStore: ObservableObject {
         provider.startFetchingMetadata(for: url) { metadata, _ in
             Self.assemble(metadata: metadata, host: url.host) { preview in
                 DispatchQueue.main.async {
-                    LinkPreviewStore.shared.previews[address] = preview
+                    LinkPreviewStore.shared.store(preview, for: address)
                 }
             }
         }
+    }
+
+    /// Keeps a preview for an address — fetched in production, canned in
+    /// tests — and lets the address be fetched again later.
+    func store(_ preview: LinkPreview, for address: String) {
+        previews[address] = preview
+        inFlight.remove(address)
     }
 
     private nonisolated static func assemble(

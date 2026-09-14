@@ -28,8 +28,15 @@ final class FileThumbnailStore: ObservableObject {
             guard let cgImage = representation?.cgImage else { return }
             let image = NSImage(cgImage: cgImage, size: .zero)
             DispatchQueue.main.async {
-                FileThumbnailStore.shared.thumbnails[path] = image
+                FileThumbnailStore.shared.store(image, for: path)
             }
         }
+    }
+
+    /// Keeps a thumbnail for a path — generated in production, canned in
+    /// tests.
+    func store(_ image: NSImage, for path: String) {
+        thumbnails[path] = image
+        inFlight.remove(path)
     }
 }
