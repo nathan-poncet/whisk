@@ -66,10 +66,18 @@ final class SQLiteHistoryStore: HistoryStore {
         }
         defer { sqlite3_finalize(statement) }
         var items: [ClipboardItem] = []
-        while sqlite3_step(statement) == SQLITE_ROW {
+        var status = sqlite3_step(statement)
+        while status == SQLITE_ROW {
             if let item = item(from: statement) {
                 items.append(item)
             }
+            status = sqlite3_step(statement)
+        }
+        // A scan cut short by an error — a schema that changed underneath,
+        // a damaged page — must not pass for a shorter history: the next
+        // save would persist the loss.
+        guard status == SQLITE_DONE else {
+            throw HistoryStoreError.unreadable(lastMessage())
         }
         return items
     }

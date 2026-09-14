@@ -167,7 +167,82 @@ private func sampleItems() throws -> [ClipboardItem] {
         }
     }
 
+    @Test func a_path_that_is_a_directory_cannot_be_opened() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        try FileManager.default.createDirectory(at: harness.databaseURL, withIntermediateDirectories: true)
+
+        #expect(throws: HistoryStoreError.self) {
+            try SQLiteHistoryStore(databaseURL: harness.databaseURL)
+        }
+    }
+
+    @Test func a_load_without_its_tables_reports_unreadable() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        try store.save([anItem(.text("x"))])
+        try sabotage(harness.databaseURL, "DROP TABLE ordering")
+
+        #expect(throws: HistoryStoreError.self) { try store.load() }
+    }
+
+    @Test func a_save_without_its_tables_reports_unwritable() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        try sabotage(harness.databaseURL, "DROP TABLE content")
+
+        #expect(throws: HistoryStoreError.self) { try store.save([anItem(.text("x"))]) }
+    }
+
+    @Test func a_save_the_schema_refuses_rolls_back_and_reports() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        let kept = anItem(.text("kept"))
+        try store.save([kept])
+        try sabotage(
+            harness.databaseURL,
+            "CREATE TRIGGER refuse BEFORE INSERT ON content BEGIN SELECT RAISE(ABORT, 'refused'); END")
+
+        #expect(throws: HistoryStoreError.self) { try store.save([anItem(.text("new")), kept]) }
+
+        #expect(try store.load() == [kept])
+    }
+
+    @Test func an_ordering_that_cannot_be_written_reports_at_prepare_or_at_step() throws {
+        let viewed = StoreHarness(.sqlite)
+        defer { viewed.tearDown() }
+        let viewedStore = try viewed.makeStore()
+        try sabotage(
+            viewed.databaseURL,
+            """
+            DROP TABLE ordering;
+            CREATE VIEW ordering AS SELECT id, 0 AS position, 0 AS copied_at_ms, 0 AS is_pinned FROM content;
+            CREATE TRIGGER accept_delete INSTEAD OF DELETE ON ordering BEGIN SELECT 1; END;
+            """)
+        #expect(throws: HistoryStoreError.self) { try viewedStore.save([anItem(.text("x"))]) }
+
+        let refused = StoreHarness(.sqlite)
+        defer { refused.tearDown() }
+        let refusedStore = try refused.makeStore()
+        try sabotage(
+            refused.databaseURL,
+            "CREATE TRIGGER refuse BEFORE INSERT ON ordering BEGIN SELECT RAISE(ABORT, 'refused'); END")
+        #expect(throws: HistoryStoreError.self) { try refusedStore.save([anItem(.text("x"))]) }
+    }
+
     private struct RawSQLFailure: Error {}
+
+    /// Runs DDL through a connection of its own, the way another process
+    /// or another version of the app would.
+    private func sabotage(_ database: URL, _ sql: String) throws {
+        var db: OpaquePointer?
+        defer { sqlite3_close(db) }
+        guard sqlite3_open(database.path, &db) == SQLITE_OK else { throw RawSQLFailure() }
+        guard sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK else { throw RawSQLFailure() }
+    }
 
     private func insertRow(kind: String, into database: URL) throws {
         var db: OpaquePointer?
