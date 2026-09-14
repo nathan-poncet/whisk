@@ -26,7 +26,7 @@ enum PasteSimulator {
     }
 
     private static func postCommandV() {
-        let keyCode = KeyboardLayout.keyCode(for: "v") ?? CGKeyCode(kVK_ANSI_V)
+        let keyCode = CGKeyCode(KeyboardLayout.keyCode(for: "v", orANSI: kVK_ANSI_V))
         let source = CGEventSource(stateID: .combinedSessionState)
         // Right after the global pop shortcut the user is still holding
         // ⌥⌘, and those hardware modifiers would merge into the synthetic

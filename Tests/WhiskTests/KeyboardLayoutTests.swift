@@ -1,3 +1,4 @@
+import Carbon.HIToolbox
 import Testing
 
 @testable import Whisk
@@ -11,6 +12,12 @@ import Testing
             let keyCode = try #require(KeyboardLayout.keyCode(for: character), "no key prints \(character)")
             #expect(KeyboardLayout.character(for: UInt16(keyCode)) == character)
         }
+    }
+
+    @Test func the_ansi_fallback_only_applies_when_the_layout_is_silent() throws {
+        let resolved = try #require(KeyboardLayout.keyCode(for: "v"))
+
+        #expect(KeyboardLayout.keyCode(for: "v", orANSI: kVK_ANSI_V) == UInt16(resolved))
     }
 
     @Test func resolution_ignores_the_case_asked_for() {

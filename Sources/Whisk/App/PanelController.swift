@@ -189,7 +189,7 @@ final class PanelController {
         // If the user rebinds preview to the bare space bar, a space while
         // a query is being typed must stay a space.
         if keyBindings.binding(for: .previewSelection).matches(event) {
-            if event.keyCode == UInt16(49), !stateStore.state.query.isEmpty {
+            if event.keyCode == UInt16(kVK_Space), !stateStore.state.query.isEmpty {
                 return false
             }
             togglePreview()
