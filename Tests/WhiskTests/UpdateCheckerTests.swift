@@ -37,3 +37,60 @@ import Testing
         #expect(UpdateChecker.latestVersion(data: nil, response: try response(200), error: nil) == .failure(.malformed))
     }
 }
+
+@MainActor
+@Suite struct UpdateCheckFlow {
+    private func reply(_ status: Int, _ body: String) -> UpdateChecker.Fetch {
+        { url, completion in
+            let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil)
+            completion(Data(body.utf8), response, nil)
+        }
+    }
+
+    private func settle(_ checker: UpdateChecker) async {
+        for _ in 0..<20 where checker.availableVersion == nil {
+            await Task.yield()
+        }
+    }
+
+    @Test func a_newer_release_becomes_available_after_the_check() async {
+        let checker = UpdateChecker(
+            currentVersion: "0.8.0", fetch: reply(200, #"{"tag_name": "v9.9.9"}"#), logger: RecordingLogger())
+
+        checker.checkNow()
+        await settle(checker)
+
+        #expect(checker.availableVersion == "9.9.9")
+    }
+
+    @Test func an_older_or_equal_release_is_not_offered() async {
+        let checker = UpdateChecker(
+            currentVersion: "0.8.0", fetch: reply(200, #"{"tag_name": "v0.8.0"}"#), logger: RecordingLogger())
+
+        checker.checkNow()
+        await settle(checker)
+
+        #expect(checker.availableVersion == nil)
+    }
+
+    @Test func a_failed_check_is_logged_and_offers_nothing() async {
+        let logger = RecordingLogger()
+        let checker = UpdateChecker(currentVersion: "0.8.0", fetch: reply(403, "{}"), logger: logger)
+
+        checker.checkNow()
+        await settle(checker)
+
+        #expect(checker.availableVersion == nil)
+        #expect(logger.messages == ["update check failed — rejected(status: 403)"])
+    }
+
+    @Test func without_a_version_of_its_own_nothing_is_fetched() {
+        var fetched = 0
+        let checker = UpdateChecker(currentVersion: nil, fetch: { _, _ in fetched += 1 }, logger: RecordingLogger())
+
+        checker.checkNow()
+
+        #expect(fetched == 0)
+        #expect(UpdateChecker.releasesPage?.host == "github.com")
+    }
+}

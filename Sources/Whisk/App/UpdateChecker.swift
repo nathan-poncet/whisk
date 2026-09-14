@@ -4,6 +4,10 @@ import Foundation
 /// request at launch, nothing sent beyond it; DMG users get a menu entry,
 /// Homebrew users already have `brew upgrade`.
 final class UpdateChecker: ObservableObject {
+    /// Performs the one request; URLSession in production, a canned reply
+    /// in tests.
+    typealias Fetch = (URL, @escaping (Data?, URLResponse?, Error?) -> Void) -> Void
+
     @Published private(set) var availableVersion: String?
 
     /// Why a check yielded no version. Logged rather than swallowed: a
@@ -19,17 +23,25 @@ final class UpdateChecker: ObservableObject {
     private static let latestAPI = URL(
         string: "https://api.github.com/repos/nathan-poncet/whisk/releases/latest")
 
+    private let currentVersion: String?
+    private let fetch: Fetch
     private let logger: any Logger
 
-    init(logger: any Logger = ConsoleLogger()) {
+    init(
+        currentVersion: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+        fetch: @escaping Fetch = { url, completion in
+            URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
+        },
+        logger: any Logger = ConsoleLogger()
+    ) {
+        self.currentVersion = currentVersion
+        self.fetch = fetch
         self.logger = logger
     }
 
     func checkNow() {
-        guard let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-            let url = Self.latestAPI
-        else { return }
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        guard let current = currentVersion, let url = Self.latestAPI else { return }
+        fetch(url) { [weak self] data, response, error in
             switch Self.latestVersion(data: data, response: response, error: error) {
             case .failure(let failure):
                 self?.logger.log("update check failed — \(failure)")
@@ -39,7 +51,7 @@ final class UpdateChecker: ObservableObject {
                     self?.availableVersion = latest
                 }
             }
-        }.resume()
+        }
     }
 
     /// The latest published version in the releases API reply, or why
