@@ -20,6 +20,7 @@ struct ItemCardView: View, Equatable {
     }
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
 
@@ -43,7 +44,7 @@ struct ItemCardView: View, Equatable {
         .frame(width: 200, height: 200)
         .overlay(selectionRing)
         .scaleEffect(card.isSelected ? 210.0 / 200.0 : 1)
-        .animation(.easeOut(duration: 0.16), value: card.isSelected)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: card.isSelected)
         .frame(width: 210, height: 210)
         .background {
             Color.clear
@@ -54,7 +55,7 @@ struct ItemCardView: View, Equatable {
                     tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID)
                         .surfaceTint(dark: scheme == .dark)
                 )
-                .animation(.easeOut(duration: 0.16), value: card.isSelected)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: card.isSelected)
         }
         .contentShape(Rectangle())
         .grabPointer()

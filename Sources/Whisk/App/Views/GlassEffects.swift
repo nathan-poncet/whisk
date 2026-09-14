@@ -20,6 +20,7 @@ extension View {
 
 private struct LiquidGlassModifier: ViewModifier {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     let shape: AnyShape
     let cornerRadius: CGFloat?
     let tint: Color?
@@ -28,7 +29,13 @@ private struct LiquidGlassModifier: ViewModifier {
         content
             .background {
                 ZStack {
-                    BehindWindowBlur(cornerRadius: cornerRadius)
+                    if reduceTransparency {
+                        // Nothing to see through: a solid window background
+                        // under the same tint keeps the surface legible.
+                        shape.fill(Color(nsColor: .windowBackgroundColor))
+                    } else {
+                        BehindWindowBlur(cornerRadius: cornerRadius)
+                    }
                     shape.fill(
                         tint
                             ?? (scheme == .dark

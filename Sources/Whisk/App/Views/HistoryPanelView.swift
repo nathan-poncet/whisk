@@ -11,6 +11,7 @@ struct HistoryPanelView: View {
     @ObservedObject var store: HistoryViewStateStore
     let actions: PanelActions
     @FocusState private var searchFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// The render server pays ~8 ms per glass layer whenever the panel
     /// orders on or off screen, so only the cards inside the viewport plus
@@ -56,7 +57,7 @@ struct HistoryPanelView: View {
                 .frame(maxWidth: searchExpanded ? 680 : 320)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: searchExpanded)
+                .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: searchExpanded)
             if !store.state.filters.isEmpty {
                 FilterBarView(
                     filters: store.state.filters,
@@ -181,7 +182,7 @@ struct HistoryPanelView: View {
                         guard let selectedID else { return }
                         // No anchor: scroll the minimum needed to reveal the
                         // card instead of recentring on every key press.
-                        withAnimation(.easeOut(duration: 0.15)) {
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
                             proxy.scrollTo(selectedID)
                         }
                     }
