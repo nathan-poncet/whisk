@@ -47,7 +47,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             searchDebounce: Debouncer(delay: 0.18),
             hidePanel: { [weak self] in self?.panelController?.hide() },
             paste: { PasteSimulator.paste() },
-            dragBegan: { [weak self] in self?.panelController?.dragDidBegin() }
+            dragBegan: { [weak self] in self?.panelController?.dragDidBegin() },
+            system: PanelWiring.SystemActions(
+                openLink: { NSWorkspace.shared.open($0) },
+                revealFiles: { paths in
+                    NSWorkspace.shared.activateFileViewerSelecting(paths.map { URL(fileURLWithPath: $0) })
+                },
+                saveToDisk: { SaveToDisk.present($0) },
+                excludeSource: { [weak self] bundleID, name in
+                    guard let self, !self.generalSettings.excludedApps.contains(where: { $0.bundleID == bundleID })
+                    else { return }
+                    self.generalSettings.excludedApps.append(ExcludedApp(bundleID: bundleID, name: name))
+                }
+            )
         )
         let panelController = PanelController(
             stateStore: stateStore, actions: actions, keyBindings: keyBindings,

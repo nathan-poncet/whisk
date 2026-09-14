@@ -119,4 +119,17 @@ import Testing
 
         #expect(filter(history, filter: HistoryFilter(query: "  ")).count == 2)
     }
+
+    @Test func deleting_where_a_predicate_matches_spares_the_pinned() {
+        let clock = FakeClock()
+        var history = History()
+            .recording(.text("slack"), from: SourceApp(name: "Slack"), at: clock.now())
+            .recording(.text("slack pinned"), from: SourceApp(name: "Slack"), at: clock.now())
+            .recording(.text("notes"), from: SourceApp(name: "Notes"), at: clock.now())
+        history = history.togglingPin(history.items[1].id)
+
+        let purged = history.deletingUnpinned { $0.source?.name == "Slack" }
+
+        #expect(purged.items.map(\.payload) == [.text("notes"), .text("slack pinned")])
+    }
 }

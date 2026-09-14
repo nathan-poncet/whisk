@@ -80,7 +80,17 @@ final class HistoryViewStateStore: ObservableObject {
 struct PanelActions {
     let search: (String) -> Void
     let select: (UUID) -> Void
+    let selectPlain: (UUID) -> Void
+    /// Puts the card on the pasteboard and closes, without pasting.
+    let copy: (UUID) -> Void
+    let copySelected: () -> Void
     let transform: (UUID, TextTransform) -> Void
+    let openLink: (URL) -> Void
+    let revealFiles: ([String]) -> Void
+    let saveToDisk: (DragPayload) -> Void
+    let stack: (UUID) -> Void
+    let excludeSource: (_ bundleID: String, _ name: String) -> Void
+    let deleteAllFromSource: (String) -> Void
     let highlight: (UUID) -> Void
     let activate: () -> Void
     let activatePlain: () -> Void

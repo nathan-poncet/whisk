@@ -61,6 +61,13 @@ struct History: Equatable {
         return next
     }
 
+    /// Removes the unpinned items a predicate selects.
+    func deletingUnpinned(where matches: (ClipboardItem) -> Bool) -> History {
+        var next = self
+        next.items.removeAll { !$0.isPinned && matches($0) }
+        return next
+    }
+
     /// Removes every unpinned item.
     func clearingUnpinned() -> History {
         var next = self

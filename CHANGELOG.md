@@ -21,6 +21,12 @@ live in the commit history.
 - "Paste as…" in a text or link card's menu pastes it rewritten: upper or
   lower case, trimmed, single line, without accents, URL- or
   base64-encoded or decoded, formatted JSON. The card stays as copied.
+- A card's menu now offers everything it can do: copy without pasting
+  (`⌘C`), paste as plain text, open the link (`⌘O`), reveal the files in
+  Finder (`⌘R`), add to or remove from the paste stack, save as a file
+  (`⌘S`), exclude its application (`⌃⌘X`), delete everything from its
+  application (`⌃⌘⌫`, pins survive). Every shortcut is rebindable and has
+  a vim key: `y`, `o`, `r`, `w`, `X`, `D`.
 
 ## [0.9.0] - 2026-09-14
 

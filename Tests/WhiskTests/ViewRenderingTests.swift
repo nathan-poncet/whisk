@@ -107,10 +107,10 @@ enum ViewFixtures {
         return HistoryPresenter().present(items: items, query: "", now: now, selectedID: items[0].id)
     }
 
+    static let spy = PanelActionSpy()
+
     static func card(_ card: CardViewState, showsSelection: Bool = true) -> ItemCardView {
-        ItemCardView(
-            card: card, onSelect: {}, onHighlight: {}, onTogglePin: {}, onDelete: {}, onDragBegin: {},
-            showsSelection: showsSelection)
+        ItemCardView(card: card, actions: spy.actions, showsSelection: showsSelection)
     }
 }
 
@@ -135,9 +135,7 @@ enum ViewFixtures {
         #expect(window.contentView != nil)
 
         for size in CardSize.allCases {
-            let sized = ItemCardView(
-                card: state.cards[0], onSelect: {}, onHighlight: {}, onTogglePin: {}, onDelete: {},
-                onDragBegin: {}, side: size.side)
+            let sized = ItemCardView(card: state.cards[0], actions: ViewFixtures.spy.actions, side: size.side)
             #expect(render(sized, size.side * 1.05, size.side * 1.05) != nil, "card at \(size)")
         }
     }
@@ -365,7 +363,7 @@ private func pump(_ hosting: NSView) {
         let store = HistoryViewStateStore()
         let card = ViewFixtures.state().cards[0]
 
-        _ = ItemCardView(card: card, onSelect: {}, onHighlight: {}, onTogglePin: {}, onDelete: {}, onDragBegin: {})
+        _ = ItemCardView(card: card, actions: PanelActionSpy().actions)
         #expect(render(CodeTextView(text: "let a = 1", tokens: []), 200, 100) != nil)
         _ = UpdateChecker()
         _ = PanelKeyRouter(

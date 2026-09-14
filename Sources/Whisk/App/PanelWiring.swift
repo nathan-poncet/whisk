@@ -6,12 +6,22 @@ import Foundation
 /// Closing the panel and pasting come in as closures — the composition
 /// root's business, and what keeps this table testable without a window.
 enum PanelWiring {
+    /// What a card may ask of the system: opening, revealing, saving,
+    /// excluding. Provided by the composition root, counted by tests.
+    struct SystemActions {
+        let openLink: (URL) -> Void
+        let revealFiles: ([String]) -> Void
+        let saveToDisk: (DragPayload) -> Void
+        let excludeSource: (_ bundleID: String, _ name: String) -> Void
+    }
+
     static func actions<Board: Pasteboard, Time: Clock, Store: HistoryStore, Log: Logger>(
         for clipboard: ClipboardController<Board, Time, Store, Log>,
         searchDebounce: Debouncer,
         hidePanel: @escaping () -> Void,
         paste: @escaping () -> Void,
-        dragBegan: @escaping () -> Void
+        dragBegan: @escaping () -> Void,
+        system: SystemActions
     ) -> PanelActions {
         func consume(_ landed: Bool) {
             guard landed else { return }
@@ -27,9 +37,43 @@ enum PanelWiring {
                 clipboard.select(id)
                 consume(true)
             },
+            selectPlain: { id in
+                searchDebounce.flush()
+                clipboard.select(id, plain: true)
+                consume(true)
+            },
+            copy: { id in
+                searchDebounce.flush()
+                clipboard.select(id)
+                hidePanel()
+            },
+            copySelected: {
+                searchDebounce.flush()
+                if clipboard.activateSelected() {
+                    hidePanel()
+                }
+            },
             transform: { id, transform in
                 searchDebounce.flush()
                 consume(clipboard.select(id, transform: transform))
+            },
+            openLink: { url in
+                hidePanel()
+                system.openLink(url)
+            },
+            revealFiles: { paths in
+                hidePanel()
+                system.revealFiles(paths)
+            },
+            saveToDisk: { payload in
+                hidePanel()
+                system.saveToDisk(payload)
+            },
+            stack: { clipboard.toggleStack($0) },
+            excludeSource: system.excludeSource,
+            deleteAllFromSource: { key in
+                searchDebounce.flush()
+                clipboard.deleteAll(fromSource: key)
             },
             highlight: { clipboard.highlight($0) },
             activate: {

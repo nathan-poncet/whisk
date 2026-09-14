@@ -155,7 +155,12 @@ The clipboard icon appears in the menu bar. Copy a few things, then press
   actually type, so shifted-digit layouts (Programmer Dvorak, AZERTY) use
   `⌘⇧digit`.
 - **⌘P / ⌘⌫**: pin or delete the selected card.
-- **Right-click a card**: pin or delete.
+- **⌘C**: copy the selected card without pasting; **⌘O** opens a link,
+  **⌘R** reveals files in Finder, **⌘S** saves the card as a file;
+  **⌃⌘X** excludes the card's application, **⌃⌘⌫** deletes everything
+  copied from it (pins survive).
+- **Right-click a card**: everything above, plus paste as plain text and
+  "Paste as…" rewrites, in one menu.
 - **Esc** or click outside: close the panel.
 
 Every shortcut — including the global one — is rebindable: right-click the

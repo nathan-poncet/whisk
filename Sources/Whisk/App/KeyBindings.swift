@@ -17,6 +17,12 @@ enum KeyAction: String, CaseIterable, Identifiable {
     case previewSelection
     case pinSelection
     case deleteSelection
+    case copySelection
+    case openSelection
+    case revealSelection
+    case saveSelection
+    case excludeSelectionSource
+    case deleteSelectionSource
 
     var id: String { rawValue }
 
@@ -35,6 +41,12 @@ enum KeyAction: String, CaseIterable, Identifiable {
         case .previewSelection: localized("Preview the selection")
         case .pinSelection: localized("Pin / unpin the selection")
         case .deleteSelection: localized("Delete the selection")
+        case .copySelection: localized("Copy the selection without pasting")
+        case .openSelection: localized("Open the selected link")
+        case .revealSelection: localized("Reveal the selected files in Finder")
+        case .saveSelection: localized("Save the selection as a file")
+        case .excludeSelectionSource: localized("Exclude the selection's application")
+        case .deleteSelectionSource: localized("Delete everything from the selection's application")
         }
     }
 
@@ -215,6 +227,19 @@ final class KeyBindingsStore: ObservableObject {
             return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "p", orANSI: kVK_ANSI_P), modifiers: [.command])
         case .deleteSelection:
             return KeyBinding(keyCode: UInt16(kVK_Delete), modifiers: [.command])
+        case .copySelection:
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "c", orANSI: kVK_ANSI_C), modifiers: [.command])
+        case .openSelection:
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "o", orANSI: kVK_ANSI_O), modifiers: [.command])
+        case .revealSelection:
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "r", orANSI: kVK_ANSI_R), modifiers: [.command])
+        case .saveSelection:
+            return KeyBinding(keyCode: KeyboardLayout.keyCode(for: "s", orANSI: kVK_ANSI_S), modifiers: [.command])
+        case .excludeSelectionSource:
+            return KeyBinding(
+                keyCode: KeyboardLayout.keyCode(for: "x", orANSI: kVK_ANSI_X), modifiers: [.control, .command])
+        case .deleteSelectionSource:
+            return KeyBinding(keyCode: UInt16(kVK_Delete), modifiers: [.control, .command])
         }
     }
 

@@ -72,6 +72,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private let selectItem: SelectItem<Board, Time, Store>
     private let togglePinItem: TogglePin<Store>
     private let deleteItem: DeleteItem<Store>
+    private let deleteMatching: DeleteMatching<Store>
     private let clearUnpinned: ClearHistory<Store>
     private let enforceRetention: EnforceRetention<Store>
     private let filterHistory = FilterHistory()
@@ -103,6 +104,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         selectItem = SelectItem(pasteboard: pasteboard, clock: clock, store: store)
         togglePinItem = TogglePin(store: store)
         deleteItem = DeleteItem(store: store)
+        deleteMatching = DeleteMatching(store: store)
         clearUnpinned = ClearHistory(store: store)
         enforceRetention = EnforceRetention(store: store)
         do {
@@ -381,6 +383,12 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// global paste-next shortcut then pops the queue one item per press.
     func stackSelected() {
         guard let id = selectedID else { return }
+        toggleStack(id)
+    }
+
+    /// Queues a card, or removes it when already queued.
+    func toggleStack(_ id: UUID) {
+        guard history.items.contains(where: { $0.id == id }) else { return }
         if let index = pasteStack.firstIndex(of: id) {
             pasteStack.remove(at: index)
         } else {
@@ -438,6 +446,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     func clear() {
         mutate { try clearUnpinned($0) }
+    }
+
+    /// Removes every unpinned card copied from one application.
+    func deleteAll(fromSource key: String) {
+        mutate { try deleteMatching({ $0.source?.filterKey == key }, in: $0) }
     }
 
     func panelWillShow() {
