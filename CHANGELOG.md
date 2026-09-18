@@ -8,6 +8,10 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Changed
+- Releases are signed with a Developer ID and notarized by Apple:
+  downloads open on first launch, without clearing the quarantine flag.
+
 ## [0.10.1] - 2026-09-14
 
 ### Changed

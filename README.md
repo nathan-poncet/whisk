@@ -90,23 +90,12 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ```sh
 brew install --cask nathan-poncet/tap/whisk
-xattr -d com.apple.quarantine /Applications/Whisk.app
 ```
 
 **Direct download** — grab the latest DMG and drag Whisk into
 Applications:
 
 > [**Download Whisk.dmg (latest)**](https://github.com/nathan-poncet/whisk/releases/latest/download/Whisk.dmg)
-
-⚠️ Whisk is not notarized yet (that requires an Apple Developer
-membership), so macOS quarantines downloaded copies and refuses to open
-them on first launch — hence the `xattr` step above. Alternatively,
-allow the app in **System Settings → Privacy & Security → "Open
-Anyway"**:
-
-```sh
-xattr -d com.apple.quarantine /Applications/Whisk.app
-```
 
 ## Run it from source
 
@@ -226,8 +215,6 @@ shortcuts, rich previews, paste stack, plain-text paste, drag & drop,
 pause & per-app exclusions, SQLite storage, and an English/French
 interface. Still on the list:
 
-- Signed & notarized release builds (requires an Apple Developer
-  membership)
 - iCloud sync and an iOS/iPadOS companion app
 - Shared pinboards
 

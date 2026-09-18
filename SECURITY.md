@@ -38,5 +38,5 @@ otherwise.
 - The history being readable by the same macOS user account that runs
   Whisk, in `~/Library/Application Support/Whisk`. That is where it lives;
   full-disk encryption is the protection for a lost machine.
-- Downloaded builds being quarantined by macOS: releases are not yet
-  notarized, as the README explains.
+- Gatekeeper refusing a build that is not an official release: only the
+  releases on GitHub are signed with a Developer ID and notarized.
