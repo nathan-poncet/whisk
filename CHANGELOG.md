@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-19
+
 ### Changed
 - Releases are signed with a Developer ID and notarized by Apple:
   downloads open on first launch, without clearing the quarantine flag.
@@ -365,7 +367,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/nathan-poncet/whisk/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/nathan-poncet/whisk/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/nathan-poncet/whisk/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/nathan-poncet/whisk/compare/v0.8.5...v0.9.0
