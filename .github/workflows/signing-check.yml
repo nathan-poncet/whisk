@@ -1,0 +1,24 @@
+name: Signing check
+
+# Proves the Developer ID secrets still yield a usable identity on a
+# runner, without cutting a release: run it after rotating a certificate.
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: macos-26
+    env:
+      SIGN_P12: ${{ secrets.DEVELOPER_ID_P12 }}
+      SIGN_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Import signing identity
+        run: ./scripts/ci-import-signing-identity.sh
+
+      - name: Sign and verify a scratch binary
+        run: |
+          cp /bin/ls scratch
+          codesign --force --options runtime --timestamp --sign "$CODESIGN_IDENTITY" scratch
+          codesign --verify --strict --verbose=2 scratch

@@ -31,26 +31,8 @@ jobs:
 
       # A release is signed and notarized or it does not ship: a missing
       # secret fails the job rather than shipping an ad-hoc build.
-      - name: Import signing certificate
-        run: |
-          set -euo pipefail
-          test -n "$SIGN_P12" || { echo "DEVELOPER_ID_P12 secret missing" >&2; exit 1; }
-          echo "$SIGN_P12" | base64 --decode > signing.p12
-          security create-keychain -p ci-keychain build.keychain
-          # No auto-lock: the universal build runs longer than the default.
-          security set-keychain-settings -lut 21600 build.keychain
-          security unlock-keychain -p ci-keychain build.keychain
-          security list-keychains -d user -s build.keychain $(security list-keychains -d user | tr -d '" ')
-          # Apple's Developer ID intermediates complete the chain codesign needs.
-          for ca in DeveloperIDCA DeveloperIDG2CA; do
-            curl -fsSLo "$ca.cer" "https://www.apple.com/certificateauthority/$ca.cer"
-            security import "$ca.cer" -k build.keychain
-            rm "$ca.cer"
-          done
-          security import signing.p12 -k build.keychain -P "$SIGN_P12_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k ci-keychain build.keychain > /dev/null
-          rm signing.p12
-          echo "CODESIGN_IDENTITY=Developer ID Application" >> "$GITHUB_ENV"
+      - name: Import signing identity
+        run: ./scripts/ci-import-signing-identity.sh
 
       - name: Build app bundle
         run: ./scripts/build-app.sh "${GITHUB_REF_NAME#v}" universal
