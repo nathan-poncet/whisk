@@ -3,7 +3,8 @@ import SwiftUI
 
 /// Per-application visual identity — icon and dominant tint — resolved from
 /// a bundle identifier through NSWorkspace, so it stays in the frameworks
-/// ring. Cached; call from the main thread only.
+/// ring. Cached on the main actor, where the views ask for it.
+@MainActor
 enum SourceAppStyle {
     struct Resolved {
         let icon: NSImage?

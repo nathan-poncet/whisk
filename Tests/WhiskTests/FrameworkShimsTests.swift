@@ -70,6 +70,7 @@ final class HandCrankedScheduler {
     }
 }
 
+@MainActor
 @Suite struct MouseActivityWindow {
     @Test func a_pointer_that_just_moved_counts_and_a_stale_one_does_not() {
         MouseActivity.lastMove = Date()

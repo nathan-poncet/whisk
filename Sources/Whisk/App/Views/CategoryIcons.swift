@@ -6,6 +6,9 @@ import AppKit
 /// Resolved by hand rather than through `Bundle.module`: the generated
 /// accessor traps when the bundle is missing, and a decorative icon must
 /// never take the app down — chips fall back to an SF Symbol instead.
+/// Main actor: the cache is a plain dictionary and the views are its
+/// only callers.
+@MainActor
 enum CategoryIcons {
     private static var cache: [String: NSImage?] = [:]
 

@@ -25,6 +25,7 @@ import Testing
     }
 }
 
+@MainActor
 @Suite struct CategoryIconLoading {
     @Test func the_neovim_mark_ships_in_the_resource_bundle_and_loads_once() {
         let first = CategoryIcons.image(named: "nvim")
