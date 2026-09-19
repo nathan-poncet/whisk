@@ -16,10 +16,19 @@ trap 'rm -f "$P12"' EXIT
 
 echo "$SIGN_P12" | base64 --decode > "$P12"
 echo "p12: $(stat -f%z "$P12") bytes"
-# Structure only, never the key: the bag types tell a certificate-only
-# export from a real identity.
-openssl pkcs12 -info -in "$P12" -passin env:SIGN_P12_PASSWORD -nokeys -noout 2>&1 \
-  | grep -E "MAC|Bag|Keybag|rror" || true
+# Structure only, never the key: the bag types tell a half export from a
+# real identity, which needs both the certificate and its private key.
+STRUCTURE="$(openssl pkcs12 -info -in "$P12" -passin env:SIGN_P12_PASSWORD -nokeys -noout 2>&1 \
+  | grep -E "MAC|Bag|Keybag|rror" || true)"
+echo "$STRUCTURE"
+if ! grep -q "Certificate bag" <<< "$STRUCTURE"; then
+  echo "the p12 holds no certificate: export the 'Developer ID Application' certificate from Keychain Access with its private key" >&2
+  exit 1
+fi
+if ! grep -q "Keybag" <<< "$STRUCTURE"; then
+  echo "the p12 holds no private key: export the certificate together with its key, from 'My Certificates'" >&2
+  exit 1
+fi
 
 security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
 # No auto-lock: the universal build runs longer than the default.
