@@ -82,7 +82,8 @@ final class PanelController {
         // steal the keyboard selection (see MouseActivity).
         panel.acceptsMouseMovedEvents = true
         mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { event in
-            MouseActivity.lastMove = Date()
+            // Local monitors are called on the main thread.
+            MainActor.assumeIsolated { MouseActivity.lastMove = Date() }
             return event
         }
     }
