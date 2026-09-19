@@ -33,7 +33,7 @@ p12_structure() {
   return 1
 }
 if STRUCTURE="$(p12_structure)"; then
-  grep -E "MAC|Bag|Keybag" <<< "$STRUCTURE" || true
+  grep -iE "MAC|bag" <<< "$STRUCTURE" || true
   if ! grep -q "Certificate bag" <<< "$STRUCTURE"; then
     echo "the p12 holds no certificate: export the 'Developer ID Application' certificate from Keychain Access with its private key" >&2
     exit 1
