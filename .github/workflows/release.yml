@@ -31,6 +31,14 @@ jobs:
 
       # A release is signed and notarized or it does not ship: a missing
       # secret fails the job rather than shipping an ad-hoc build.
+      - name: Keep crash reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: crash-reports
+          path: ~/Library/Logs/DiagnosticReports/
+          if-no-files-found: ignore
+
       - name: Import signing identity
         run: ./scripts/ci-import-signing-identity.sh
 

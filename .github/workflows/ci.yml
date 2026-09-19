@@ -23,6 +23,13 @@ jobs:
         env:
           COVERAGE_MIN: 90
         run: ./scripts/coverage.sh | tee coverage-report.txt
+      - name: Keep crash reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: crash-reports
+          path: ~/Library/Logs/DiagnosticReports/
+          if-no-files-found: ignore
       - name: Coverage summary
         if: always()
         run: |
