@@ -25,4 +25,11 @@ hdiutil create \
   -quiet
 
 rm -rf "$STAGE"
-echo "built dist/Whisk.dmg"
+
+# The image is signed like the app inside it when a Developer ID is at
+# hand, so Gatekeeper can vouch for the download as a whole.
+IDENTITY="${CODESIGN_IDENTITY:--}"
+if [ "$IDENTITY" != "-" ]; then
+  codesign --force --timestamp --sign "$IDENTITY" dist/Whisk.dmg
+fi
+echo "built dist/Whisk.dmg (identity: $IDENTITY)"
