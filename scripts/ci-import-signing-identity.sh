@@ -18,16 +18,32 @@ echo "$SIGN_P12" | base64 --decode > "$P12"
 echo "p12: $(stat -f%z "$P12") bytes"
 # Structure only, never the key: the bag types tell a half export from a
 # real identity, which needs both the certificate and its private key.
-STRUCTURE="$(openssl pkcs12 -info -in "$P12" -passin env:SIGN_P12_PASSWORD -nokeys -noout 2>&1 \
-  | grep -E "MAC|Bag|Keybag|rror" || true)"
-echo "$STRUCTURE"
-if ! grep -q "Certificate bag" <<< "$STRUCTURE"; then
-  echo "the p12 holds no certificate: export the 'Developer ID Application' certificate from Keychain Access with its private key" >&2
-  exit 1
-fi
-if ! grep -q "Keybag" <<< "$STRUCTURE"; then
-  echo "the p12 holds no private key: export the certificate together with its key, from 'My Certificates'" >&2
-  exit 1
+# Keychain Access still wraps the certificate bag in RC2-40, which
+# OpenSSL 3 only reads in legacy mode; the system LibreSSL reads it as is.
+p12_structure() {
+  local tool
+  for tool in "/usr/bin/openssl" "openssl -legacy" "openssl"; do
+    # shellcheck disable=SC2086
+    if out="$($tool pkcs12 -info -in "$P12" -passin env:SIGN_P12_PASSWORD -nokeys -noout 2>&1)" \
+      && ! grep -q "rror" <<< "$out"; then
+      echo "$out"
+      return 0
+    fi
+  done
+  return 1
+}
+if STRUCTURE="$(p12_structure)"; then
+  grep -E "MAC|Bag|Keybag" <<< "$STRUCTURE" || true
+  if ! grep -q "Certificate bag" <<< "$STRUCTURE"; then
+    echo "the p12 holds no certificate: export the 'Developer ID Application' certificate from Keychain Access with its private key" >&2
+    exit 1
+  fi
+  if ! grep -q "Keybag" <<< "$STRUCTURE"; then
+    echo "the p12 holds no private key: export the certificate together with its key, from 'My Certificates'" >&2
+    exit 1
+  fi
+else
+  echo "warning: no openssl here reads this p12; the keychain import decides" >&2
 fi
 
 security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
