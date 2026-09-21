@@ -191,6 +191,31 @@ enum ViewFixtures {
         #expect(render(bar, 400, 44) != nil)
     }
 
+    @Test func a_chip_row_that_fits_is_stretched_to_its_viewport_and_a_wide_one_still_scrolls() throws {
+        let items = ViewFixtures.items()
+        func row(_ chips: [ChipEntry]) -> FilterBarView {
+            FilterBarView(
+                filters: HistoryPresenter().present(
+                    items: items, query: "", now: ViewFixtures.now, filters: FilterContext(chips: chips)
+                ).filters,
+                onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in }, onFocusKind: { _ in })
+        }
+
+        let short = hostOffscreen(row(ChipEntry.row(hasPinned: true, sources: [], categories: [.text])), 900, 60)
+        let shortHost = try #require(short.contentView)
+        pump(shortHost)
+        let shortScroll = try #require(firstScrollView(in: shortHost))
+        let shortDocument = try #require(shortScroll.documentView)
+        #expect(shortDocument.frame.width >= shortScroll.bounds.width - 40)
+
+        let wide = hostOffscreen(row(ViewFixtures.chipRow()), 500, 60)
+        let wideHost = try #require(wide.contentView)
+        pump(wideHost)
+        let wideScroll = try #require(firstScrollView(in: wideHost))
+        let wideDocument = try #require(wideScroll.documentView)
+        #expect(wideDocument.frame.width > wideScroll.bounds.width)
+    }
+
     @Test func a_hosted_chip_row_scrolls_to_the_chip_that_takes_the_cursor() throws {
         let store = HistoryViewStateStore()
         let spy = PanelActionSpy()
@@ -216,6 +241,16 @@ private func pump(_ hosting: NSView) {
     RunLoop.main.run(until: Date().addingTimeInterval(0.05))
     hosting.layoutSubtreeIfNeeded()
     hosting.displayIfNeeded()
+}
+
+/// SwiftUI backs its ScrollView with an NSScrollView on macOS.
+@MainActor
+private func firstScrollView(in view: NSView) -> NSScrollView? {
+    if let scroll = view as? NSScrollView { return scroll }
+    for child in view.subviews {
+        if let found = firstScrollView(in: child) { return found }
+    }
+    return nil
 }
 
 @MainActor

@@ -9,6 +9,9 @@ import SwiftUI
 struct FilterBarView: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The viewport's width, so a row that fits can be stretched to it.
+    @State private var rowWidth: CGFloat = 0
+    private static let horizontalMargin: CGFloat = 16
     let filters: FilterBarViewState
     /// One cursor at a time: vim's search mode swallows the chip focus.
     var cursorSuppressed = false
@@ -77,12 +80,22 @@ struct FilterBarView: View {
                     }
                 }
                 .padding(.vertical, 3)
+                // Centered under the search capsule while the chips fit: a
+                // scroll view hugs the leading edge otherwise. Stretched to
+                // the viewport, the stack centers its content; a wider row
+                // scrolls as before.
+                .frame(minWidth: max(0, rowWidth - 2 * Self.horizontalMargin))
             }
-            .contentMargins(.horizontal, 16, for: .scrollContent)
+            .contentMargins(.horizontal, Self.horizontalMargin, for: .scrollContent)
             .scrollClipDisabled()
-            // Centered under the search capsule while the chips fit; the
-            // anchor only matters when they don't scroll.
             .defaultScrollAnchor(.center)
+            .background {
+                GeometryReader { geometry in
+                    Color.clear
+                        .onAppear { rowWidth = geometry.size.width }
+                        .onChange(of: geometry.size.width) { _, width in rowWidth = width }
+                }
+            }
             .onChange(of: filters.focusedChipID) { _, id in
                 guard let id else { return }
                 withAnimation(reduceMotion ? nil : .easeOut(duration: 0.12)) {
