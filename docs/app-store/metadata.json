@@ -1,0 +1,31 @@
+{
+  "bundleId": "com.nathanponcet.whisk",
+  "version": "1.0.0",
+  "primaryCategory": "PRODUCTIVITY",
+  "contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT",
+  "supportUrl": "https://github.com/nathan-poncet/whisk/issues",
+  "marketingUrl": "https://nathan-poncet.github.io/whisk/",
+  "privacyPolicyUrl": "https://nathan-poncet.github.io/whisk/privacy.html",
+  "screenshots": {
+    "APP_DESKTOP": "docs/app-store/screenshots/1440x900"
+  },
+  "reviewNotes": "Whisk is a menu bar app: after launch there is no window, only the cup icon in the menu bar. Press Shift-Command-V to open the panel, or click the icon and choose Show Panel. Copy a few things first so the history has cards: some text in TextEdit, a link in Safari, a file in Finder, a color code such as #4CAF50.\n\nPasting straight into the previous application needs Accessibility access (System Settings > Privacy & Security > Accessibility); the app explains this at first launch and works without it, copying the chosen card to the clipboard for a manual paste.\n\nNo account, no sign-in, no in-app purchase. This build does not check for updates. Search operators to try: type:link, app:safari.",
+  "localizations": {
+    "en-GB": {
+      "name": "Whisk",
+      "subtitle": "Your clipboard, remembered",
+      "promotionalText": "Everything you copy, a shortcut away. Search it, pin it, paste it back: text, links, images, files, colors and code.",
+      "description": "Whisk remembers everything you copy and brings it back through a floating panel at the bottom of your screen. Press ⇧⌘V, find the card, press Return: pasted.\n\nEVERYTHING YOU COPIED, ONE PANEL\nText, links, images, files, colors and code, each on a card that shows what it is: a link with its title and picture, a color as a swatch, code highlighted, files with a thumbnail.\n\nFIND IT AGAIN\nSearch as you type. Filter by application or by kind with one click, or narrow down with app:mail and type:color. Pin what you always need.\n\nPASTE IN SEQUENCE\nQueue several cards and pop them one after another with ⌥⌘V: one field, then the next.\n\nPASTE IT YOUR WAY\nPaste as plain text, or rewritten: upper case, lower case, trimmed, URL-encoded, base64, formatted JSON. Edit a card's text in place. Undo a deletion.\n\nMADE FOR THE KEYBOARD\nEvery action has a shortcut, and every shortcut can be rebound. Vim navigation, if that is how you move. Pasting straight into the app you were typing in works with Accessibility access, which is optional.\n\nYOURS\nYour history stays on your Mac. No account, no analytics, no tracking. Pause capture, exclude apps such as password managers, choose how long items are kept and how many. Free and open source under the GPL; the source is on GitHub.",
+      "keywords": "clipboard,manager,copy,paste,history,paste stack,pins,productivity,keyboard,vim,snippet",
+      "whatsNew": "First release on the Mac App Store. Whisk keeps everything you copy, searchable and a shortcut away."
+    },
+    "fr-FR": {
+      "name": "Whisk – Presse-papiers",
+      "subtitle": "Votre presse-papiers, mémorisé",
+      "promotionalText": "Tout ce que vous copiez, à un raccourci de distance. Cherchez, épinglez, recollez : texte, liens, images, fichiers, couleurs et code.",
+      "description": "Whisk retient tout ce que vous copiez et vous le rend dans un panneau flottant en bas de l'écran. ⇧⌘V, la carte, Entrée : collé.\n\nTOUT CE QUE VOUS AVEZ COPIÉ, UN SEUL PANNEAU\nTexte, liens, images, fichiers, couleurs et code, chacun sur une carte qui montre ce qu'il est : un lien avec son titre et son image, une couleur en pastille, du code coloré, des fichiers avec leur vignette.\n\nRETROUVEZ-LE\nCherchez en tapant. Filtrez par application ou par type d'un clic, ou affinez avec app:mail et type:color. Épinglez l'indispensable.\n\nCOLLEZ EN SÉQUENCE\nMettez plusieurs cartes en file et dépilez-les l'une après l'autre avec ⌥⌘V : un champ, puis le suivant.\n\nCOLLEZ À VOTRE FAÇON\nEn texte brut, ou réécrit : majuscules, minuscules, sans espaces superflus, encodé pour une URL, en base64, en JSON mis en forme. Modifiez le texte d'une carte sur place. Annulez une suppression.\n\nFAIT POUR LE CLAVIER\nChaque action a son raccourci, et chaque raccourci se change. Navigation vim, si c'est votre façon de vous déplacer. Le collage direct dans l'application où vous écriviez fonctionne avec l'accès Accessibilité, facultatif.\n\nÀ VOUS\nVotre historique reste sur votre Mac. Ni compte, ni statistiques, ni pistage. Mettez la capture en pause, excluez des applications comme les gestionnaires de mots de passe, choisissez la durée et le nombre d'éléments conservés. Gratuit et open source sous licence GPL ; le code est sur GitHub.",
+      "keywords": "presse-papiers,copier,coller,historique,pile,épingles,productivité,clavier,vim,gestionnaire",
+      "whatsNew": "Première version sur le Mac App Store. Whisk garde tout ce que vous copiez, à portée de recherche et de raccourci."
+    }
+  }
+}

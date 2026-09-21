@@ -1,7 +1,8 @@
 # App Store listing
 
 The texts of the Mac App Store listing, kept with the code so they change
-with it. Field limits: name 30, subtitle 30, promotional text 170,
+with it. `metadata.json` next to this file is what `scripts/appstore-metadata.py`
+pushes to App Store Connect; this page is the readable version. Field limits: name 30, subtitle 30, promotional text 170,
 description 4000, keywords 100 characters in one comma-separated line.
 
 ## English (U.S.), primary
@@ -63,7 +64,9 @@ everything you copy, searchable and a shortcut away.
 
 ## French
 
-**Nom :** Whisk
+**Nom :** Whisk – Presse-papiers
+
+Le nom « Whisk » seul est déjà pris dans la localisation française par une autre app ; le store le refuse (erreur 409 à la création).
 
 **Sous-titre :** Votre presse-papiers, mémorisé
 
