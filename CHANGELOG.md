@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-22
+
 ### Fixed
 - The Quick Look-style preview (`⌘Y`) fits every screen: it stays clear
   of the menu bar and the notch, shrinks in proportion when a short
@@ -397,7 +399,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/nathan-poncet/whisk/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/nathan-poncet/whisk/compare/v0.11.0...v1.0.0
 [0.11.0]: https://github.com/nathan-poncet/whisk/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/nathan-poncet/whisk/compare/v0.10.0...v0.10.1
