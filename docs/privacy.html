@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy — Whisk</title>
+  <meta name="description" content="What Whisk stores, what leaves your Mac, and what never does.">
+  <link rel="icon" type="image/png" href="media/favicon.png">
+  <link rel="apple-touch-icon" href="media/apple-touch-icon.png">
+  <meta name="theme-color" content="#0b0f0d">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .legal { max-width: 720px; margin: 0 auto; padding: 72px 24px 96px; line-height: 1.65; }
+    .legal h1 { font-size: 2.2rem; margin: 18px 0 6px; }
+    .legal h2 { font-size: 1.25rem; margin: 40px 0 10px; }
+    .legal p, .legal li { opacity: .88; }
+    .legal .updated { opacity: .6; font-size: .9rem; }
+    .legal .back { display: inline-block; margin-bottom: 28px; opacity: .75; }
+    .legal code { font-size: .92em; }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<main id="main">
+  <article class="legal">
+    <a class="back" href="./">← Whisk</a>
+    <img src="media/logo-cup.png" alt="" height="56">
+    <h1>Privacy</h1>
+    <p class="updated">Last updated September 21, 2026</p>
+
+    <p>Whisk is a clipboard manager. Everything it remembers is what you copy, and it keeps it on
+    your Mac. There is no account, no analytics, no tracking, no advertising, and no third-party
+    software development kit inside the app. The developer receives no data from Whisk.</p>
+
+    <h2>What Whisk stores</h2>
+    <p>Whisk records the content you copy — text, links, images, colors, and the names and
+    locations of files — together with the time of the copy and the name of the application it
+    came from, plus the pins and settings you choose. This history is a local database:</p>
+    <ul>
+      <li><code>~/Library/Application Support/Whisk</code> for the build downloaded from GitHub or
+      installed with Homebrew;</li>
+      <li>the app's own sandbox container for the build from the Mac App Store.</li>
+    </ul>
+    <p>You control it entirely: delete any item, clear the unpinned ones, set how long items are
+    kept and how many, exclude applications whose copies must never be recorded, or pause
+    capture. Content that password managers and other apps mark as confidential is never
+    recorded. Deleting the database folder, or uninstalling Whisk, removes everything.</p>
+
+    <h2>What leaves your Mac</h2>
+    <p>Two optional features make network requests. Nothing else does.</p>
+    <ul>
+      <li><strong>Link previews.</strong> When a copied link is shown, Whisk asks the linked website
+      for its title and image, through Apple's LinkPresentation framework. That website sees the
+      request as any browser visit: your network address and the link. Turn this off under
+      Settings → Privacy; no request is made afterwards, and the card shows the bare address.</li>
+      <li><strong>Update check</strong> — GitHub and Homebrew build only. At launch, Whisk asks
+      <code>api.github.com</code> for the latest release number and compares it with its own;
+      nothing about you is sent. Turn it off under Settings → General. The Mac App Store build
+      never checks: the App Store handles its updates.</li>
+    </ul>
+
+    <h2>Permissions</h2>
+    <ul>
+      <li><strong>Accessibility</strong> is optional and used for one thing: sending the paste
+      keystroke to the application you were working in when you pick a card. Without it, Whisk
+      still copies the card to the clipboard for you to paste yourself.</li>
+      <li><strong>Open at login</strong> is optional and only registers Whisk as a login item.</li>
+      <li><strong>Files.</strong> Whisk never browses your disk. It sees the files you copy, and
+      writes a file only where you choose to save one.</li>
+    </ul>
+
+    <h2>Sharing and third parties</h2>
+    <p>Whisk shares nothing with anyone. The only third parties involved are the websites you copy
+    links from, when link previews are on, and GitHub, when the update check is on.</p>
+
+    <h2>Children</h2>
+    <p>Whisk is a general-purpose utility, not directed at children, and collects no personal
+    information from anyone.</p>
+
+    <h2>Changes and contact</h2>
+    <p>Changes to this page are recorded in the project's
+    <a href="https://github.com/nathan-poncet/whisk/commits/main/docs/privacy.html">history on GitHub</a>.
+    Questions go to the
+    <a href="https://github.com/nathan-poncet/whisk/issues">issue tracker</a>; security concerns
+    follow the <a href="https://github.com/nathan-poncet/whisk/blob/main/SECURITY.md">security
+    policy</a>. Whisk is open source under the GPL-3.0-or-later: every claim on this page can be
+    checked in the <a href="https://github.com/nathan-poncet/whisk">source code</a>.</p>
+  </article>
+</main>
+</body>
+</html>
