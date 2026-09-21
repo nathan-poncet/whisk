@@ -43,6 +43,10 @@ cp Packaging/PrivacyInfo.xcprivacy "$APP/Contents/Resources/PrivacyInfo.xcprivac
 RESOURCE_BUNDLE="$(dirname "$BINARY")/Whisk_Whisk.bundle"
 if [ -d "$RESOURCE_BUNDLE" ]; then
   cp -R "$RESOURCE_BUNDLE" "$APP/Contents/Resources/"
+  # Some toolchains write a CFBundleExecutable into the resource bundle's
+  # plist; App Store validation then looks for that file (ITMS-90261).
+  /usr/libexec/PlistBuddy -c "Delete :CFBundleExecutable" \
+    "$APP/Contents/Resources/Whisk_Whisk.bundle/Contents/Info.plist" 2>/dev/null || true
 else
   echo "warning: $RESOURCE_BUNDLE not found; bundled icons will fall back" >&2
 fi
