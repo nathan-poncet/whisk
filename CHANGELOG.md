@@ -8,6 +8,13 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Fixed
+- The Quick Look-style preview (`⌘Y`) fits every screen: it stays clear
+  of the menu bar and the notch, shrinks in proportion when a short
+  screen leaves it less room, and floats midway between the panel and
+  the top of the screen instead of hugging the panel — so it no longer
+  sits high on a laptop display and low on a tall external one.
+
 ## [1.0.0] - 2026-09-21
 
 ### Added

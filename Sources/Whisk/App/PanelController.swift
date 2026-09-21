@@ -10,6 +10,8 @@ final class PanelController {
     private let actions: PanelActions
     private let keyBindings: KeyBindingsStore
     private var previewPanel: NSPanel?
+    /// Where the panel and its preview go on the screen they rose on.
+    private var layout: PanelLayout?
 
     /// The blur veil lives in its own window behind the panel: the panel's
     /// closing animation shrinks its content, but the veil must hold
@@ -123,16 +125,7 @@ final class PanelController {
         }
         let screen = screens[index]
         resetDragGhost()
-        // The full frame, not visibleFrame: the panel floats above the
-        // Dock, flush with the physical bottom edge of the screen.
-        let frame = screen.frame
-        // Taller than the content: the top band is empty backdrop, so the
-        // blur veil begins above the search capsule instead of at its edge.
-        let height = Self.panelHeight(forCardSide: stateStore.cardSide)
-        panel.setFrame(
-            NSRect(x: frame.minX, y: frame.minY, width: frame.width, height: height),
-            display: true
-        )
+        place(on: screen)
         actions.panelWillShow()
         stateStore.configureInput(vim: vimMode(), searchKey: vimBindings.key(for: .search))
         stateStore.requestSearchFocus()
@@ -151,10 +144,15 @@ final class PanelController {
         }
     }
 
-    /// The chrome above and below the rail is constant; the card decides
-    /// the rest. 430 points for the medium card, as the panel always was.
-    static func panelHeight(forCardSide side: CGFloat) -> CGFloat {
-        side + 230
+    /// Lays the panel out on the screen, and the preview with it when
+    /// one is up.
+    private func place(on screen: NSScreen) {
+        let layout = PanelLayout(screen: PanelLayout.Screen(screen), cardSide: stateStore.cardSide)
+        self.layout = layout
+        panel.setFrame(layout.panel, display: true)
+        if previewPanel?.isVisible == true {
+            previewPanel?.setFrame(layout.preview, display: true)
+        }
     }
 
     /// Reduce Motion turns every fade into a cut.
@@ -238,8 +236,8 @@ final class PanelController {
         panel.ignoresMouseEvents = false
     }
 
-    /// Quick-Look-style preview of the selected card, centered above the
-    /// panel.
+    /// Quick-Look-style preview of the selected card, floating between
+    /// the panel and the top of the screen.
     private func togglePreview() {
         if previewPanel?.isVisible == true {
             hidePreview()
@@ -258,26 +256,26 @@ final class PanelController {
             preview.backgroundColor = .clear
             preview.isOpaque = false
             preview.hasShadow = false
-            preview.contentView = NSHostingView(rootView: PreviewOverlayView(store: stateStore))
+            let hosting = NSHostingView(rootView: PreviewOverlayView(store: stateStore))
+            // The window's frame is the one measure of the preview; the
+            // view fills it rather than asking for a size of its own.
+            hosting.sizingOptions = []
+            preview.contentView = hosting
             previewPanel = preview
         }
-        guard let preview = previewPanel, let screen = panel.screen ?? NSScreen.main else { return }
-        let size = NSSize(width: 700, height: 480)
-        let frame = screen.frame
-        preview.setFrame(
-            NSRect(
-                x: frame.midX - size.width / 2,
-                y: frame.minY + Self.panelHeight(forCardSide: stateStore.cardSide) + 46,
-                width: size.width,
-                height: size.height
-            ),
-            display: true
-        )
+        guard let preview = previewPanel, let layout else { return }
+        preview.setFrame(layout.preview, display: true)
         preview.orderFront(nil)
     }
 
     private func hidePreview() {
         previewPanel?.orderOut(nil)
+    }
+}
+
+extension PanelLayout.Screen {
+    init(_ screen: NSScreen) {
+        self.init(frame: screen.frame, visibleFrame: screen.visibleFrame, notchHeight: screen.safeAreaInsets.top)
     }
 }
 

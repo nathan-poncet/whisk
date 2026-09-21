@@ -56,8 +56,8 @@ import Testing
 
         #expect(store.zoomedCardSide == 168)
         #expect(store.cardStride == 182)
-        #expect(PanelController.panelHeight(forCardSide: 200) == 430)
-        #expect(PanelController.panelHeight(forCardSide: 250) == 480)
+        #expect(PanelLayout.panelHeight(forCardSide: 200) == 430)
+        #expect(PanelLayout.panelHeight(forCardSide: 250) == 480)
     }
 
     @Test func only_a_textual_card_opens_the_editor_and_ending_closes_it() throws {

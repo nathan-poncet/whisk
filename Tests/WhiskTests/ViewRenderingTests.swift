@@ -32,6 +32,10 @@ private func hostOffscreen<V: View>(_ view: V, _ width: CGFloat, _ height: CGFlo
     return window
 }
 
+private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
+    abs(a - b) <= tolerance
+}
+
 /// A history with one card of every kind and every state a card can be
 /// in, presented with a full chip row.
 @MainActor
@@ -351,6 +355,26 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         store.update(ViewFixtures.state(selecting: nil))
         #expect(render(PreviewOverlayView(store: store), 700, 480) != nil)
         #expect(hostOffscreen(PreviewOverlayView(store: store), 700, 480).contentView != nil)
+    }
+
+    /// The window decides the size — a short screen hands the overlay
+    /// less room — and every kind must still draw at the smallest one.
+    @Test func the_preview_overlay_fills_whatever_size_its_window_has() throws {
+        ViewFixtures.seedPreviews()
+        let store = HistoryViewStateStore()
+        let count = ViewFixtures.items().count
+        let smallest = CGSize(
+            width: PanelLayout.previewMinimumHeight * 700 / 480, height: PanelLayout.previewMinimumHeight)
+
+        for index in 0..<count {
+            store.update(ViewFixtures.state(selecting: index))
+            let small = try #require(render(PreviewOverlayView(store: store), smallest.width, smallest.height))
+            #expect(within(1, small.size.width, smallest.width), "overlay \(index)")
+            #expect(within(1, small.size.height, smallest.height), "overlay \(index)")
+            let large = try #require(render(PreviewOverlayView(store: store), 700, 480))
+            #expect(within(1, large.size.width, 700), "overlay \(index)")
+            #expect(within(1, large.size.height, 480), "overlay \(index)")
+        }
     }
 }
 

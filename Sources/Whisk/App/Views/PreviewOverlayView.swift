@@ -1,8 +1,9 @@
 import AppKit
 import SwiftUI
 
-/// Space-bar preview: the selected card, full size, live-updated as the
-/// selection moves.
+/// Space-bar preview: the selected card, live-updated as the selection
+/// moves. The window decides the size — a short screen hands it less
+/// room — and the content adapts to whatever it gets.
 struct PreviewOverlayView: View {
     @ObservedObject var store: HistoryViewStateStore
 
@@ -19,10 +20,12 @@ struct PreviewOverlayView: View {
                         }
                         Text(card.sourceLabel)
                             .font(.headline)
+                            .lineLimit(1)
                         Spacer()
                         Text("\(card.kindLabel) · \(card.timeLabel)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
                     content(for: card)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -34,7 +37,7 @@ struct PreviewOverlayView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .frame(width: 700, height: 480)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous), cornerRadius: 24)
     }
 
@@ -60,12 +63,15 @@ struct PreviewOverlayView: View {
                     .font(.title3.monospaced())
             }
         case .link(let address):
-            VStack(alignment: .leading, spacing: 10) {
-                LinkPreviewView(address: address, size: .large)
-                Text(address)
-                    .font(.callout.monospaced())
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    LinkPreviewView(address: address, size: .large)
+                    Text(address)
+                        .font(.callout.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         case .image(let data):
             if let image = NSImage(data: data) {
@@ -76,7 +82,10 @@ struct PreviewOverlayView: View {
                     .accessibilityLabel(localized("Image"))
             }
         case .files(let names, let overflow, let thumbnailPath):
-            FilePreviewView(names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .large)
+            ScrollView {
+                FilePreviewView(names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .large)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
         }
     }
 }
