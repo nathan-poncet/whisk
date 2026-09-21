@@ -14,6 +14,9 @@ live in the commit history.
   screen leaves it less room, and floats midway between the panel and
   the top of the screen instead of hugging the panel — so it no longer
   sits high on a laptop display and low on a tall external one.
+- The panel and its preview follow a display change while they are
+  open — a monitor unplugged, a resolution switched — instead of staying
+  where the old screen was.
 
 ## [1.0.0] - 2026-09-21
 

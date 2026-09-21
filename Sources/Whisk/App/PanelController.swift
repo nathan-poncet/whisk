@@ -88,9 +88,37 @@ final class PanelController {
             MainActor.assumeIsolated { MouseActivity.lastMove = Date() }
             return event
         }
+        // AppKit posts this on the main thread; a nil queue keeps the
+        // hop out and the windows move in the same turn.
+        screenObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: nil
+        ) { [weak self] _ in
+            self?.screensDidChange()
+        }
+    }
+
+    deinit {
+        if let screenObserver {
+            NotificationCenter.default.removeObserver(screenObserver)
+        }
     }
 
     private var mouseMonitor: Any?
+    private var screenObserver: NSObjectProtocol?
+
+    /// A display unplugged or rescaled under an open panel: the windows
+    /// follow the screen the panel now sits on — macOS moves it onto a
+    /// remaining one — or the pointer's when it sits on none.
+    private func screensDidChange() {
+        guard panel.isVisible else { return }
+        let screens = NSScreen.screens
+        let underPointer = Self.screenIndex(under: NSEvent.mouseLocation, frames: screens.map(\.frame))
+        guard let screen = panel.screen ?? underPointer.map({ screens[$0] }) else { return }
+        place(on: screen)
+        if veilPanel.isVisible {
+            veilPanel.setFrame(panel.frame, display: true)
+        }
+    }
 
     /// Every key press the panel receives goes through the router; the
     /// two things a key may do to windows come back as closures.

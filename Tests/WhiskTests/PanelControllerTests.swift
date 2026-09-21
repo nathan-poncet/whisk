@@ -63,4 +63,21 @@ import Testing
         #expect(spy.calls.isEmpty)
         #expect(store.closeRevision == 0)
     }
+
+    @Test func a_display_change_while_the_panel_is_hidden_touches_nothing() throws {
+        _ = NSApplication.shared
+        let sandbox = try IsolatedDefaults()
+        let store = HistoryViewStateStore()
+        let spy = PanelActionSpy()
+        let controller = PanelController(
+            stateStore: store, actions: spy.actions, keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+            vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
+
+        NotificationCenter.default.post(name: NSApplication.didChangeScreenParametersNotification, object: NSApp)
+
+        #expect(spy.calls.isEmpty)
+        #expect(store.closeRevision == 0)
+        #expect(store.focusRevision == 0)
+        withExtendedLifetime(controller) {}
+    }
 }
