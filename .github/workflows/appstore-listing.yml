@@ -1,0 +1,38 @@
+name: App Store listing
+
+# Pushes docs/app-store to App Store Connect — texts, screenshots, the
+# build of the version, the questionnaire answers — or sends the version
+# to App Review. Run by hand once the build of the version is processed.
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: push the listing, or submit the version for review
+        type: choice
+        options: [push, submit]
+        default: push
+
+permissions:
+  contents: read
+
+jobs:
+  listing:
+    runs-on: macos-26
+    env:
+      ASC_KEY_P8_B64: ${{ secrets.NOTARY_API_KEY_P8 }}
+      ASC_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+      ASC_CONTACT_FIRST_NAME: ${{ secrets.ASC_CONTACT_FIRST_NAME }}
+      ASC_CONTACT_LAST_NAME: ${{ secrets.ASC_CONTACT_LAST_NAME }}
+      ASC_CONTACT_PHONE: ${{ secrets.ASC_CONTACT_PHONE }}
+      ASC_CONTACT_EMAIL: ${{ secrets.ASC_CONTACT_EMAIL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          test -n "$ASC_KEY_P8_B64" || { echo "NOTARY_API_KEY_P8 secret missing" >&2; exit 1; }
+          echo "$ASC_KEY_P8_B64" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          export ASC_KEY_P8="$RUNNER_TEMP/AuthKey.p8"
+          python3 scripts/appstore-metadata.py "${{ inputs.action }}"
