@@ -124,7 +124,9 @@ def declare_age_rating(api, info_id):
         return
     attributes = {}
     for key in rating["attributes"]:
-        if key == "developerAgeRatingInfoUrl":
+        # The URL is optional, and the legacy override may not be sent next
+        # to its V2.
+        if key in ("developerAgeRatingInfoUrl", "ageRatingOverride"):
             continue
         if key in LEVEL_FIELDS or "Override" in key:
             attributes[key] = "NONE"
