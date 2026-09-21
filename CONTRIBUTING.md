@@ -114,3 +114,10 @@ part is held to the [code of conduct](CODE_OF_CONDUCT.md).
 
 Use the issue templates. For bugs, the macOS version and your keyboard
 layout matter more often than you'd think (shortcuts are layout-aware).
+
+## Licensing of contributions
+
+Whisk is GPL-3.0-or-later with an
+[additional permission](LICENSE-EXCEPTION-APP-STORE.md) for distribution
+through Apple's App Store. By opening a pull request you agree that your
+contribution is licensed under the same terms, permission included.

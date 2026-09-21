@@ -234,5 +234,9 @@ redistribute Whisk freely, but derivatives must stay open source under the
 same terms and keep the copyright notice — no proprietary forks. For a
 commercial license under other terms, contact the author.
 
+An [additional permission](LICENSE-EXCEPTION-APP-STORE.md) under GPLv3
+section 7 allows distribution through Apple's App Store, whose terms the
+GPL alone would not permit; the source stays under the GPL.
+
 Releases up to and including v0.4.0 were published under MIT and remain so
 (an already-granted MIT license is irrevocable for those versions).
