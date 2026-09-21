@@ -26,6 +26,8 @@ jobs:
       SIGN_P12: ${{ secrets.APP_STORE_P12 }}
       SIGN_P12_PASSWORD: ${{ secrets.APP_STORE_P12_PASSWORD }}
       SIGN_IDENTITY_PREFIX: Apple Distribution
+      INSTALLER_P12: ${{ secrets.APP_STORE_INSTALLER_P12 }}
+      INSTALLER_P12_PASSWORD: ${{ secrets.APP_STORE_INSTALLER_P12_PASSWORD }}
       INSTALLER_IDENTITY_PREFIX: 3rd Party Mac Developer Installer
       PROFILE_B64: ${{ secrets.APP_STORE_PROVISIONING_PROFILE }}
       ASC_KEY_P8_B64: ${{ secrets.NOTARY_API_KEY_P8 }}

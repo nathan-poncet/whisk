@@ -3,9 +3,10 @@
 # and proves codesign can use it. Expects SIGN_P12, the .p12 in base64,
 # and SIGN_P12_PASSWORD. SIGN_IDENTITY_PREFIX names the identity to look
 # for, "Developer ID Application" by default; INSTALLER_IDENTITY_PREFIX,
-# when set, requires a package-signing identity from the same p12 as
-# well. Exports CODESIGN_IDENTITY (and PKG_SIGN_IDENTITY) for the
-# following steps, or fails with the reason.
+# when set, requires a package-signing identity as well, from the same
+# p12 or from INSTALLER_P12 and INSTALLER_P12_PASSWORD. Exports
+# CODESIGN_IDENTITY (and PKG_SIGN_IDENTITY) for the following steps, or
+# fails with the reason.
 set -euo pipefail
 
 : "${SIGN_P12:?DEVELOPER_ID_P12 secret missing}"
@@ -66,7 +67,16 @@ done
 
 security import "$P12" -k "$KEYCHAIN" -P "$SIGN_P12_PASSWORD" -f pkcs12 \
   -T /usr/bin/codesign -T /usr/bin/security
-security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+if [ -n "${INSTALLER_P12:-}" ]; then
+  : "${INSTALLER_P12_PASSWORD:?INSTALLER_P12_PASSWORD missing}"
+  INSTALLER_FILE="$WORK/installer.p12"
+  echo "$INSTALLER_P12" | base64 --decode > "$INSTALLER_FILE"
+  echo "installer p12: $(stat -f%z "$INSTALLER_FILE") bytes"
+  security import "$INSTALLER_FILE" -k "$KEYCHAIN" -P "$INSTALLER_P12_PASSWORD" -f pkcs12 \
+    -T /usr/bin/productbuild -T /usr/bin/security
+  rm -f "$INSTALLER_FILE"
+fi
+security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
 
 security find-identity -v "$KEYCHAIN"
 IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN" \
