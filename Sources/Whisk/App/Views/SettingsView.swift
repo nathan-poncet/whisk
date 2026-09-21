@@ -11,8 +11,9 @@ struct SettingsView: View {
     var distribution: Distribution = .current
 
     var body: some View {
-        // The window is created once and never resized; the grouped form
-        // scrolls, so the vim section can appear and disappear freely.
+        // The window is created once and never resized by hand; the
+        // grouped form scrolls, so the vim section can appear and disappear
+        // freely and a short screen can trim the height.
         Form {
             generalSection
             privacySection
@@ -23,7 +24,10 @@ struct SettingsView: View {
             restoreSection
         }
         .formStyle(.grouped)
-        .frame(width: 560, height: 720)
+        .frame(width: SettingsWindowSize.width)
+        .frame(
+            minHeight: SettingsWindowSize.minimumHeight, idealHeight: SettingsWindowSize.height,
+            maxHeight: SettingsWindowSize.height)
     }
 
     private var generalSection: some View {

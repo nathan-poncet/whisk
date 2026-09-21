@@ -447,6 +447,7 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
 
         #expect(hostOffscreen(view, 560, 720).contentView != nil)
         #expect(render(view, 560, 720) != nil)
+        #expect(hostOffscreen(view, 560, SettingsWindowSize.minimumHeight).contentView != nil)
 
         let storeBuild = SettingsView(
             store: bindings, general: general, loginItem: login, vimBindings: vim, distribution: .appStore)

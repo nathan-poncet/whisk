@@ -20,6 +20,9 @@ live in the commit history.
 - On an ultra-wide monitor the in-panel editor and the empty-state
   message keep a readable width, centered under the search capsule,
   instead of stretching across the whole screen.
+- The Settings window fits short screens — an iPad over Sidecar, a
+  laptop at its largest-text scaling: it opens no taller than the screen
+  can show, and the form scrolls.
 
 ## [1.0.0] - 2026-09-21
 

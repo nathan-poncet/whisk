@@ -280,6 +280,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.isReleasedWhenClosed = false
             settingsWindow = window
         }
+        if let window = settingsWindow, let screen = window.screen ?? NSScreen.main {
+            let chrome = window.frame.height - window.contentRect(forFrameRect: window.frame).height
+            window.setContentSize(
+                SettingsWindowSize.content(visibleHeight: screen.visibleFrame.height, chromeHeight: chrome))
+        }
         settingsWindow?.center()
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
