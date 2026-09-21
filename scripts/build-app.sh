@@ -136,8 +136,9 @@ if [ "$APP_STORE" = "1" ]; then
   if [ -n "${PROVISIONING_PROFILE:-}" ]; then
     cp "$PROVISIONING_PROFILE" "$APP/Contents/embedded.provisionprofile"
     TEAM_ID="$(security cms -D -i "$PROVISIONING_PROFILE" | plutil -extract TeamIdentifier.0 raw -o - -)"
-    plutil -insert com.apple.application-identifier -string "${TEAM_ID}.${BUNDLE_ID}" "$ENTITLEMENTS"
-    plutil -insert com.apple.developer.team-identifier -string "$TEAM_ID" "$ENTITLEMENTS"
+    # PlistBuddy, not plutil: plutil reads the dots as nested keys.
+    /usr/libexec/PlistBuddy -c "Add :com.apple.application-identifier string ${TEAM_ID}.${BUNDLE_ID}" "$ENTITLEMENTS"
+    /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string ${TEAM_ID}" "$ENTITLEMENTS"
   fi
   SIGN_OPTIONS=(--entitlements "$ENTITLEMENTS")
 fi
