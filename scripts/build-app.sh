@@ -147,6 +147,9 @@ fi
 # resource bundle is signed on its own first: nested content must be
 # signed before the bundle that carries it.
 IDENTITY="${CODESIGN_IDENTITY:--}"
+# Extended attributes would ride into the installer package as
+# AppleDouble files; the signature does not want them either.
+xattr -cr "$APP"
 if [ "$IDENTITY" = "-" ]; then
   codesign --force --sign - "$APP/Contents/Resources/Whisk_Whisk.bundle" 2>/dev/null || true
   codesign --force --sign - "${SIGN_OPTIONS[@]}" "$APP"

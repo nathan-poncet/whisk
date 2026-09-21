@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Imports the Developer ID signing identity into a keychain of its own on
-# a CI runner and proves codesign can use it. Expects SIGN_P12, the .p12
-# in base64, and SIGN_P12_PASSWORD. Exports CODESIGN_IDENTITY for the
+# Imports a signing identity into a keychain of its own on a CI runner
+# and proves codesign can use it. Expects SIGN_P12, the .p12 in base64,
+# and SIGN_P12_PASSWORD. SIGN_IDENTITY_PREFIX names the identity to look
+# for, "Developer ID Application" by default; INSTALLER_IDENTITY_PREFIX,
+# when set, requires a package-signing identity from the same p12 as
+# well. Exports CODESIGN_IDENTITY (and PKG_SIGN_IDENTITY) for the
 # following steps, or fails with the reason.
 set -euo pipefail
 
 : "${SIGN_P12:?DEVELOPER_ID_P12 secret missing}"
 : "${SIGN_P12_PASSWORD:?DEVELOPER_ID_P12_PASSWORD secret missing}"
+PREFIX="${SIGN_IDENTITY_PREFIX:-Developer ID Application}"
 
 WORK="${RUNNER_TEMP:-/tmp}"
 KEYCHAIN="$WORK/whisk-signing.keychain-db"
@@ -64,14 +68,27 @@ security import "$P12" -k "$KEYCHAIN" -P "$SIGN_P12_PASSWORD" -f pkcs12 \
   -T /usr/bin/codesign -T /usr/bin/security
 security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
 
-security find-identity -v -p codesigning "$KEYCHAIN"
+security find-identity -v "$KEYCHAIN"
 IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN" \
-  | grep -o '"Developer ID Application: [^"]*"' | head -1 | tr -d '"')"
+  | grep -o "\"$PREFIX: [^\"]*\"" | head -1 | tr -d '"')"
 if [ -z "$IDENTITY" ]; then
-  echo "no valid 'Developer ID Application' identity in the p12: was the private key exported with it?" >&2
+  echo "no valid '$PREFIX' identity in the p12: was the private key exported with it?" >&2
   exit 1
 fi
 echo "identity: $IDENTITY"
 if [ -n "${GITHUB_ENV:-}" ]; then
   echo "CODESIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+fi
+
+if [ -n "${INSTALLER_IDENTITY_PREFIX:-}" ]; then
+  INSTALLER="$(security find-identity -v "$KEYCHAIN" \
+    | grep -o "\"$INSTALLER_IDENTITY_PREFIX: [^\"]*\"" | head -1 | tr -d '"')"
+  if [ -z "$INSTALLER" ]; then
+    echo "no valid '$INSTALLER_IDENTITY_PREFIX' identity in the p12: export it together with the application certificate" >&2
+    exit 1
+  fi
+  echo "installer identity: $INSTALLER"
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "PKG_SIGN_IDENTITY=$INSTALLER" >> "$GITHUB_ENV"
+  fi
 fi
