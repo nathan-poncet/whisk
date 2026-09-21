@@ -122,7 +122,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // full wiring above ran (SwiftUI evaluated the panel, resources
         // resolved), so reaching this line is the pass signal.
         if CommandLine.arguments.contains("--smoke-test") {
-            print("smoke test passed")
+            print("smoke test passed (distribution: \(Distribution.current))")
             NSApp.terminate(nil)
         }
     }
