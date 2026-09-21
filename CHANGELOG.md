@@ -8,6 +8,17 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-21
+
+### Added
+- Whisk comes as a Mac App Store build as well: sandboxed, with the
+  App Store looking after its updates. The GitHub and Homebrew build is
+  unchanged; the two keep separate histories.
+
+### Fixed
+- A chip row short enough to fit sits centered under the search
+  capsule, as a full one does, instead of hugging the left edge.
+
 ## [0.11.0] - 2026-09-19
 
 ### Changed
@@ -367,7 +378,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/nathan-poncet/whisk/compare/v0.11.0...v1.0.0
 [0.11.0]: https://github.com/nathan-poncet/whisk/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/nathan-poncet/whisk/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/nathan-poncet/whisk/compare/v0.9.0...v0.10.0
