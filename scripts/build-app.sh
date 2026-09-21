@@ -24,10 +24,10 @@ fi
 # --disable-sandbox turns off SwiftPM's own sandbox, which cannot start
 # inside Homebrew's build sandbox (sandbox_apply: Operation not permitted).
 if [ "$ARCH" = "universal" ]; then
-  swift build --disable-sandbox -c release --arch arm64 --arch x86_64 "${SWIFT_FLAGS[@]}"
+  swift build --disable-sandbox -c release --arch arm64 --arch x86_64 ${SWIFT_FLAGS[@]+"${SWIFT_FLAGS[@]}"}
   BINARY=".build/apple/Products/Release/Whisk"
 else
-  swift build --disable-sandbox -c release "${SWIFT_FLAGS[@]}"
+  swift build --disable-sandbox -c release ${SWIFT_FLAGS[@]+"${SWIFT_FLAGS[@]}"}
   BINARY=".build/release/Whisk"
 fi
 
@@ -157,9 +157,9 @@ IDENTITY="${CODESIGN_IDENTITY:--}"
 xattr -cr "$APP"
 if [ "$IDENTITY" = "-" ]; then
   codesign --force --sign - "$APP/Contents/Resources/Whisk_Whisk.bundle" 2>/dev/null || true
-  codesign --force --sign - "${SIGN_OPTIONS[@]}" "$APP"
+  codesign --force --sign - ${SIGN_OPTIONS[@]+"${SIGN_OPTIONS[@]}"} "$APP"
 else
   codesign --force --timestamp --sign "$IDENTITY" "$APP/Contents/Resources/Whisk_Whisk.bundle"
-  codesign --force --options runtime --timestamp --sign "$IDENTITY" "${SIGN_OPTIONS[@]}" "$APP"
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" ${SIGN_OPTIONS[@]+"${SIGN_OPTIONS[@]}"} "$APP"
 fi
 echo "built $APP (version $VERSION, build ${BUILD_NUMBER:-$VERSION}, $ARCH, identity: $IDENTITY, app store: $APP_STORE)"

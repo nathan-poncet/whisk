@@ -33,7 +33,7 @@ SIGN=()
 if [ -n "${PKG_SIGN_IDENTITY:-}" ]; then
   SIGN=(--sign "$PKG_SIGN_IDENTITY" --timestamp)
 fi
-productbuild --component dist/Whisk.app /Applications "${SIGN[@]}" dist/Whisk.pkg
+productbuild --component dist/Whisk.app /Applications ${SIGN[@]+"${SIGN[@]}"} dist/Whisk.pkg
 pkgutil --check-signature dist/Whisk.pkg | head -3
 echo "built dist/Whisk.pkg (version $VERSION, build ${BUILD_NUMBER:-$VERSION})"
 
