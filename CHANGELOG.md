@@ -23,6 +23,9 @@ live in the commit history.
 - The Settings window fits short screens — an iPad over Sidecar, a
   laptop at its largest-text scaling: it opens no taller than the screen
   can show, and the form scrolls.
+- A card holding several files shows only the names its size can hold,
+  the rest counted in the "+ N more" line, instead of spilling past the
+  card's edge.
 
 ## [1.0.0] - 2026-09-21
 

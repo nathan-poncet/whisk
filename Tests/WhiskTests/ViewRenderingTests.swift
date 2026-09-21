@@ -144,6 +144,41 @@ enum ViewFixtures {
         }
     }
 
+    /// Four names under a thumbnail overflow the small card; the card picks
+    /// the fullest layout that fits and counts the rest in the last line.
+    @Test func a_files_card_lays_out_only_the_names_that_fit_its_height() throws {
+        typealias Fit = FilePreviewView.Fit
+        let withThumbnail = FilePreviewView.fits(names: 4, overflow: 1, thumbnail: true)
+        let bare = FilePreviewView.fits(names: 3, overflow: 0, thumbnail: false)
+
+        #expect(
+            withThumbnail == [
+                Fit(thumbnail: true, shown: 4, hidden: 1), Fit(thumbnail: true, shown: 3, hidden: 2),
+                Fit(thumbnail: true, shown: 2, hidden: 3), Fit(thumbnail: true, shown: 1, hidden: 4),
+                Fit(thumbnail: false, shown: 4, hidden: 1), Fit(thumbnail: false, shown: 3, hidden: 2),
+                Fit(thumbnail: false, shown: 2, hidden: 3), Fit(thumbnail: false, shown: 1, hidden: 4),
+            ])
+        #expect(withThumbnail.allSatisfy { $0.shown + $0.hidden == 5 })
+        #expect(
+            bare == [
+                Fit(thumbnail: false, shown: 3, hidden: 0), Fit(thumbnail: false, shown: 2, hidden: 1),
+                Fit(thumbnail: false, shown: 1, hidden: 2),
+            ])
+        #expect(
+            FilePreviewView.fits(names: 0, overflow: 0, thumbnail: true) == [
+                Fit(thumbnail: true, shown: 0, hidden: 0), Fit(thumbnail: false, shown: 0, hidden: 0),
+            ])
+
+        ViewFixtures.seedPreviews()
+        let files = try #require(ViewFixtures.state().cards.last)
+        #expect(files.kindLabel == localized("files"))
+        for size in CardSize.allCases {
+            let sized = ItemCardView(card: files, actions: ViewFixtures.spy.actions, side: size.side)
+            #expect(render(sized, size.side * 1.05, size.side * 1.05) != nil, "files card at \(size)")
+            #expect(hostOffscreen(sized, size.side * 1.05, size.side * 1.05).contentView != nil)
+        }
+    }
+
     @Test func link_and_file_previews_render_loaded_and_bare_at_both_sizes() {
         ViewFixtures.seedPreviews()
 

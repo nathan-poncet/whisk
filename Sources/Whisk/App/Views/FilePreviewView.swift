@@ -10,18 +10,66 @@ struct FilePreviewView: View {
         case large
     }
 
+    /// One way to lay the files out: the thumbnail or not, the first
+    /// `shown` names, and how many the "+ N more" line stands for.
+    struct Fit: Hashable {
+        let thumbnail: Bool
+        let shown: Int
+        let hidden: Int
+    }
+
     let names: [String]
     let overflow: Int
     let thumbnailPath: String?
     let size: Size
     @ObservedObject private var store = FileThumbnailStore.shared
 
+    /// Every layout a card may fall back to, fullest first: all the names
+    /// under the thumbnail, then fewer, then the same run without the
+    /// thumbnail — the names are what identifies the copy. The last one
+    /// is the most compact, so something always fits.
+    static func fits(names: Int, overflow: Int, thumbnail: Bool) -> [Fit] {
+        let runs = names > 0 ? Array(stride(from: names, through: 1, by: -1)) : [0]
+        let withThumbnail = thumbnail ? [true, false] : [false]
+        return withThumbnail.flatMap { thumbnail in
+            runs.map { shown in
+                Fit(thumbnail: thumbnail, shown: shown, hidden: overflow + names - shown)
+            }
+        }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: size == .card ? 7 : 10) {
+        Group {
+            switch size {
+            case .card:
+                // A card is a fixed square; four names under a thumbnail
+                // overflow the small one, so the card takes the fullest
+                // layout its height holds.
+                ViewThatFits(in: .vertical) {
+                    ForEach(
+                        Self.fits(names: names.count, overflow: overflow, thumbnail: thumbnailPath != nil),
+                        id: \.self
+                    ) { fit in
+                        list(fit)
+                    }
+                }
+            case .large:
+                list(Fit(thumbnail: thumbnailPath != nil, shown: names.count, hidden: overflow))
+            }
+        }
+        .onAppear {
             if let path = thumbnailPath {
+                store.load(path)
+            }
+        }
+    }
+
+    private func list(_ fit: Fit) -> some View {
+        VStack(alignment: .leading, spacing: size == .card ? 7 : 10) {
+            if fit.thumbnail, let path = thumbnailPath {
                 thumbnail(for: path)
             }
-            ForEach(names, id: \.self) { name in
+            ForEach(names.prefix(fit.shown), id: \.self) { name in
                 switch size {
                 case .card:
                     HStack(spacing: 6) {
@@ -37,15 +85,10 @@ struct FilePreviewView: View {
                     Label(name, systemImage: "doc")
                 }
             }
-            if overflow > 0 {
-                Text(localized("+ \(overflow) more"))
+            if fit.hidden > 0 {
+                Text(localized("+ \(fit.hidden) more"))
                     .font(size == .card ? .caption2 : .body)
                     .foregroundStyle(.secondary)
-            }
-        }
-        .onAppear {
-            if let path = thumbnailPath {
-                store.load(path)
             }
         }
     }
