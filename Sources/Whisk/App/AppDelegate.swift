@@ -100,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         startPolling(clipboard)
 
-        if generalSettings.checkForUpdates {
+        if Distribution.current.checksForUpdates, generalSettings.checkForUpdates {
             updateChecker.checkNow()
         }
         if !UserDefaults.standard.bool(forKey: "didShowOnboarding"),

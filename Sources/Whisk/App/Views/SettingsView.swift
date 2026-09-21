@@ -8,6 +8,7 @@ struct SettingsView: View {
     @ObservedObject var general: GeneralSettingsStore
     @ObservedObject var loginItem: LoginItemManager
     @ObservedObject var vimBindings: VimBindingsStore
+    var distribution: Distribution = .current
 
     var body: some View {
         // The window is created once and never resized; the grouped form
@@ -36,11 +37,13 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.red)
             }
-            Toggle(isOn: $general.checkForUpdates) {
-                SettingsRowLabel(
-                    localized("Check for updates at launch"), symbol: "arrow.triangle.2.circlepath", tint: .blue)
+            if distribution.checksForUpdates {
+                Toggle(isOn: $general.checkForUpdates) {
+                    SettingsRowLabel(
+                        localized("Check for updates at launch"), symbol: "arrow.triangle.2.circlepath", tint: .blue)
+                }
+                .toggleStyle(.switch)
             }
-            .toggleStyle(.switch)
             Picker(selection: $general.cardSize) {
                 ForEach(CardSize.allCases) { size in
                     Text(size.label).tag(size)

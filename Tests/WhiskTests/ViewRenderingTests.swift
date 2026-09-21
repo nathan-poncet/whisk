@@ -346,6 +346,10 @@ private func pump(_ hosting: NSView) {
 
         #expect(hostOffscreen(view, 560, 720).contentView != nil)
         #expect(render(view, 560, 720) != nil)
+
+        let storeBuild = SettingsView(
+            store: bindings, general: general, loginItem: login, vimBindings: vim, distribution: .appStore)
+        #expect(render(storeBuild, 560, 720) != nil)
     }
 
     @Test func the_blur_veil_and_the_glass_surfaces_take_a_window() {
