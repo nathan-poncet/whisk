@@ -188,10 +188,11 @@ def push():
     version_id = version["id"]
     print(f"app {app_id}, version {version['attributes'].get('versionString')} ({version_id})")
 
-    if version["attributes"].get("versionString") != META["version"]:
+    wanted = {"versionString": META["version"], "copyright": META.get("copyright")}
+    if any(version["attributes"].get(k) != v for k, v in wanted.items() if v):
         api.request("PATCH", f"/v1/appStoreVersions/{version_id}",
-                    data("appStoreVersions", version_id, {"versionString": META["version"]}))
-        print(f"version string -> {META['version']}")
+                    data("appStoreVersions", version_id, {k: v for k, v in wanted.items() if v}))
+        print(f"version string -> {META['version']}, copyright -> {META.get('copyright')}")
 
     if app["attributes"].get("contentRightsDeclaration") != META["contentRightsDeclaration"]:
         api.request("PATCH", f"/v1/apps/{app_id}", data("apps", app_id, {"contentRightsDeclaration": META["contentRightsDeclaration"]}))

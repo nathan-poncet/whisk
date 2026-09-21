@@ -57,7 +57,7 @@ source is on GitHub.
 
 **Privacy Policy URL:** https://nathan-poncet.github.io/whisk/privacy.html
 
-**Copyright:** © 2026 Nathan Poncet
+**Copyright:** 2026 Nathan Poncet
 
 **What's New (0.11.0):** First release on the Mac App Store. Whisk keeps
 everything you copy, searchable and a shortcut away.
