@@ -17,6 +17,9 @@ live in the commit history.
 - The panel and its preview follow a display change while they are
   open — a monitor unplugged, a resolution switched — instead of staying
   where the old screen was.
+- On an ultra-wide monitor the in-panel editor and the empty-state
+  message keep a readable width, centered under the search capsule,
+  instead of stretching across the whole screen.
 
 ## [1.0.0] - 2026-09-21
 

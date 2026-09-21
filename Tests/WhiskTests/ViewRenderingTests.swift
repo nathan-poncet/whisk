@@ -247,6 +247,21 @@ private func pump(_ hosting: NSView) {
     hosting.displayIfNeeded()
 }
 
+/// Every frosted surface in a hosted hierarchy, in window coordinates: the
+/// AppKit view behind each glass is the one measure of a SwiftUI layout a
+/// test can read.
+@MainActor
+private func glassFrames(in view: NSView) -> [CGRect] {
+    var frames: [CGRect] = []
+    if view is BackdropView {
+        frames.append(view.convert(view.bounds, to: nil))
+    }
+    for child in view.subviews {
+        frames += glassFrames(in: child)
+    }
+    return frames
+}
+
 /// SwiftUI backs its ScrollView with an NSScrollView on macOS.
 @MainActor
 private func firstScrollView(in view: NSView) -> NSScrollView? {
@@ -324,6 +339,33 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         #expect(render(panel(store), 1200, 430) != nil)
         #expect(hostOffscreen(panel(store), 1200, 430).contentView != nil)
         store.endEditing()
+    }
+
+    /// An ultra-wide monitor: the rail may run edge to edge, but a text
+    /// editor or an empty-state slab 3400 points wide is unreadable.
+    @Test func on_an_ultra_wide_screen_the_editor_and_the_empty_state_keep_a_readable_width() throws {
+        let store = HistoryViewStateStore()
+        store.update(ViewFixtures.state())
+        store.beginEditing(store.state.cards[0])
+        let editing = hostOffscreen(panel(store), 3440, 430)
+        let editingHost = try #require(editing.contentView)
+        pump(editingHost)
+        let editor = try #require(glassFrames(in: editingHost).max { $0.width < $1.width })
+        store.endEditing()
+
+        #expect(editor.width > 600)
+        #expect(editor.width <= HistoryPanelView.editorMaxWidth)
+        #expect(within(1, editor.midX, 1720))
+
+        store.update(HistoryPresenter().present(items: [], query: "zzz", now: ViewFixtures.now))
+        let empty = hostOffscreen(panel(store), 3440, 430)
+        let emptyHost = try #require(empty.contentView)
+        pump(emptyHost)
+        let slab = try #require(glassFrames(in: emptyHost).max { $0.width < $1.width })
+
+        #expect(slab.width > 300)
+        #expect(slab.width <= HistoryPanelView.emptyStateMaxWidth)
+        #expect(within(1, slab.midX, 1720))
     }
 
     @Test func the_editor_renders_for_text_code_and_link_cards_blank_or_not() {

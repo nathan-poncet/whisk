@@ -21,6 +21,14 @@ struct HistoryPanelView: View {
     @State private var railWindow = RailWindow()
     private static let mountDelta = 8
 
+    /// The rail runs edge to edge, but what replaces it is bounded and
+    /// centered: on an ultra-wide monitor an editor spanning the screen
+    /// would set 400-character lines, and the empty-state slab would be a
+    /// 3400-point plate for one sentence.
+    static let editorMaxWidth: CGFloat = 960
+    /// The search capsule's expanded width, so the two read as one column.
+    static let emptyStateMaxWidth: CGFloat = 680
+
     /// The field echoes keystrokes instantly; the controller's query only
     /// follows after the debounce, so the text must live here.
     @State private var searchText = ""
@@ -174,8 +182,12 @@ struct HistoryPanelView: View {
                 },
                 onCancel: { store.endEditing() }
             )
+            .frame(maxWidth: Self.editorMaxWidth)
+            .frame(maxWidth: .infinity)
         } else if let message = store.state.emptyMessage {
             emptyState(message)
+                .frame(maxWidth: Self.emptyStateMaxWidth)
+                .frame(maxWidth: .infinity)
         } else {
             ScrollViewReader { proxy in
                 rail
