@@ -117,19 +117,54 @@ garde tout ce que vous copiez, à portée de recherche et de raccourci.
 
 ## Notes for App Review (English)
 
-Whisk is a menu bar app: after launch there is no window, only the cup
-icon in the menu bar. Press ⇧⌘V to open the panel, or click the icon and
-choose Show Panel. Copy a few things first so the history has cards:
-some text in TextEdit, a link in Safari, a file in Finder, a color code
-such as #4CAF50.
+Written for the Guideline 2.1 information request of 2026-09-22 and kept
+as the Notes field of the App Review Information for every submission.
+
+Whisk is a clipboard manager for the Mac: a menu bar app that remembers
+what you copy (text, links, images, files, colors, code) and brings it
+back through a floating panel so you can search, pin and paste it again.
+Target audience: anyone who copies and pastes a lot, from writers and
+developers to designers, support and office workers. No account, no
+sign-in, no in-app purchase, no ads, no analytics.
+
+HOW TO USE IT
+After launch there is no window, only the clipboard icon in the menu bar
+(the first launch shows a short welcome window). Copy a few things first
+so the history has cards: some text in TextEdit, a link in Safari, a
+file in Finder, a color code such as #4CAF50. Press Shift-Command-V to
+open the panel, or click the menu bar icon and choose Show Panel. Type
+to search (operators: type:link, app:safari), click a chip to filter by
+app or by kind, arrow keys move, Return pastes the selected card,
+Command-Y opens a large preview, Command-P pins, Shift-Return queues
+cards in the paste stack and Option-Command-V pops the next one wherever
+you are typing. Settings are in the menu bar menu. No sample files or
+credentials are needed.
 
 Pasting straight into the previous application needs Accessibility
-access (System Settings → Privacy & Security → Accessibility); the app
+access (System Settings > Privacy & Security > Accessibility); the app
 explains this at first launch and works without it, copying the chosen
-card to the clipboard for a manual paste.
+card to the clipboard for a manual Command-V.
 
-No account, no sign-in, no in-app purchase. This build does not check
-for updates. Search operators to try: type:link, app:safari.
+EXTERNAL SERVICES
+None. The app uses Apple frameworks only. One optional feature makes
+network requests: link previews, which fetch the copied page's own
+title, icon and image through Apple's LinkPresentation framework,
+directly from that website and through no third-party service (switch
+under Settings > Privacy). QuickLook thumbnails are generated locally.
+This build does not check for updates. History is stored locally in the
+app's sandbox container; nothing is uploaded anywhere.
+
+REGIONS
+The app works identically in all regions. The interface is localized in
+English and French and follows the system language.
+
+REGULATED INDUSTRY AND THIRD-PARTY MATERIAL
+Not a regulated industry. No protected third-party material is bundled
+except the Neovim mark, used as the code-category icon, by Jason Long
+under the CC BY 3.0 license, attributed in the app's README. The
+application icons shown on cards are those of the apps installed on the
+user's Mac, provided by macOS at run time; link previews show the
+metadata the linked site itself publishes for previews.
 
 ## Answers on the record
 
