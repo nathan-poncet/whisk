@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support — Whisk</title>
+  <meta name="description" content="How to get help with Whisk, the clipboard manager for Mac: answers to common questions and where to ask yours.">
+  <link rel="icon" type="image/png" href="media/favicon.png">
+  <link rel="apple-touch-icon" href="media/apple-touch-icon.png">
+  <meta name="theme-color" content="#0b0f0d">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .legal { max-width: 720px; margin: 0 auto; padding: 72px 24px 96px; line-height: 1.65; }
+    .legal h1 { font-size: 2.2rem; margin: 18px 0 6px; }
+    .legal h2 { font-size: 1.25rem; margin: 40px 0 10px; }
+    .legal h3 { font-size: 1.05rem; margin: 26px 0 6px; }
+    .legal p, .legal li { opacity: .88; }
+    .legal .updated { opacity: .6; font-size: .9rem; }
+    .legal .back { display: inline-block; margin-bottom: 28px; opacity: .75; }
+    .legal code { font-size: .92em; }
+    .legal kbd { font-family: inherit; font-size: .95em; padding: 1px 6px; border: 1px solid currentColor; border-radius: 6px; opacity: .9; }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<main id="main">
+  <article class="legal">
+    <a class="back" href="./">← Whisk</a>
+    <img src="media/logo-cup.png" alt="" height="56">
+    <h1>Support</h1>
+    <p class="updated">Last updated September 25, 2026</p>
+
+    <p>Whisk is a free, open-source clipboard manager for the Mac, made and maintained by one
+    person. This page tells you how to ask a question or report a problem, and answers the
+    questions that come up most often.</p>
+
+    <h2>Ask a question or report a problem</h2>
+    <ul>
+      <li><strong>Questions and bug reports</strong> go to the
+      <a href="https://github.com/nathan-poncet/whisk/issues/new">issue tracker on GitHub</a>
+      (a free GitHub account is enough). Say what you did, what you expected, what happened
+      instead, and which versions of Whisk and macOS you use. Screenshots help. Have a look at
+      the <a href="https://github.com/nathan-poncet/whisk/issues">open issues</a> first: your
+      question may already have an answer.</li>
+      <li><strong>Feature ideas</strong> are welcome in the same place. Say what you are trying
+      to do rather than how you would build it.</li>
+      <li><strong>Security concerns</strong> should not be posted publicly. Use GitHub's
+      <a href="https://github.com/nathan-poncet/whisk/security/advisories/new">private
+      vulnerability report</a>, as described in the
+      <a href="https://github.com/nathan-poncet/whisk/blob/main/SECURITY.md">security policy</a>.</li>
+    </ul>
+    <p>Issues are read by the maintainer, and you will usually hear back within a week.</p>
+
+    <h2>Frequently asked questions</h2>
+
+    <h3>I launched Whisk and nothing appeared.</h3>
+    <p>That is expected: Whisk lives in the menu bar, as a clipboard icon, and has no main window.
+    Copy a few things, then press <kbd>⇧⌘V</kbd> or click the icon and choose
+    <em>Show Panel</em>. The first launch shows a short welcome window; afterwards the icon is the
+    only sign that Whisk is running.</p>
+
+    <h3>Why does Whisk ask for Accessibility access?</h3>
+    <p>To paste the card you pick straight into the field you were typing in: Whisk sends a
+    single <kbd>⌘V</kbd> keystroke to the application you were working in. The permission is
+    optional. Without it, Whisk copies the card to the clipboard and you press <kbd>⌘V</kbd>
+    yourself. To grant it, open System Settings → Privacy &amp; Security → Accessibility and
+    turn Whisk on. You can turn it off again at any time; everything else keeps working.</p>
+
+    <h3>I pressed Return and nothing was pasted.</h3>
+    <p>The card is on the clipboard: press <kbd>⌘V</kbd> in the field you want. Direct pasting
+    needs the Accessibility permission described above. If it is granted and pasting still does
+    nothing in one particular application, please open an issue and name that application.</p>
+
+    <h3>The shortcut does nothing.</h3>
+    <p>Check that Whisk is running: the clipboard icon must be in the menu bar. If it is, another
+    application probably holds <kbd>⇧⌘V</kbd>. Right-click the icon, choose <em>Settings…</em>,
+    then click the shortcut and type a new one. Every shortcut in Whisk can be changed there.</p>
+
+    <h3>Something I copied is not in the history.</h3>
+    <p>Whisk skips a copy when capture is paused (menu bar menu), when the source application is
+    on the excluded list (Settings), and when the source marks its content as confidential, as
+    password managers do. Items also leave the history when they pass the retention period or
+    the capacity you chose in Settings; pinned items stay.</p>
+
+    <h3>Where is my history, and how do I delete it?</h3>
+    <p>On your Mac only. The build from GitHub or Homebrew keeps it in
+    <code>~/Library/Application Support/Whisk</code>; the Mac App Store build keeps it in its own
+    sandbox container. Delete one card with <kbd>⌘⌫</kbd>, clear the unpinned ones from the menu
+    bar menu, or delete the folder to remove everything. The
+    <a href="privacy.html">privacy page</a> lists what Whisk stores and what leaves your Mac.</p>
+
+    <h3>I switched between the Mac App Store build and the Homebrew build and my history is gone.</h3>
+    <p>The two builds keep separate histories, because the Mac App Store build is sandboxed and
+    stores its data elsewhere. Nothing is lost: each build shows its own history. Keep one of the
+    two installed.</p>
+
+    <h3>How do I update?</h3>
+    <ul>
+      <li><strong>Mac App Store:</strong> updates come through the App Store like any other app.</li>
+      <li><strong>Homebrew:</strong> <code>brew upgrade --cask whisk</code>.</li>
+      <li><strong>DMG from GitHub:</strong> Whisk checks for a new release at launch and points you
+      to it; download the new DMG and replace the app. The check can be turned off in Settings.</li>
+    </ul>
+
+    <h3>Homebrew refuses to install Whisk from an untrusted tap.</h3>
+    <p>Recent versions of Homebrew ask you to approve third-party taps once. Run
+    <code>brew trust nathan-poncet/tap</code>, then install again.</p>
+
+    <h2>Source code and license</h2>
+    <p>Whisk is open source under the GPL-3.0-or-later. The code, the changelog and the release
+    notes are on <a href="https://github.com/nathan-poncet/whisk">GitHub</a>; contributions
+    follow <a href="https://github.com/nathan-poncet/whisk/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p>
+  </article>
+</main>
+</body>
+</html>

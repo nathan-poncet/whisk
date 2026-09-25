@@ -51,7 +51,7 @@ source is on GitHub.
 
 **Keywords:** clipboard,manager,copy,paste,history,paste stack,pins,productivity,keyboard,vim,snippet
 
-**Support URL:** https://github.com/nathan-poncet/whisk/issues
+**Support URL:** https://nathan-poncet.github.io/whisk/support.html
 
 **Marketing URL:** https://nathan-poncet.github.io/whisk/
 
