@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-10-07
+
 ### Changed
 - The welcome window no longer brings up Accessibility. The system asks
   for that permission the first time a card is pasted, and until it is
@@ -404,7 +406,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/nathan-poncet/whisk/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/nathan-poncet/whisk/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/nathan-poncet/whisk/compare/v0.11.0...v1.0.0
 [0.11.0]: https://github.com/nathan-poncet/whisk/compare/v0.10.1...v0.11.0
