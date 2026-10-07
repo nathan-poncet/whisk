@@ -305,20 +305,34 @@ def status():
             print(f"  item {item['id']}: {item['attributes'].get('state')}")
 
 
+def add_version(api, submission_id, version_id):
+    api.request("POST", "/v1/reviewSubmissionItems", data(
+        "reviewSubmissionItems", relationships={"reviewSubmission": {"type": "reviewSubmissions", "id": submission_id},
+                                                "appStoreVersion": {"type": "appStoreVersions", "id": version_id}}))
+
+
 def submit():
     api = API()
     app = find_app(api)
     version = find_version(api, app["id"])
     submission = open_submission(api, app["id"])
     verb = "resubmitted"
+    if submission is not None and not submission_has_version(api, submission["id"], version["id"]):
+        # A submission whose item was rejected takes no new item: it is
+        # closed and the version goes out in a fresh one.
+        try:
+            add_version(api, submission["id"], version["id"])
+        except RuntimeError as error:
+            if "ENTITY_STATE_INVALID" not in str(error):
+                raise
+            api.request("PATCH", f"/v1/reviewSubmissions/{submission['id']}", data("reviewSubmissions", submission["id"], {"canceled": True}))
+            print(f"submission {submission['id']} closed: it could not take the version again")
+            submission = None
     if submission is None:
         verb = "submitted"
         submission = api.request("POST", "/v1/reviewSubmissions", data(
             "reviewSubmissions", attributes={"platform": PLATFORM}, relationships={"app": {"type": "apps", "id": app["id"]}}))["data"]
-    if not submission_has_version(api, submission["id"], version["id"]):
-        api.request("POST", "/v1/reviewSubmissionItems", data(
-            "reviewSubmissionItems", relationships={"reviewSubmission": {"type": "reviewSubmissions", "id": submission["id"]},
-                                                    "appStoreVersion": {"type": "appStoreVersions", "id": version["id"]}}))
+        add_version(api, submission["id"], version["id"])
     api.request("PATCH", f"/v1/reviewSubmissions/{submission['id']}", data("reviewSubmissions", submission["id"], {"submitted": True}))
     print(f"{verb} {version['attributes'].get('versionString')} for review (submission {submission['id']})")
 
