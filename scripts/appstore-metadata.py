@@ -268,9 +268,15 @@ def open_submission(api, app_id):
     return next((s for s in submissions if by_state[s["id"]] in REOPENABLE_STATES), None)
 
 
+# An item App Review rejected stays in the submission as history; the
+# version goes back in as a fresh item before the submission can leave.
+CLOSED_ITEM_STATES = ("REJECTED", "REMOVED")
+
+
 def submission_has_version(api, submission_id, version_id):
     items = api.get(f"/v1/reviewSubmissions/{submission_id}/items", include="appStoreVersion")["data"]
-    return any((i["relationships"].get("appStoreVersion", {}).get("data") or {}).get("id") == version_id for i in items)
+    return any((i["relationships"].get("appStoreVersion", {}).get("data") or {}).get("id") == version_id
+               and i["attributes"].get("state") not in CLOSED_ITEM_STATES for i in items)
 
 
 def status():
