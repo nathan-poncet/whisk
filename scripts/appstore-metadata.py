@@ -5,6 +5,8 @@
                                    rating, the build of the version
     appstore-metadata.py submit    sends the version to App Review, or
                                    resubmits the one App Review sent back
+    appstore-metadata.py status    prints where the version, its build and
+                                   the review submission stand
 
 Environment: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8; optionally
 ASC_CONTACT_FIRST_NAME, ASC_CONTACT_LAST_NAME, ASC_CONTACT_PHONE,
@@ -247,6 +249,8 @@ def push():
         print("review contact and notes written")
     else:
         print("review details: set ASC_CONTACT_FIRST_NAME/LAST_NAME/PHONE/EMAIL to create them, or fill them in App Store Connect")
+    print("--- after the push ---")
+    status()
 
 
 # A submission App Review sent back stays open with its issues; the fix
@@ -267,6 +271,32 @@ def open_submission(api, app_id):
 def submission_has_version(api, submission_id, version_id):
     items = api.get(f"/v1/reviewSubmissions/{submission_id}/items", include="appStoreVersion")["data"]
     return any((i["relationships"].get("appStoreVersion", {}).get("data") or {}).get("id") == version_id for i in items)
+
+
+def status():
+    api = API()
+    app = find_app(api)
+    versions = api.get(f"/v1/apps/{app['id']}/appStoreVersions", **{"filter[platform]": PLATFORM})["data"]
+    for version in versions:
+        attributes = version["attributes"]
+        print(f"version {attributes.get('versionString')} ({version['id']}): "
+              f"{attributes.get('appVersionState') or attributes.get('appStoreState')}")
+        build = api.get(f"/v1/appStoreVersions/{version['id']}/build").get("data")
+        if build:
+            b = build["attributes"]
+            print(f"  build {b.get('version')}: processing {b.get('processingState')}, uploaded {b.get('uploadedDate')}, "
+                  f"expired {b.get('expired')}, non-exempt encryption {b.get('usesNonExemptEncryption')}")
+        else:
+            print("  build: none attached")
+        detail = api.get(f"/v1/appStoreVersions/{version['id']}/appStoreReviewDetail").get("data")
+        if detail:
+            d = detail["attributes"]
+            print(f"  review details: contact {'set' if d.get('contactEmail') else 'missing'}, notes {len(d.get('notes') or '')} chars")
+    for submission in api.get(f"/v1/apps/{app['id']}/reviewSubmissions", **{"filter[platform]": PLATFORM})["data"]:
+        a = submission["attributes"]
+        print(f"submission {submission['id']}: {a.get('state')}, submitted {a.get('submittedDate')}")
+        for item in api.get(f"/v1/reviewSubmissions/{submission['id']}/items")["data"]:
+            print(f"  item {item['id']}: {item['attributes'].get('state')}")
 
 
 def submit():
@@ -293,6 +323,8 @@ if __name__ == "__main__":
         push()
     elif command == "submit":
         submit()
+    elif command == "status":
+        status()
     else:
         print(__doc__)
         sys.exit(2)
