@@ -3,7 +3,8 @@
 
     appstore-metadata.py push      texts, screenshots, category, rights, age
                                    rating, the build of the version
-    appstore-metadata.py submit    sends the version to App Review
+    appstore-metadata.py submit    sends the version to App Review, or
+                                   resubmits the one App Review sent back
 
 Environment: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8; optionally
 ASC_CONTACT_FIRST_NAME, ASC_CONTACT_LAST_NAME, ASC_CONTACT_PHONE,
@@ -245,17 +246,42 @@ def push():
         print("review contact: set ASC_CONTACT_FIRST_NAME/LAST_NAME/PHONE/EMAIL to write it, or fill it in App Store Connect")
 
 
+# A submission App Review sent back stays open with its issues; the fix
+# goes through that same submission, a new one is refused while it exists.
+REOPENABLE_STATES = ("READY_FOR_REVIEW", "UNRESOLVED_ISSUES")
+PENDING_STATES = ("WAITING_FOR_REVIEW", "IN_REVIEW")
+
+
+def open_submission(api, app_id):
+    submissions = api.get(f"/v1/apps/{app_id}/reviewSubmissions", **{"filter[platform]": PLATFORM})["data"]
+    by_state = {s["id"]: s["attributes"].get("state") for s in submissions}
+    pending = [s for s in submissions if by_state[s["id"]] in PENDING_STATES]
+    if pending:
+        sys.exit(f"submission {pending[0]['id']} is already with App Review ({by_state[pending[0]['id']]})")
+    return next((s for s in submissions if by_state[s["id"]] in REOPENABLE_STATES), None)
+
+
+def submission_has_version(api, submission_id, version_id):
+    items = api.get(f"/v1/reviewSubmissions/{submission_id}/items", include="appStoreVersion")["data"]
+    return any((i["relationships"].get("appStoreVersion", {}).get("data") or {}).get("id") == version_id for i in items)
+
+
 def submit():
     api = API()
     app = find_app(api)
     version = find_version(api, app["id"])
-    submission = api.request("POST", "/v1/reviewSubmissions", data(
-        "reviewSubmissions", attributes={"platform": PLATFORM}, relationships={"app": {"type": "apps", "id": app["id"]}}))["data"]
-    api.request("POST", "/v1/reviewSubmissionItems", data(
-        "reviewSubmissionItems", relationships={"reviewSubmission": {"type": "reviewSubmissions", "id": submission["id"]},
-                                                "appStoreVersion": {"type": "appStoreVersions", "id": version["id"]}}))
+    submission = open_submission(api, app["id"])
+    verb = "resubmitted"
+    if submission is None:
+        verb = "submitted"
+        submission = api.request("POST", "/v1/reviewSubmissions", data(
+            "reviewSubmissions", attributes={"platform": PLATFORM}, relationships={"app": {"type": "apps", "id": app["id"]}}))["data"]
+    if not submission_has_version(api, submission["id"], version["id"]):
+        api.request("POST", "/v1/reviewSubmissionItems", data(
+            "reviewSubmissionItems", relationships={"reviewSubmission": {"type": "reviewSubmissions", "id": submission["id"]},
+                                                    "appStoreVersion": {"type": "appStoreVersions", "id": version["id"]}}))
     api.request("PATCH", f"/v1/reviewSubmissions/{submission['id']}", data("reviewSubmissions", submission["id"], {"submitted": True}))
-    print(f"submitted {version['attributes'].get('versionString')} for review (submission {submission['id']})")
+    print(f"{verb} {version['attributes'].get('versionString')} for review (submission {submission['id']})")
 
 
 if __name__ == "__main__":
