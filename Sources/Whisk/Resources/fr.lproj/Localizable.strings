@@ -25,15 +25,15 @@
 "Launch Whisk at login" = "Lancer Whisk à l'ouverture de session";
 "Next card or chip" = "Carte ou puce suivante";
 "No matches" = "Aucun résultat";
-"Open Accessibility Settings" = "Ouvrir les réglages d’accessibilité";
 "Paste as plain text" = "Coller en texte brut";
-"Paste in place (optional)" = "Coller directement (facultatif)";
 "Paste next from the stack" = "Coller le prochain élément de la pile";
 "Paste stack — pop with the global shortcut" = "Pile de collage — dépilez avec le raccourci global";
 "Paste the selection" = "Coller la sélection";
 "Pause Capture" = "Suspendre la capture";
+"Pin what you always need" = "Épinglez l’indispensable";
 "Pin / unpin the selection" = "Épingler / désépingler la sélection";
 "Pin" = "Épingler";
+"Pinned cards survive Clear and retention, and one chip shows only them." = "Les cartes épinglées survivent à Effacer et à la rétention, et une puce n’affiche qu’elles.";
 "Pinned items are never expired or evicted." = "Les éléments épinglés ne sont jamais expirés ni supprimés.";
 "Pinned" = "Épinglés";
 "Preview the selection" = "Prévisualiser la sélection";
@@ -48,7 +48,6 @@
 "Show History (%@)" = "Afficher l’historique (%@)";
 "Switch filter group" = "Changer de groupe de filtres";
 "This shortcut is used by another action" = "Ce raccourci est utilisé par une autre action";
-"To paste straight into the field you were typing in, Whisk needs Accessibility access." = "Pour coller directement dans le champ où vous écriviez, Whisk a besoin de l'accès Accessibilité.";
 "Toggle the selection in the paste stack" = "Ajouter / retirer la sélection de la pile de collage";
 "Two actions share the same shortcut." = "Deux actions partagent le même raccourci.";
 "Type shortcut…" = "Saisissez le raccourci…";
@@ -59,7 +58,6 @@
 "Welcome to Whisk" = "Bienvenue dans Whisk";
 "Welcome" = "Bienvenue";
 "Whisk Settings" = "Réglages de Whisk";
-"Without it, a selection still lands on the clipboard for a manual ⌘V." = "Sans lui, la sélection est tout de même copiée dans le presse-papiers pour un ⌘V manuel.";
 "Your clipboard, remembered." = "Votre presse-papiers, mémorisé.";
 "code" = "code";
 "color" = "couleur";

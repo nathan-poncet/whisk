@@ -60,9 +60,9 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   7 days or 30 days; capacity is configurable up to unlimited (Settings).
 - **Pause & exclusions** — pause capture from the menu bar; exclude any
   app permanently in Settings (its copies are never recorded).
-- **Launch at login** — one toggle in Settings; a first-run onboarding
-  explains the Accessibility permission, and Whisk can check GitHub for
-  new releases at launch (opt-out in Settings).
+- **Launch at login** — one toggle in Settings; a short welcome window
+  on first run shows the shortcut, and Whisk can check GitHub for new
+  releases at launch (opt-out in Settings).
 - **Rich previews** — copied links show the page's title, favicon and lead
   image; files show a QuickLook thumbnail; images render inline; hex codes
   become color swatches.

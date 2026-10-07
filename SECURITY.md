@@ -34,7 +34,7 @@ otherwise.
 ## What does not
 
 - Whisk asking for Accessibility access: it is needed to paste in place,
-  optional, and documented at first launch.
+  optional, and requested only at the first paste.
 - The history being readable by the same macOS user account that runs
   Whisk, in `~/Library/Application Support/Whisk`. That is where it lives;
   full-disk encryption is the protection for a lost machine.

@@ -1,8 +1,9 @@
 import AppKit
 import SwiftUI
 
-/// First-run walkthrough: what Whisk does and why it asks for
-/// Accessibility access, instead of a bare system prompt.
+/// First-run walkthrough: the shortcut, where the history lives, and
+/// one habit worth picking up. The Accessibility prompt is not here: the
+/// system asks for it the first time a card is pasted.
 struct OnboardingView: View {
     let toggleShortcut: String
     let onContinue: () -> Void
@@ -34,21 +35,13 @@ struct OnboardingView: View {
                     "History lives on this Mac. Concealed content from password managers is never recorded.")
             )
             step(
-                symbol: "accessibility",
-                title: localized("Paste in place (optional)"),
+                symbol: "pin",
+                title: localized("Pin what you always need"),
                 text: localized(
-                    "To paste straight into the field you were typing in, Whisk needs Accessibility access.")
-                    + " " + localized("Without it, a selection still lands on the clipboard for a manual ⌘V.")
+                    "Pinned cards survive Clear and retention, and one chip shows only them.")
             )
 
             HStack {
-                Button(localized("Open Accessibility Settings")) {
-                    if let url = URL(
-                        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
-                    {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
                 Spacer()
                 Button(localized("Get Started")) {
                     onContinue()

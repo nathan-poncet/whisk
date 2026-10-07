@@ -25,15 +25,15 @@
 "Launch Whisk at login" = "Launch Whisk at login";
 "Next card or chip" = "Next card or chip";
 "No matches" = "No matches";
-"Open Accessibility Settings" = "Open Accessibility Settings";
 "Paste as plain text" = "Paste as plain text";
-"Paste in place (optional)" = "Paste in place (optional)";
 "Paste next from the stack" = "Paste next from the stack";
 "Paste stack — pop with the global shortcut" = "Paste stack — pop with the global shortcut";
 "Paste the selection" = "Paste the selection";
 "Pause Capture" = "Pause Capture";
+"Pin what you always need" = "Pin what you always need";
 "Pin / unpin the selection" = "Pin / unpin the selection";
 "Pin" = "Pin";
+"Pinned cards survive Clear and retention, and one chip shows only them." = "Pinned cards survive Clear and retention, and one chip shows only them.";
 "Pinned items are never expired or evicted." = "Pinned items are never expired or evicted.";
 "Pinned" = "Pinned";
 "Preview the selection" = "Preview the selection";
@@ -48,7 +48,6 @@
 "Show History (%@)" = "Show History (%@)";
 "Switch filter group" = "Switch filter group";
 "This shortcut is used by another action" = "This shortcut is used by another action";
-"To paste straight into the field you were typing in, Whisk needs Accessibility access." = "To paste straight into the field you were typing in, Whisk needs Accessibility access.";
 "Toggle the selection in the paste stack" = "Toggle the selection in the paste stack";
 "Two actions share the same shortcut." = "Two actions share the same shortcut.";
 "Type shortcut…" = "Type shortcut…";
@@ -59,7 +58,6 @@
 "Welcome to Whisk" = "Welcome to Whisk";
 "Welcome" = "Welcome";
 "Whisk Settings" = "Whisk Settings";
-"Without it, a selection still lands on the clipboard for a manual ⌘V." = "Without it, a selection still lands on the clipboard for a manual ⌘V.";
 "Your clipboard, remembered." = "Your clipboard, remembered.";
 "code" = "code";
 "color" = "color";

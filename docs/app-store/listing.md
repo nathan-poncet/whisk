@@ -141,9 +141,9 @@ you are typing. Settings are in the menu bar menu. No sample files or
 credentials are needed.
 
 Pasting straight into the previous application needs Accessibility
-access (System Settings > Privacy & Security > Accessibility); the app
-explains this at first launch and works without it, copying the chosen
-card to the clipboard for a manual Command-V.
+access (System Settings > Privacy & Security > Accessibility): macOS
+asks for it the first time a card is pasted, and the app works without
+it, copying the chosen card to the clipboard for a manual Command-V.
 
 EXTERNAL SERVICES
 None. The app uses Apple frameworks only. One optional feature makes

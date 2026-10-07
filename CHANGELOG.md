@@ -8,6 +8,11 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Changed
+- The welcome window no longer brings up Accessibility. The system asks
+  for that permission the first time a card is pasted, and until it is
+  granted the card still lands on the clipboard for a manual `⌘V`.
+
 ## [1.0.1] - 2026-09-22
 
 ### Fixed
