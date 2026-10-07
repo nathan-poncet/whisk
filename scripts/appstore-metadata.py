@@ -230,20 +230,23 @@ def push():
     else:
         print(f"build {META['version']}: none processed yet, attach it later")
 
+    # The notes travel with the repository; the contact is personal and
+    # only needed to create the review details the first time.
     contact = {k: os.environ.get(f"ASC_CONTACT_{k.upper()}") for k in ("first_name", "last_name", "phone", "email")}
+    attributes = {"demoAccountRequired": False, "notes": META["reviewNotes"]}
     if all(contact.values()):
-        attributes = {"contactFirstName": contact["first_name"], "contactLastName": contact["last_name"],
-                      "contactPhone": contact["phone"], "contactEmail": contact["email"],
-                      "demoAccountRequired": False, "notes": META["reviewNotes"]}
-        detail = api.get(f"/v1/appStoreVersions/{version_id}/appStoreReviewDetail").get("data")
-        if detail:
-            api.request("PATCH", f"/v1/appStoreReviewDetails/{detail['id']}", data("appStoreReviewDetails", detail["id"], attributes))
-        else:
-            api.request("POST", "/v1/appStoreReviewDetails", data("appStoreReviewDetails", attributes=attributes,
-                        relationships={"appStoreVersion": {"type": "appStoreVersions", "id": version_id}}))
+        attributes.update({"contactFirstName": contact["first_name"], "contactLastName": contact["last_name"],
+                           "contactPhone": contact["phone"], "contactEmail": contact["email"]})
+    detail = api.get(f"/v1/appStoreVersions/{version_id}/appStoreReviewDetail").get("data")
+    if detail:
+        api.request("PATCH", f"/v1/appStoreReviewDetails/{detail['id']}", data("appStoreReviewDetails", detail["id"], attributes))
+        print("review notes written" + (" with the contact" if all(contact.values()) else ", contact left as it is"))
+    elif all(contact.values()):
+        api.request("POST", "/v1/appStoreReviewDetails", data("appStoreReviewDetails", attributes=attributes,
+                    relationships={"appStoreVersion": {"type": "appStoreVersions", "id": version_id}}))
         print("review contact and notes written")
     else:
-        print("review contact: set ASC_CONTACT_FIRST_NAME/LAST_NAME/PHONE/EMAIL to write it, or fill it in App Store Connect")
+        print("review details: set ASC_CONTACT_FIRST_NAME/LAST_NAME/PHONE/EMAIL to create them, or fill them in App Store Connect")
 
 
 # A submission App Review sent back stays open with its issues; the fix
