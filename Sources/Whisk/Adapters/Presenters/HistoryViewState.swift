@@ -11,6 +11,9 @@ struct HistoryViewState: Equatable {
     let filters: FilterBarViewState
     /// What the rail says when it has no card to show; nil while it has.
     let emptyMessage: String?
+    /// What to tell the user while the system keeps Whisk from reading the
+    /// pasteboard, and the button that leads to the fix; nil once allowed.
+    let accessPrompt: AccessPromptViewState?
 
     init(
         cards: [CardViewState],
@@ -19,7 +22,8 @@ struct HistoryViewState: Equatable {
         selectedID: UUID?,
         stackCount: Int = 0,
         filters: FilterBarViewState,
-        emptyMessage: String? = nil
+        emptyMessage: String? = nil,
+        accessPrompt: AccessPromptViewState? = nil
     ) {
         self.cards = cards
         self.countLabel = countLabel
@@ -28,6 +32,7 @@ struct HistoryViewState: Equatable {
         self.stackCount = stackCount
         self.filters = filters
         self.emptyMessage = emptyMessage
+        self.accessPrompt = accessPrompt
     }
 
     /// The card the preview overlay follows.
@@ -43,6 +48,13 @@ struct HistoryViewState: Equatable {
         filters: .empty,
         emptyMessage: localized("Copy something to get started")
     )
+}
+
+/// The notice shown while the pasteboard cannot be read, with the button
+/// that opens the way to allowing it.
+struct AccessPromptViewState: Equatable {
+    let message: String
+    let buttonTitle: String
 }
 
 /// The chip bar, three groups in display order: the pinned toggle, one

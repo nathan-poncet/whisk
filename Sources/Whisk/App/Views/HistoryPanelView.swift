@@ -184,6 +184,10 @@ struct HistoryPanelView: View {
             )
             .frame(maxWidth: Self.editorMaxWidth)
             .frame(maxWidth: .infinity)
+        } else if let prompt = store.state.accessPrompt, store.state.cards.isEmpty {
+            accessPrompt(prompt)
+                .frame(maxWidth: Self.emptyStateMaxWidth)
+                .frame(maxWidth: .infinity)
         } else if let message = store.state.emptyMessage {
             emptyState(message)
                 .frame(maxWidth: Self.emptyStateMaxWidth)
@@ -286,6 +290,25 @@ struct HistoryPanelView: View {
             Text(message)
                 .foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
+        .padding(.horizontal, 16)
+    }
+
+    private func accessPrompt(_ prompt: AccessPromptViewState) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: "hand.raised")
+                .font(.system(size: 24, weight: .light))
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            Text(prompt.message)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button(prompt.buttonTitle) { actions.requestClipboardAccess() }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.matcha)
+        }
+        .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
         .padding(.horizontal, 16)

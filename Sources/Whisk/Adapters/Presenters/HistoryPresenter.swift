@@ -104,9 +104,11 @@ final class HistoryPresenter {
         now: Date,
         selectedID: UUID? = nil,
         stack: [UUID] = [],
-        filters: FilterContext = .empty
+        filters: FilterContext = .empty,
+        clipboardAccess: PasteboardAccess = .granted
     ) -> HistoryViewState {
         presentedIDs = Set(items.map(\.id))
+        let accessPrompt = Self.accessPrompt(for: clipboardAccess)
         let words = ParsedQuery(query).words
         return HistoryViewState(
             cards: items.map {
@@ -123,8 +125,28 @@ final class HistoryPresenter {
             selectedID: selectedID,
             stackCount: stack.count,
             filters: filterBar(from: filters),
-            emptyMessage: items.isEmpty ? Self.emptyMessage(query: query, filters: filters) : nil
+            emptyMessage: items.isEmpty && accessPrompt == nil
+                ? Self.emptyMessage(query: query, filters: filters) : nil,
+            accessPrompt: accessPrompt
         )
+    }
+
+    /// While the system stands between Whisk and the pasteboard, the panel
+    /// says so and offers the way out; the message replaces the invitation
+    /// to copy, which nothing could honour.
+    private static func accessPrompt(for access: PasteboardAccess) -> AccessPromptViewState? {
+        switch access {
+        case .granted:
+            nil
+        case .requiresConsent:
+            AccessPromptViewState(
+                message: localized("Whisk needs your permission to read what you copy."),
+                buttonTitle: localized("Allow Clipboard Access"))
+        case .denied:
+            AccessPromptViewState(
+                message: localized("Whisk is not allowed to read the clipboard."),
+                buttonTitle: localized("Open Pasteboard Settings"))
+        }
     }
 
     /// An empty rail either invites the first copy or reports that the

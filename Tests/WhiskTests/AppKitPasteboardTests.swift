@@ -21,6 +21,20 @@ import Testing
 
     private static let concealed = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
 
+    @Test func a_private_board_is_always_readable() {
+        let sandbox = PrivateBoard()
+
+        #expect(AppKitPasteboard(board: sandbox.board).access == .granted)
+    }
+
+    @available(macOS 15.4, *)
+    @Test func the_system_stance_maps_to_the_three_access_states() {
+        #expect(AppKitPasteboard.access(for: .alwaysAllow) == .granted)
+        #expect(AppKitPasteboard.access(for: .alwaysDeny) == .denied)
+        #expect(AppKitPasteboard.access(for: .default) == .requiresConsent)
+        #expect(AppKitPasteboard.access(for: .ask) == .requiresConsent)
+    }
+
     @Test func an_unchanged_pasteboard_yields_nothing() {
         let sandbox = PrivateBoard()
         let gateway = AppKitPasteboard(board: sandbox.board)

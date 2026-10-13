@@ -86,13 +86,20 @@ extension ClipboardController where Log == RecordingLogger {
 
 final class ScriptedPasteboard: Pasteboard {
     var pendingSnapshots: [PasteboardSnapshot] = []
+    var access: PasteboardAccess = .granted
     private(set) var written: [Payload] = []
     private(set) var writtenRTF: [Data?] = []
+    private(set) var accessRequests = 0
 
     init() {}
 
     func readIfChanged() -> PasteboardSnapshot? {
-        pendingSnapshots.isEmpty ? nil : pendingSnapshots.removeFirst()
+        guard access == .granted else { return nil }
+        return pendingSnapshots.isEmpty ? nil : pendingSnapshots.removeFirst()
+    }
+
+    func requestAccess() {
+        accessRequests += 1
     }
 
     func write(_ payload: Payload, rtf: Data?) {

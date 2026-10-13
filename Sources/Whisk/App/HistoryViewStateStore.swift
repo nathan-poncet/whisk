@@ -142,4 +142,6 @@ struct PanelActions {
     let deleteSelected: () -> Void
     let stackSelected: () -> Void
     let panelWillShow: () -> Void
+    /// Starts the system's pasteboard permission flow and opens its settings.
+    let requestClipboardAccess: () -> Void
 }

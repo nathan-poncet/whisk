@@ -68,6 +68,10 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   become color swatches.
 - **Syntax highlighting** — text that reads as code is detected and
   highlighted (keywords, strings, comments, numbers), language-agnostic.
+- **Clipboard access on macOS 27** — the system asks before an app reads
+  the clipboard on its own; Whisk asks once, from the welcome window or
+  the panel, and you allow it for good under Privacy & Security → Paste
+  from Other Apps. Until then nothing is recorded, and the panel says so.
 - **Privacy** — history stays on disk in
   `~/Library/Application Support/Whisk` (SQLite); password managers marking
   their content as concealed (`org.nspasteboard.ConcealedType`) are never

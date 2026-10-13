@@ -154,6 +154,21 @@ import Testing
         #expect(populated.emptyMessage == nil)
     }
 
+    @Test func a_guarded_pasteboard_replaces_the_invitation_to_copy_with_the_way_to_allow_it() {
+        let asking = presenter.present(items: [], query: "", now: now, clipboardAccess: .requiresConsent)
+        let refused = presenter.present(items: [], query: "", now: now, clipboardAccess: .denied)
+        let populated = presenter.present(
+            items: [anItem(.text("a"))], query: "", now: now, clipboardAccess: .requiresConsent)
+
+        #expect(asking.emptyMessage == nil)
+        #expect(asking.accessPrompt?.message == "Whisk needs your permission to read what you copy.")
+        #expect(asking.accessPrompt?.buttonTitle == "Allow Clipboard Access")
+        #expect(refused.accessPrompt?.message == "Whisk is not allowed to read the clipboard.")
+        #expect(refused.accessPrompt?.buttonTitle == "Open Pasteboard Settings")
+        #expect(populated.cards.count == 1)
+        #expect(populated.accessPrompt != nil)
+    }
+
     @Test func the_selected_card_is_the_one_the_preview_follows() {
         let items = [anItem(.text("first")), anItem(.text("second"))]
 

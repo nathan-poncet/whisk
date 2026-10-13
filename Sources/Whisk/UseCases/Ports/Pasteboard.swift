@@ -14,9 +14,26 @@ struct PasteboardSnapshot: Equatable {
     }
 }
 
+/// Whether the system lets the app read the pasteboard on its own, outside
+/// a paste the user performs.
+enum PasteboardAccess: Equatable {
+    /// Reads go through silently.
+    case granted
+    /// The system would ask the user at every read until the user allows
+    /// the app for good in its settings.
+    case requiresConsent
+    /// The user refused; reads come back empty.
+    case denied
+}
+
 /// Boundary to the system pasteboard.
 protocol Pasteboard {
-    /// A snapshot when the pasteboard changed since the previous call, nil otherwise.
+    var access: PasteboardAccess { get }
+    /// A snapshot when the pasteboard changed since the previous call and
+    /// the app may read it, nil otherwise.
     func readIfChanged() -> PasteboardSnapshot?
     func write(_ payload: Payload, rtf: Data?)
+    /// The one deliberate read that makes the system ask the user, after
+    /// which the app is listed in the pasteboard settings.
+    func requestAccess()
 }

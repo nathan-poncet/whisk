@@ -54,6 +54,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var nextExpiry: Date = .distantPast
     private var isPaused = false
     private var excludedBundleIDs: Set<String> = []
+    /// The access state the panel last saw; a change re-presents on its own,
+    /// since granting access in System Settings mutates nothing else.
+    private var presentedAccess: PasteboardAccess = .granted
     private var pasteStack: [UUID] = []
     private var selectedID: UUID?
     private var focusZone: PanelZone = .cards
@@ -106,6 +109,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         self.logger = logger
         self.present = present
         self.retention = retention
+        presentedAccess = pasteboard.access
         capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
         selectItem = SelectItem(pasteboard: pasteboard, clock: clock, store: store)
         togglePinItem = TogglePin(store: store)
@@ -125,6 +129,10 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func pollTick() {
+        if pasteboard.access != presentedAccess {
+            presentedAccess = pasteboard.access
+            refresh()
+        }
         if isPaused {
             // Consume changes so nothing copied during the pause is
             // retro-captured on resume.
@@ -134,6 +142,19 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         }
         guard retention.maxAge != nil, clock.now() >= nextExpiry else { return }
         enforceRetentionNow()
+    }
+
+    /// Whether the system lets Whisk read what is copied.
+    var clipboardAccess: PasteboardAccess {
+        pasteboard.access
+    }
+
+    /// Triggers the system's one-time question about pasteboard access,
+    /// after which the user can allow Whisk for good in System Settings.
+    func requestClipboardAccess() {
+        pasteboard.requestAccess()
+        presentedAccess = pasteboard.access
+        refresh()
     }
 
     /// Suspends or resumes capture; everything else keeps working.
@@ -631,7 +652,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                     activeCategories: activeCategories,
                     pinnedOnly: pinnedOnly,
                     focusedChipID: focusZone == .chips ? focusedChipID : nil
-                )
+                ),
+                clipboardAccess: pasteboard.access
             )
         )
     }

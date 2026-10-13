@@ -18,7 +18,36 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         lastChangeCount = board.changeCount
     }
 
+    /// The system's stance on reads that no paste of the user triggered.
+    /// Systems without the notion let every read through.
+    var access: PasteboardAccess {
+        if #available(macOS 15.4, *) {
+            return Self.access(for: board.accessBehavior)
+        }
+        return .granted
+    }
+
+    @available(macOS 15.4, *)
+    static func access(for behavior: NSPasteboard.AccessBehavior) -> PasteboardAccess {
+        switch behavior {
+        case .alwaysAllow: .granted
+        case .alwaysDeny: .denied
+        case .default, .ask: .requiresConsent
+        @unknown default: .requiresConsent
+        }
+    }
+
+    /// One read on purpose. Where the system asks before a read, this is
+    /// the read that makes it ask, and the app is listed in System
+    /// Settings from then on; elsewhere it is a no-op.
+    func requestAccess() {
+        _ = board.string(forType: .string)
+    }
+
+    /// A read the system would answer with an alert would stop the app
+    /// in its tracks at every change, so the poll never makes one.
     func readIfChanged() -> PasteboardSnapshot? {
+        guard access == .granted else { return nil }
         let count = board.changeCount
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count

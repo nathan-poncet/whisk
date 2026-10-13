@@ -32,7 +32,9 @@ import Testing
                     revealFiles: { [unowned self] in system.append("reveal:\($0.joined(separator: ","))") },
                     saveToDisk: { [unowned self] in system.append("save:\($0)") },
                     excludeSource: { [unowned self] bundleID, name in system.append("exclude:\(bundleID):\(name)") },
-                    beginEditing: { [unowned self] _ in editorOpenings += 1 }))
+                    beginEditing: { [unowned self] _ in editorOpenings += 1 },
+                    openPasteboardSettings: {}
+                ))
         }
 
         convenience init(_ payloads: [Payload]) {

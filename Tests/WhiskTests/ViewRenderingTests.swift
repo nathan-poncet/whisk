@@ -272,6 +272,20 @@ enum ViewFixtures {
 
         #expect(store.state.filters.focusedChipID == "pinned")
     }
+
+    @Test func a_guarded_pasteboard_shows_its_prompt_where_the_empty_rail_would_be() throws {
+        let store = HistoryViewStateStore()
+        let spy = PanelActionSpy()
+        store.update(
+            HistoryPresenter().present(items: [], query: "", now: ViewFixtures.now, clipboardAccess: .requiresConsent))
+        let window = hostOffscreen(HistoryPanelView(store: store, actions: spy.actions), 1200, 430)
+        let hosting = try #require(window.contentView)
+        pump(hosting)
+
+        #expect(store.state.accessPrompt?.buttonTitle == "Allow Clipboard Access")
+        #expect(store.state.emptyMessage == nil)
+        #expect(hosting.frame.width == 1200)
+    }
 }
 
 /// Lets SwiftUI process the state changes a hosted view observes.
@@ -495,6 +509,10 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         _ = NSApplication.shared
 
         #expect(render(OnboardingView(toggleShortcut: "⇧⌘V", onContinue: {}), 440, 420) != nil)
+        #expect(
+            render(
+                OnboardingView(toggleShortcut: "⇧⌘V", clipboardAccess: .requiresConsent, onContinue: {}), 440, 460)
+                != nil)
     }
 
     @Test func the_settings_render_with_vim_off_then_on_with_duplicates_recording_and_exclusions() throws {

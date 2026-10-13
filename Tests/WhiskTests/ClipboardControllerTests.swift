@@ -24,6 +24,54 @@ import Testing
         #expect(spy.last.countLabel == "1 item")
     }
 
+    @Test func a_poll_tick_presents_the_access_prompt_while_the_system_would_ask_at_every_read() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .requiresConsent
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("unread"), source: nil)]
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
+        )
+
+        controller.pollTick()
+
+        #expect(spy.last.cards.isEmpty)
+        #expect(spy.last.emptyMessage == nil)
+        #expect(spy.last.accessPrompt?.buttonTitle == "Allow Clipboard Access")
+    }
+
+    @Test func access_granted_in_system_settings_clears_the_prompt_on_the_next_tick() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .denied
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
+        )
+        controller.pollTick()
+        #expect(spy.last.accessPrompt?.buttonTitle == "Open Pasteboard Settings")
+
+        pasteboard.access = .granted
+        controller.pollTick()
+
+        #expect(spy.last.accessPrompt == nil)
+        #expect(spy.last.emptyMessage == "Copy something to get started")
+    }
+
+    @Test func requesting_access_asks_the_pasteboard_once_and_re_presents() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .requiresConsent
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
+        )
+        let presentedBefore = spy.states.count
+
+        controller.requestClipboardAccess()
+
+        #expect(pasteboard.accessRequests == 1)
+        #expect(spy.states.count == presentedBefore + 1)
+    }
+
     @Test func a_poll_tick_without_a_change_presents_nothing_new() {
         let spy = StateSpy()
         let controller = ClipboardController(

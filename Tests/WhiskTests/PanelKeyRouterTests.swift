@@ -43,7 +43,8 @@ final class PanelActionSpy {
             togglePinSelected: { [weak self] in self?.calls.append("togglePinSelected") },
             deleteSelected: { [weak self] in self?.calls.append("deleteSelected") },
             stackSelected: { [weak self] in self?.calls.append("stackSelected") },
-            panelWillShow: { [weak self] in self?.calls.append("panelWillShow") }
+            panelWillShow: { [weak self] in self?.calls.append("panelWillShow") },
+            requestClipboardAccess: { [weak self] in self?.calls.append("requestClipboardAccess") }
         )
     }
 }

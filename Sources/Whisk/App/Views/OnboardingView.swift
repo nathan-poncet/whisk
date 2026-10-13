@@ -2,10 +2,13 @@ import AppKit
 import SwiftUI
 
 /// First-run walkthrough: the shortcut, where the history lives, and
-/// one habit worth picking up. The Accessibility prompt is not here: the
+/// one habit worth picking up. Where the system guards the pasteboard, a
+/// step leads to allowing Whisk; the Accessibility prompt is not here, the
 /// system asks for it the first time a card is pasted.
 struct OnboardingView: View {
     let toggleShortcut: String
+    var clipboardAccess: PasteboardAccess = .granted
+    var onAllowClipboard: () -> Void = {}
     let onContinue: () -> Void
 
     var body: some View {
@@ -34,14 +37,29 @@ struct OnboardingView: View {
                 text: localized(
                     "History lives on this Mac. Concealed content from password managers is never recorded.")
             )
-            step(
-                symbol: "pin",
-                title: localized("Pin what you always need"),
-                text: localized(
-                    "Pinned cards survive Clear and retention, and one chip shows only them.")
-            )
+            if clipboardAccess == .granted {
+                step(
+                    symbol: "pin",
+                    title: localized("Pin what you always need"),
+                    text: localized(
+                        "Pinned cards survive Clear and retention, and one chip shows only them.")
+                )
+            } else {
+                step(
+                    symbol: "hand.raised",
+                    title: localized("Let Whisk read what you copy"),
+                    text: localized(
+                        "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow, then set Whisk to Allow under Paste from Other Apps."
+                    )
+                )
+            }
 
             HStack {
+                if clipboardAccess != .granted {
+                    Button(localized("Allow Clipboard Access")) {
+                        onAllowClipboard()
+                    }
+                }
                 Spacer()
                 Button(localized("Get Started")) {
                     onContinue()

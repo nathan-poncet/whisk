@@ -59,7 +59,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     else { return }
                     self.generalSettings.excludedApps.append(ExcludedApp(bundleID: bundleID, name: name))
                 },
-                beginEditing: { stateStore.beginEditing($0) }
+                beginEditing: { stateStore.beginEditing($0) },
+                openPasteboardSettings: { [weak self] in self?.openPasteboardSettings() }
             )
         )
         let panelController = PanelController(
@@ -214,6 +215,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 action: #selector(togglePause)))
         menu.addItem(menuItem(title: localized("Clear Unpinned Items"), action: #selector(clearHistory)))
         menu.addItem(menuItem(title: localized("Undo Last Change"), action: #selector(undoLastChange)))
+        if let clipboard, clipboard.clipboardAccess != .granted {
+            menu.addItem(.separator())
+            menu.addItem(
+                menuItem(title: localized("Allow Clipboard Access…"), action: #selector(allowClipboardAccess)))
+        }
         if let version = updateChecker.availableVersion {
             menu.addItem(.separator())
             menu.addItem(
@@ -239,6 +245,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController?.show()
     }
 
+    @objc private func allowClipboardAccess() {
+        clipboard?.requestClipboardAccess()
+        openPasteboardSettings()
+    }
+
+    /// The pane where the user allows Whisk to read the pasteboard for good.
+    private func openPasteboardSettings() {
+        guard
+            let url = URL(
+                string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Pasteboard")
+        else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     @objc private func openReleasesPage() {
         if let url = UpdateChecker.releasesPage {
             NSWorkspace.shared.open(url)
@@ -247,7 +267,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showOnboarding() {
         let hosting = NSHostingController(
-            rootView: OnboardingView(toggleShortcut: keyBindings.label(for: .togglePanel)) { [weak self] in
+            rootView: OnboardingView(
+                toggleShortcut: keyBindings.label(for: .togglePanel),
+                clipboardAccess: clipboard?.clipboardAccess ?? .granted,
+                onAllowClipboard: { [weak self] in
+                    self?.clipboard?.requestClipboardAccess()
+                    self?.openPasteboardSettings()
+                }
+            ) { [weak self] in
                 UserDefaults.standard.set(true, forKey: "didShowOnboarding")
                 self?.onboardingWindow?.close()
                 self?.onboardingWindow = nil

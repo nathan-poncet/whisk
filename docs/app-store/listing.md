@@ -129,7 +129,12 @@ sign-in, no in-app purchase, no ads, no analytics.
 
 HOW TO USE IT
 After launch there is no window, only the clipboard icon in the menu bar
-(the first launch shows a short welcome window). Copy a few things first
+(the first launch shows a short welcome window). On macOS 27 and later,
+allow clipboard access first: the welcome window and the panel show an
+Allow Clipboard Access button. Click it, answer Allow in the system
+alert, then set Whisk to Allow under System Settings > Privacy & Security
+> Paste from Other Apps. Until then the app records nothing and says so;
+Whisk never triggers that alert from the background. Copy a few things first
 so the history has cards: some text in TextEdit, a link in Safari, a
 file in Finder, a color code such as #4CAF50. Press Shift-Command-V to
 open the panel, or click the menu bar icon and choose Show Panel. Type
