@@ -144,4 +144,4 @@
 "Open Pasteboard Settings" = "Ouvrir les réglages du presse-papiers";
 "Whisk is not allowed to read the clipboard." = "Whisk n’est pas autorisé à lire le presse-papiers.";
 "Whisk needs your permission to read what you copy." = "Whisk a besoin de votre autorisation pour lire ce que vous copiez.";
-"macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow, then set Whisk to Allow under Paste from Other Apps." = "macOS demande avant qu’une app lise le presse-papiers. Cliquez sur Autoriser l’accès au presse-papiers, choisissez Autoriser, puis réglez Whisk sur Autoriser dans Coller depuis d’autres apps.";
+"macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set Whisk to Allow under Paste from Other Apps." = "macOS demande avant qu’une app lise le presse-papiers. Cliquez sur Autoriser l’accès au presse-papiers, choisissez Autoriser le collage, puis réglez Whisk sur Autoriser dans Coller depuis d’autres apps.";

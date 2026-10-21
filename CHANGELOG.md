@@ -9,11 +9,12 @@ live in the commit history.
 ## [Unreleased]
 
 ### Fixed
-- On macOS 27, where the system asks before an app reads the clipboard on
-  its own, Whisk no longer reads it from the background: every such read
-  raised a system alert that froze the app. The welcome window, the panel
-  and the menu bar now lead to allowing Whisk under Privacy & Security →
-  Paste from Other Apps, and capture starts the moment it is allowed.
+- Where macOS asks before an app reads the clipboard on its own (Paste
+  from Other Apps under Privacy & Security, which recent macOS versions
+  enforce), Whisk no longer reads it from the background: such a read
+  raises a system alert that blocks the app. The welcome window, the
+  panel and the menu bar now lead to allowing Whisk there, and capture
+  starts the moment it is allowed.
 
 ## [1.0.2] - 2026-10-07
 

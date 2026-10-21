@@ -80,13 +80,13 @@
     application probably holds <kbd>⇧⌘V</kbd>. Right-click the icon, choose <em>Settings…</em>,
     then click the shortcut and type a new one. Every shortcut in Whisk can be changed there.</p>
 
-    <h3>Nothing I copy shows up (macOS 27 and later).</h3>
-    <p>macOS 27 asks before an app reads the clipboard on its own, and Whisk never triggers that
-    question from the background. Click <em>Allow Clipboard Access</em> in the welcome window or
-    in the panel, answer <em>Allow</em> in the system alert, then open System Settings → Privacy
-    &amp; Security → Paste from Other Apps and set Whisk to <em>Allow</em>. From then on every
-    copy appears in the panel. To start over, run <code>tccutil reset Pasteboard</code> in
-    Terminal.</p>
+    <h3>Nothing I copy shows up, and Whisk asks for clipboard access.</h3>
+    <p>Recent macOS versions ask before an app reads the clipboard on its own, and Whisk never
+    triggers that question from the background. Click <em>Allow Clipboard Access</em> in the
+    welcome window or in the panel, answer <em>Allow Paste</em> in the system alert, then open
+    System Settings → Privacy &amp; Security → Paste from Other Apps and set Whisk to
+    <em>Allow</em>. From then on every copy appears in the panel, with no need to relaunch. To
+    start over, run <code>tccutil reset Pasteboard</code> in Terminal.</p>
 
     <h3>Something I copied is not in the history.</h3>
     <p>Whisk skips a copy when capture is paused (menu bar menu), when the source application is

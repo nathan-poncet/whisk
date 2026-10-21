@@ -144,4 +144,4 @@
 "Open Pasteboard Settings" = "Open Pasteboard Settings";
 "Whisk is not allowed to read the clipboard." = "Whisk is not allowed to read the clipboard.";
 "Whisk needs your permission to read what you copy." = "Whisk needs your permission to read what you copy.";
-"macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow, then set Whisk to Allow under Paste from Other Apps." = "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow, then set Whisk to Allow under Paste from Other Apps.";
+"macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set Whisk to Allow under Paste from Other Apps." = "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set Whisk to Allow under Paste from Other Apps.";

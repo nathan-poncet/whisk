@@ -3,6 +3,35 @@
 Messages sent in App Store Connect in answer to review rejections, kept
 so that a later submission can reuse the arguments. Newest first.
 
+## 2026-10-21 — 1.0.2 (6), Guidelines 2.1(a) and 1.5
+
+Rejection of 2026-10-13: "all buttons in the main dashboard were
+unresponsive upon launch" on macOS 27.0 (2.1(a)), and the support page
+"does not direct to a website with information users can use to ask
+questions and request support" (1.5). Sent with the resubmission of
+1.0.3.
+
+```text
+Hello,
+
+Thank you for the review. A new build, 1.0.3, is submitted and the Support URL has been updated; here is what changed on each point.
+
+GUIDELINE 2.1(a) – UNRESPONSIVE BUTTONS AT LAUNCH
+
+We could not reproduce the problem on a Mac running macOS 27.0 (26A428), where the welcome window and the panel respond normally, but we identified the one path that blocks the app. On a Mac where macOS asks before an app reads the clipboard (Paste from Other Apps, under Privacy & Security), build 1.0.2 read the clipboard from its background poll, and that read raised the system alert synchronously on the main thread, as soon as anything was on the clipboard. The app then looked unresponsive until the alert was answered.
+
+Build 1.0.3 never reads the clipboard until macOS reports the access as allowed. Where macOS would ask, the welcome window, the panel and the menu bar show an Allow Clipboard Access button; clicking it triggers the system alert once, and the app opens the Paste from Other Apps pane so the permission can be set to Allow for good. Capture starts the moment it is allowed, and nothing else in the app changes. We verified this flow on macOS 27.0 with Apple's pasteboard privacy enforcement enabled: launch, welcome window, panel, allow, capture.
+
+If what you saw is different, we would be grateful for a screenshot or a short description of what was on screen, so that we can reproduce it.
+
+GUIDELINE 1.5 – SUPPORT URL
+
+The support page at https://nathan-poncet.github.io/whisk/support.html now gives a direct email address, nathan.poncet.pro@gmail.com, in addition to the issue tracker and the answers to the common questions. Users can ask a question or request support without creating an account.
+
+Thank you,
+Nathan Poncet
+```
+
 ## 2026-10-01 — 1.0.0 (5), Guideline 2.4.5, second rejection
 
 Rejection of 2026-09-29, after the first reply: the app "still uses

@@ -49,7 +49,7 @@ struct OnboardingView: View {
                     symbol: "hand.raised",
                     title: localized("Let Whisk read what you copy"),
                     text: localized(
-                        "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow, then set Whisk to Allow under Paste from Other Apps."
+                        "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set Whisk to Allow under Paste from Other Apps."
                     )
                 )
             }
