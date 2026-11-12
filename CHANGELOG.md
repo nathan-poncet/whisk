@@ -8,6 +8,11 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Fixed
+- The panel draws a long history faster: the cards out of sight no longer
+  cost one placeholder each, so a search result or a selection move
+  appears in about half the time with well over a thousand cards.
+
 ## [1.0.5] - 2026-11-12
 
 ### Fixed

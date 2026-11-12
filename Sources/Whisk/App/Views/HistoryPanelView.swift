@@ -15,9 +15,9 @@ struct HistoryPanelView: View {
 
     /// The render server pays ~8 ms per glass layer whenever the panel
     /// orders on or off screen, so only the cards inside the viewport plus
-    /// a delta on each side are displayed at all; the slots beyond keep
-    /// their size but render nothing, and everything is preloaded so a
-    /// card entering the delta arrives fully formed.
+    /// a delta on each side are displayed at all; the stretches beyond are
+    /// gaps holding their room, and everything is preloaded so a card
+    /// entering the delta arrives fully formed.
     @State private var railWindow = RailWindow()
     private static let mountDelta = 8
 
@@ -225,26 +225,34 @@ struct HistoryPanelView: View {
 
     @ViewBuilder private var rail: some View {
         let scrollView = ScrollView(.horizontal, showsIndicators: false) {
-            // Eager sizing on purpose: a lazy stack materializes cards at
-            // the viewport's edge, which pops them in during fast scrolls.
-            // Every slot is laid out; only the windowed ones carry glass.
+            // Eager on purpose: a lazy stack materializes cards at the
+            // viewport's edge, which pops them in during fast scrolls. The
+            // windowed cards are laid out ahead; a gap stands for the rest.
             HStack(spacing: HistoryViewStateStore.cardGap) {
-                let selectedIndex = store.state.cards.firstIndex { $0.id == store.state.selectedID }
-                ForEach(Array(store.state.cards.enumerated()), id: \.element.id) { index, card in
-                    Group {
-                        if isMounted(index, selectedIndex: selectedIndex) {
-                            ItemCardView(
-                                card: card,
-                                actions: actions,
-                                showsSelection: !cursorOnSearch,
-                                side: store.cardSide
-                            )
-                            .equatable()
-                        } else {
-                            railPlaceholder
-                        }
+                let cards = store.state.cards
+                let selectedIndex = cards.firstIndex { $0.id == store.state.selectedID }
+                let segments = RailSegment.segments(count: cards.count) {
+                    isMounted($0, selectedIndex: selectedIndex)
+                }
+                ForEach(segments, id: \.self) { segment in
+                    switch segment {
+                    case .card(let index):
+                        ItemCardView(
+                            card: cards[index],
+                            actions: actions,
+                            showsSelection: !cursorOnSearch,
+                            side: store.cardSide
+                        )
+                        .equatable()
+                        .id(cards[index].id)
+                    case .gap(_, let slots):
+                        Color.clear
+                            .frame(
+                                width: RailSegment.gapWidth(
+                                    slots: slots, slot: store.zoomedCardSide,
+                                    spacing: HistoryViewStateStore.cardGap),
+                                height: store.zoomedCardSide)
                     }
-                    .id(card.id)
                 }
             }
             .padding(.vertical, 8)
@@ -268,17 +276,12 @@ struct HistoryPanelView: View {
     private func isMounted(_ index: Int, selectedIndex: Int?) -> Bool {
         // Without scroll geometry (macOS 14) every slot mounts, as before.
         guard #available(macOS 15.0, *) else { return true }
-        if index == selectedIndex { return true }
+        // The first card stays mounted for the rewind on close to have
+        // somewhere to scroll to.
+        if index == selectedIndex || index == 0 { return true }
         let lower = max(0, railWindow.leading - Self.mountDelta)
         let upper = railWindow.leading + railWindow.capacity + Self.mountDelta
         return (lower...upper).contains(index)
-    }
-
-    // Off-window slots display nothing at all — they only hold the scroll
-    // extent steady.
-    private var railPlaceholder: some View {
-        Color.clear
-            .frame(width: store.zoomedCardSide, height: store.zoomedCardSide)
     }
 
     private func emptyState(_ message: String) -> some View {
