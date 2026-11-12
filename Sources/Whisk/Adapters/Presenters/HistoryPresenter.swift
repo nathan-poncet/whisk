@@ -194,7 +194,7 @@ final class HistoryPresenter {
                 return true
             }(),
             sourceKey: item.source?.filterKey,
-            matches: Self.matchSpans(of: words, in: item),
+            matches: Self.matchSpans(of: words, in: derived.preview),
             preview: derived.preview,
             expandedText: derived.expandedText,
             expandedNotice: derived.expandedNotice
@@ -209,20 +209,25 @@ final class HistoryPresenter {
     /// the layout engine would need seconds for.
     private static let expandedTextLimit = 100_000
 
-    private static func matchSpans(of words: [String], in item: ClipboardItem) -> [MatchSpan] {
-        guard !words.isEmpty, case .text(let value) = item.payload else { return [] }
-        let scanned = String(value.prefix(cardTextLimit))
+    private static func matchSpans(of words: [String], in preview: CardPreview) -> [MatchSpan] {
+        guard !words.isEmpty else { return [] }
+        let scanned: String
+        switch preview {
+        case .text(let shown), .code(let shown, _): scanned = shown
+        case .color, .link, .image, .files: return []
+        }
         var hits: Set<Int> = []
         for word in words {
             if let positions = FuzzyMatch.match(pattern: word, in: scanned)?.positions {
                 hits.formUnion(positions)
             }
         }
-        guard !hits.isEmpty else { return [] }
-        // Character offsets to UTF-16 ones: one running offset per character.
+        guard let lastHit = hits.max() else { return [] }
+        // Character offsets to UTF-16 ones: one running offset per
+        // character, no further than the last one a word landed on.
         var utf16Offsets = [0]
-        utf16Offsets.reserveCapacity(scanned.count + 1)
-        for character in scanned {
+        utf16Offsets.reserveCapacity(lastHit + 2)
+        for character in scanned.prefix(lastHit + 1) {
             utf16Offsets.append(utf16Offsets[utf16Offsets.count - 1] + character.utf16.count)
         }
         var spans: [MatchSpan] = []

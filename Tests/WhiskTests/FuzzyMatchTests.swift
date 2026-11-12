@@ -44,6 +44,46 @@ import Testing
         #expect(FuzzyMatch.match(pattern: "z", in: "anything") == nil)
     }
 
+    @Test func a_two_byte_line_break_counts_as_one_character() {
+        #expect(FuzzyMatch.match(pattern: "b", in: "a\r\nb")?.positions == [2])
+        #expect(FuzzyMatch.match(pattern: "ab", in: "a\r\nb")?.positions == [0, 2])
+    }
+
+    @Test func an_accent_makes_another_character_even_right_after_the_last_hit() {
+        #expect(FuzzyMatch.match(pattern: "e", in: "cafe\u{301}") == nil)
+        #expect(FuzzyMatch.match(pattern: "e", in: "e\u{301} e")?.positions == [2])
+        #expect(FuzzyMatch.match(pattern: "é", in: "café")?.positions == [3])
+        #expect(FuzzyMatch.match(pattern: "é", in: "cafe") == nil)
+        #expect(FuzzyMatch.match(pattern: "caf", in: "CAFÉ au lait")?.positions == [0, 1, 2])
+    }
+
+    @Test func plain_and_accented_candidates_score_alike() {
+        let candidates = ["foo bar", "fooBar", "a....ab", "Hello_World", "x1 y2", "path/to/File.swift", "AB ab"]
+        let patterns = ["fb", "ab", "hw", "HW", "y2", "ow", "ptf", "File", "B"]
+        for candidate in candidates {
+            for pattern in patterns {
+                let plain = FuzzyMatch.match(pattern: pattern, in: candidate)
+                let accented = FuzzyMatch.match(pattern: pattern, in: candidate + " é")
+                #expect(plain == accented, "\(pattern) in \(candidate)")
+            }
+        }
+    }
+
+    @Test func signs_that_equal_a_plain_character_match_as_that_character() {
+        #expect(FuzzyMatch.match(pattern: "k", in: "é 300 \u{212A}")?.positions == [6])
+        #expect(FuzzyMatch.match(pattern: "K", in: "é 300 \u{212A}")?.positions == [6])
+        #expect(FuzzyMatch.match(pattern: ";", in: "é\u{37E}")?.positions == [1])
+        #expect(FuzzyMatch.match(pattern: "`", in: "é\u{1FEF}")?.positions == [1])
+    }
+
+    @Test func accented_text_matches_on_its_plain_and_accented_characters_alike() {
+        #expect(FuzzyMatch.match(pattern: "xyz", in: "café au lait") == nil)
+        #expect(FuzzyMatch.match(pattern: "lait", in: "Café au LAIT")?.positions == [8, 9, 10, 11])
+        #expect(FuzzyMatch.match(pattern: "ét", in: "L'été")?.positions == [2, 3])
+        #expect(FuzzyMatch.match(pattern: "éa", in: "L'été") == nil)
+        #expect(FuzzyMatch.match(pattern: "Lait", in: "café au lait") == nil)
+    }
+
     @Test func the_tightest_window_is_scored_not_the_earliest_start() throws {
         let tight = try #require(FuzzyMatch.score(pattern: "ab", in: "ab"))
         let late = try #require(FuzzyMatch.score(pattern: "ab", in: "a....ab"))

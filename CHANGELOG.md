@@ -13,6 +13,8 @@ live in the commit history.
   no longer freezes Whisk, at launch included: a card shows the beginning
   of a long text, and the large preview stops at 100,000 characters and
   says so. What is pasted, dragged or saved is still the whole text.
+- Searching a long history keeps up with the typing: each keystroke took
+  two to four times longer than it does now.
 
 ## [1.0.4] - 2026-11-12
 
