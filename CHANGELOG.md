@@ -8,6 +8,11 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Fixed
+- Moving through a long history no longer lags: with well over a thousand
+  cards, each arrow key or pointer move re-read every text in the history
+  before the panel could follow.
+
 ## [1.0.3] - 2026-10-21
 
 ### Fixed

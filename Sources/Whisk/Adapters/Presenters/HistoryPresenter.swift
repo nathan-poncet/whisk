@@ -72,28 +72,36 @@ struct FilterContext: Equatable {
 
 /// Maps kernel entities to display-ready view state. Pure in behaviour —
 /// time comes in as a value, never read from the system — with memoization
-/// underneath: previews (regex tokenization, color parsing) and minute-
-/// grained time labels are cached per immutable item, so a selection move
-/// re-renders in microseconds instead of re-running regexes on 60 cards.
+/// underneath: everything a card owes to its item alone (the preview's
+/// regex tokenization and color parsing, the spoken summary, the character
+/// count) and minute-grained time labels are cached per immutable item, so
+/// a selection move costs the same whether the history holds sixty cards
+/// or several thousand long texts.
 /// Past the limit a cache keeps only the items being presented, so what
 /// is on screen never has to be recomputed and what was deleted is let go.
 final class HistoryPresenter {
-    /// A memoized preview and the text it was drawn from: editing keeps a
-    /// card's identity and changes its text, so identity alone cannot
-    /// vouch for the cache.
-    private struct CachedPreview {
+    /// What a card derives from its item alone, and the text it was drawn
+    /// from: editing keeps a card's identity and changes its text, so
+    /// identity alone cannot vouch for the cache.
+    private struct DerivedCard {
         let text: String?
         let preview: CardPreview
+        let accessibilityLabel: String
+        let detailLabel: String?
+        let dragPayload: DragPayload
     }
 
-    private var previewCache: [UUID: CachedPreview] = [:]
+    private var previewCache: [UUID: DerivedCard] = [:]
+    private(set) var derivedCardCount = 0
     private var timeCache: [UUID: (bucket: Int, label: String)] = [:]
     private var presentedIDs: Set<UUID> = []
     private let cacheLimit = 2048
 
     init() {}
 
-    /// How many previews are held back, for the tests that watch the purge.
+    /// How many previews are held back, for the tests that watch the purge;
+    /// `derivedCardCount` is how many were ever derived, for the tests that
+    /// watch a re-presentation reuse them.
     var cachedPreviewCount: Int {
         previewCache.count
     }
@@ -164,20 +172,20 @@ final class HistoryPresenter {
         let kind = Self.kindLabel(item.category)
         let source = item.source?.name ?? item.source?.bundleID ?? kind.capitalized
         let time = timeLabel(for: item, now: now)
-        let cardPreview = preview(for: item)
+        let derived = derivedCard(for: item, source: source, kind: kind)
         return CardViewState(
             id: item.id,
             sourceLabel: source,
             sourceBundleID: item.source?.bundleID,
             kindLabel: kind,
             timeLabel: time,
-            detailLabel: Self.detailLabel(for: item),
+            detailLabel: derived.detailLabel,
             isPinned: item.isPinned,
             isSelected: isSelected,
             stackPosition: stackPosition,
-            accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
+            accessibilityLabel: derived.accessibilityLabel,
             accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
-            dragPayload: Self.dragPayload(of: item),
+            dragPayload: derived.dragPayload,
             transformable: item.payload.transformableText != nil,
             saveable: {
                 if case .fileReferences = item.payload { return false }
@@ -185,7 +193,7 @@ final class HistoryPresenter {
             }(),
             sourceKey: item.source?.filterKey,
             matches: Self.matchSpans(of: words, in: item),
-            preview: cardPreview
+            preview: derived.preview
         )
     }
 
@@ -315,16 +323,24 @@ final class HistoryPresenter {
         }
     }
 
-    private func preview(for item: ClipboardItem) -> CardPreview {
+    private func derivedCard(for item: ClipboardItem, source: String, kind: String) -> DerivedCard {
         if let cached = previewCache[item.id], cached.text == item.payload.transformableText {
-            return cached.preview
+            return cached
         }
         let preview = computePreview(for: item)
+        let derived = DerivedCard(
+            text: item.payload.transformableText,
+            preview: preview,
+            accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: preview),
+            detailLabel: Self.detailLabel(for: item),
+            dragPayload: Self.dragPayload(of: item)
+        )
+        derivedCardCount += 1
         if previewCache.count >= cacheLimit {
             previewCache = previewCache.filter { presentedIDs.contains($0.key) }
         }
-        previewCache[item.id] = CachedPreview(text: item.payload.transformableText, preview: preview)
-        return preview
+        previewCache[item.id] = derived
+        return derived
     }
 
     private func computePreview(for item: ClipboardItem) -> CardPreview {

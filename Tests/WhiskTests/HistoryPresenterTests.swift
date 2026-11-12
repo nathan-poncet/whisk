@@ -250,6 +250,21 @@ import Testing
         #expect(presenter.cachedPreviewCount == 10)
     }
 
+    @Test func a_selection_move_re_presents_without_deriving_the_cards_again() {
+        let items = (0..<50).map { anItem(.text("entry \($0) with a few words"), at: now) }
+
+        let first = presenter.present(items: items, query: "", now: now, selectedID: items[0].id)
+        let derivedOnce = presenter.derivedCardCount
+        let second = presenter.present(items: items, query: "", now: now, selectedID: items[1].id)
+
+        #expect(derivedOnce == 50)
+        #expect(presenter.derivedCardCount == 50)
+        #expect(second.cards[1].isSelected)
+        #expect(!second.cards[0].isSelected)
+        #expect(second.cards.map(\.accessibilityLabel) == first.cards.map(\.accessibilityLabel))
+        #expect(second.cards.map(\.detailLabel) == first.cards.map(\.detailLabel))
+    }
+
     @Test func a_chip_bar_knows_when_it_has_nothing_to_show() throws {
         let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
         let row = ChipEntry.row(hasPinned: false, sources: [slack], categories: [])
