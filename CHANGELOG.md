@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-11-12
+
 ### Fixed
 - Copying an enormous text (a whole page's source, a multi-megabyte log)
   no longer freezes Whisk, at launch included: a card shows the beginning
@@ -431,7 +433,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/nathan-poncet/whisk/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/nathan-poncet/whisk/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/nathan-poncet/whisk/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/nathan-poncet/whisk/compare/v1.0.1...v1.0.2
