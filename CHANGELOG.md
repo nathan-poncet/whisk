@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-11-12
+
 ### Fixed
 - The panel draws a long history faster: the cards out of sight no longer
   cost one placeholder each, so a search result or a selection move
@@ -438,7 +440,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/nathan-poncet/whisk/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/nathan-poncet/whisk/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/nathan-poncet/whisk/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/nathan-poncet/whisk/compare/v1.0.2...v1.0.3
