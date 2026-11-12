@@ -265,6 +265,41 @@ import Testing
         #expect(second.cards.map(\.detailLabel) == first.cards.map(\.detailLabel))
     }
 
+    @Test func a_card_previews_only_the_beginning_of_a_very_long_text() {
+        let long = String(repeating: "word ", count: 2_000)
+
+        let card = presenter.present(items: [anItem(.text(long))], query: "", now: now).cards[0]
+
+        guard case .text(let shown) = card.preview else {
+            Issue.record("expected a text preview")
+            return
+        }
+        #expect(shown.count == 4_000)
+        #expect(long.hasPrefix(shown))
+        #expect(card.dragPayload == .text(long))
+        #expect(card.expandedText == long)
+        #expect(card.expandedNotice == nil)
+    }
+
+    @Test func the_large_preview_of_an_enormous_text_is_cut_short_and_says_so() {
+        let enormous = String(repeating: "0123456789", count: 15_000)
+
+        let card = presenter.present(items: [anItem(.text(enormous))], query: "", now: now).cards[0]
+
+        #expect(card.expandedText?.count == 100_000)
+        #expect(card.expandedNotice == "Only the beginning of this long text is shown.")
+        #expect(card.dragPayload == .text(enormous))
+    }
+
+    @Test func a_card_without_text_has_nothing_to_expand() throws {
+        let link = try #require(URL(string: "https://example.com"))
+
+        let card = presenter.present(items: [anItem(.link(link))], query: "", now: now).cards[0]
+
+        #expect(card.expandedText == nil)
+        #expect(card.expandedNotice == nil)
+    }
+
     @Test func a_chip_bar_knows_when_it_has_nothing_to_show() throws {
         let slack = try #require(SourceApp(name: "Slack", bundleID: "com.slack"))
         let row = ChipEntry.row(hasPinned: false, sources: [slack], categories: [])

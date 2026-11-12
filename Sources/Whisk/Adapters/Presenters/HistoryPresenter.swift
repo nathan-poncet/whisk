@@ -89,6 +89,8 @@ final class HistoryPresenter {
         let accessibilityLabel: String
         let detailLabel: String?
         let dragPayload: DragPayload
+        let expandedText: String?
+        let expandedNotice: String?
     }
 
     private var previewCache: [UUID: DerivedCard] = [:]
@@ -193,17 +195,23 @@ final class HistoryPresenter {
             }(),
             sourceKey: item.source?.filterKey,
             matches: Self.matchSpans(of: words, in: item),
-            preview: derived.preview
+            preview: derived.preview,
+            expandedText: derived.expandedText,
+            expandedNotice: derived.expandedNotice
         )
     }
 
-    /// Matching runs on the visible cards only and never on more than the
-    /// preview can show; the cost is the filter's own, once more, per word.
-    private static let matchScanLimit = 4000
+    /// A card shows a dozen lines: laying out a whole copied file for it
+    /// would stall the panel, megabytes of it for good. Matching runs on
+    /// the same stretch, never on more than the preview can show.
+    private static let cardTextLimit = 4000
+    /// The large preview scrolls, so it takes far more — but not a text
+    /// the layout engine would need seconds for.
+    private static let expandedTextLimit = 100_000
 
     private static func matchSpans(of words: [String], in item: ClipboardItem) -> [MatchSpan] {
         guard !words.isEmpty, case .text(let value) = item.payload else { return [] }
-        let scanned = String(value.prefix(matchScanLimit))
+        let scanned = String(value.prefix(cardTextLimit))
         var hits: Set<Int> = []
         for word in words {
             if let positions = FuzzyMatch.match(pattern: word, in: scanned)?.positions {
@@ -328,12 +336,15 @@ final class HistoryPresenter {
             return cached
         }
         let preview = computePreview(for: item)
+        let expanded = Self.expandedText(of: item)
         let derived = DerivedCard(
             text: item.payload.transformableText,
             preview: preview,
             accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: preview),
             detailLabel: Self.detailLabel(for: item),
-            dragPayload: Self.dragPayload(of: item)
+            dragPayload: Self.dragPayload(of: item),
+            expandedText: expanded?.text,
+            expandedNotice: expanded?.notice
         )
         derivedCardCount += 1
         if previewCache.count >= cacheLimit {
@@ -350,9 +361,10 @@ final class HistoryPresenter {
             case .color:
                 return colorSwatch(for: item.payload) ?? .text(value)
             case .code:
-                return .code(text: value, tokens: CodeHighlighter.tokens(in: value))
+                let shown = Self.beginning(of: value, limit: Self.cardTextLimit)
+                return .code(text: shown, tokens: CodeHighlighter.tokens(in: shown))
             default:
-                return .text(value)
+                return .text(Self.beginning(of: value, limit: Self.cardTextLimit))
             }
         case .link(let url):
             return .link(url.absoluteString)
@@ -366,6 +378,22 @@ final class HistoryPresenter {
                 thumbnailPath: paths.first
             )
         }
+    }
+
+    /// The text itself while it fits — no copy — and its first characters
+    /// beyond.
+    private static func beginning(of text: String, limit: Int) -> String {
+        guard let cut = text.index(text.startIndex, offsetBy: limit, limitedBy: text.endIndex), cut < text.endIndex
+        else { return text }
+        return String(text[..<cut])
+    }
+
+    private static func expandedText(of item: ClipboardItem) -> (text: String, notice: String?)? {
+        guard case .text(let value) = item.payload, item.category == .text || item.category == .code
+        else { return nil }
+        let shown = beginning(of: value, limit: expandedTextLimit)
+        let isCut = shown.utf8.count < value.utf8.count
+        return (shown, isCut ? localized("Only the beginning of this long text is shown.") : nil)
     }
 
     private func colorSwatch(for payload: Payload) -> CardPreview? {

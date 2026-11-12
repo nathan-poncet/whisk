@@ -149,7 +149,12 @@ struct CardViewState: Equatable, Identifiable {
     /// Where the query's words landed in a textual preview, for the view
     /// to underline; empty without a live query.
     let matches: [MatchSpan]
+    /// What the card itself shows: of a long text, only the beginning.
     let preview: CardPreview
+    /// The text the large preview shows, for a textual card; an enormous
+    /// one is cut short, and `expandedNotice` then says so.
+    let expandedText: String?
+    let expandedNotice: String?
 
     init(
         id: UUID,
@@ -168,7 +173,9 @@ struct CardViewState: Equatable, Identifiable {
         saveable: Bool = false,
         sourceKey: String? = nil,
         matches: [MatchSpan] = [],
-        preview: CardPreview
+        preview: CardPreview,
+        expandedText: String? = nil,
+        expandedNotice: String? = nil
     ) {
         self.id = id
         self.sourceLabel = sourceLabel
@@ -187,6 +194,8 @@ struct CardViewState: Equatable, Identifiable {
         self.sourceKey = sourceKey
         self.matches = matches
         self.preview = preview
+        self.expandedText = expandedText
+        self.expandedNotice = expandedNotice
     }
 }
 

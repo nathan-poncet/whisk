@@ -8,6 +8,12 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Fixed
+- Copying an enormous text (a whole page's source, a multi-megabyte log)
+  no longer freezes Whisk, at launch included: a card shows the beginning
+  of a long text, and the large preview stops at 100,000 characters and
+  says so. What is pasted, dragged or saved is still the whole text.
+
 ## [1.0.4] - 2026-11-12
 
 ### Fixed

@@ -41,19 +41,33 @@ struct PreviewOverlayView: View {
         .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous), cornerRadius: 24)
     }
 
+    @ViewBuilder private func expandedNotice(for card: CardViewState) -> some View {
+        if let notice = card.expandedNotice {
+            Text(notice)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     @ViewBuilder private func content(for card: CardViewState) -> some View {
         switch card.preview {
         case .text(let value):
-            ScrollView {
-                Text(value)
-                    .font(.body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            VStack(alignment: .leading, spacing: 8) {
+                ScrollView {
+                    Text(card.expandedText ?? value)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+                expandedNotice(for: card)
             }
         case .code(let text, let tokens):
-            ScrollView([.vertical, .horizontal]) {
-                CodeTextView(text: text, tokens: tokens, lineLimit: nil)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            VStack(alignment: .leading, spacing: 8) {
+                ScrollView([.vertical, .horizontal]) {
+                    CodeTextView(text: card.expandedText ?? text, tokens: tokens, lineLimit: nil)
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+                expandedNotice(for: card)
             }
         case .color(let code, let rgb):
             VStack(spacing: 12) {
