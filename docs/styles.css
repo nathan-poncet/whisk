@@ -324,6 +324,7 @@ h2 { font-size: clamp(30px, 4vw, 47px); font-weight: 500; line-height: 1.15; let
 footer { margin-top: 48px; padding: 28px 0 35px; font-size: 10px; color: #7e8e82; }
 footer .support-link { color: var(--muted); font-size: 12px; }
 .support-link span { color: var(--accent); margin-left: 8px; }
+footer .listed-on { margin: 22px 0 0; line-height: 0; }
 @media (max-width: 960px) {
   main { padding: 0 28px; }
   .trust-strip { gap: 25px; font-size: 10px; }
