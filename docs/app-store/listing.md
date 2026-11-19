@@ -149,14 +149,14 @@ over: tccutil reset Pasteboard com.nathanponcet.whisk
 THE PANEL
 The first launch also shows a short welcome window (Get Started). Copy a
 few things so the history has cards: some text in TextEdit, a link in
-Safari, a file in Finder, a color code such as #4CAF50. Press Shift-
-Command-V to open the panel, or click the menu bar icon and choose Show
-Panel. Type to search (operators: type:link, app:safari), click a chip
-to filter by app or by kind, arrow keys move, Return pastes the selected
-card, Command-Y opens a large preview, Command-P pins, Shift-Return
-queues cards in the paste stack and Option-Command-V pops the next one
-wherever you are typing. Settings are in the menu bar menu. No sample
-files or credentials are needed.
+Safari, a file in Finder, a color code such as #4CAF50. Press
+Shift-Command-V to open the panel, or click the menu bar icon and choose
+Show Panel. Type to search (operators: type:link, app:safari), click a
+chip to filter by app or by kind, arrow keys move, Return pastes the
+selected card, Command-Y opens a large preview, Command-P pins,
+Shift-Return queues cards in the paste stack and Option-Command-V pops
+the next one wherever you are typing. Settings are in the menu bar menu.
+No sample files or credentials are needed.
 
 Pasting straight into the previous application needs Accessibility
 access (System Settings > Privacy & Security > Accessibility): macOS
