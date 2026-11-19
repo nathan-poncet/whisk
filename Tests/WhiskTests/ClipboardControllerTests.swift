@@ -72,6 +72,103 @@ import Testing
         #expect(spy.states.count == presentedBefore + 1)
     }
 
+    @Test func a_request_made_on_an_empty_pasteboard_is_made_again_at_the_first_copy() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .requiresConsent
+        pasteboard.holdsForeignContent = false
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: { _ in }
+        )
+
+        controller.requestClipboardAccess()
+        controller.pollTick()
+        #expect(pasteboard.questionsAsked == 0)
+
+        pasteboard.holdsForeignContent = true
+        controller.pollTick()
+        controller.pollTick()
+
+        #expect(pasteboard.questionsAsked == 1)
+    }
+
+    @Test func a_request_the_system_acted_on_is_not_made_again() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .requiresConsent
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: { _ in }
+        )
+
+        controller.requestClipboardAccess()
+        controller.pollTick()
+        controller.pollTick()
+
+        #expect(pasteboard.accessRequests == 1)
+    }
+
+    @Test func the_poll_ticking_under_the_systems_question_does_not_ask_it_again() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .requiresConsent
+        pasteboard.holdsForeignContent = false
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: { _ in }
+        )
+        controller.requestClipboardAccess()
+        pasteboard.holdsForeignContent = true
+        pasteboard.whileAsking = { controller.pollTick() }
+
+        controller.pollTick()
+
+        #expect(pasteboard.questionsAsked == 1)
+    }
+
+    @Test func declining_for_now_drops_the_request_still_waiting_for_a_copy() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .requiresConsent
+        pasteboard.holdsForeignContent = false
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: { _ in }
+        )
+        controller.requestClipboardAccess()
+
+        controller.cancelClipboardAccessRequest()
+        pasteboard.holdsForeignContent = true
+        controller.pollTick()
+
+        #expect(pasteboard.questionsAsked == 0)
+    }
+
+    @Test func access_allowed_before_the_first_copy_leaves_nothing_to_ask() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .requiresConsent
+        pasteboard.holdsForeignContent = false
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
+        )
+        controller.requestClipboardAccess()
+
+        pasteboard.access = .granted
+        pasteboard.holdsForeignContent = true
+        pasteboard.pendingSnapshots = [PasteboardSnapshot(payload: .text("first copy"), source: nil)]
+        controller.pollTick()
+
+        #expect(pasteboard.questionsAsked == 0)
+        #expect(spy.last.cards.first?.preview == .text("first copy"))
+    }
+
+    @Test func a_pasteboard_the_user_closed_to_whisk_is_not_asked_about() {
+        let pasteboard = ScriptedPasteboard()
+        pasteboard.access = .denied
+        let controller = ClipboardController(
+            pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: { _ in }
+        )
+
+        controller.requestClipboardAccess()
+        controller.pollTick()
+
+        #expect(pasteboard.accessRequests == 0)
+    }
+
     @Test func a_poll_tick_without_a_change_presents_nothing_new() {
         let spy = StateSpy()
         let controller = ClipboardController(

@@ -57,6 +57,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// The access state the panel last saw; a change re-presents on its own,
     /// since granting access in System Settings mutates nothing else.
     private var presentedAccess: PasteboardAccess = .granted
+    /// A request made while the pasteboard held nothing the system could
+    /// ask about; it is made again at the first copy.
+    private var accessRequestPending = false
     private var pasteStack: [UUID] = []
     private var selectedID: UUID?
     private var focusZone: PanelZone = .cards
@@ -129,6 +132,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func pollTick() {
+        if accessRequestPending {
+            askSystemForAccess()
+        }
         if pasteboard.access != presentedAccess {
             presentedAccess = pasteboard.access
             refresh()
@@ -149,12 +155,27 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         pasteboard.access
     }
 
-    /// Triggers the system's one-time question about pasteboard access,
-    /// after which the user can allow Whisk for good in System Settings.
+    /// Triggers the system's question about pasteboard access, after
+    /// which the user can allow Whisk for good in System Settings. With
+    /// nothing copied yet the system has nothing to ask about: the
+    /// question then comes with the first copy.
     func requestClipboardAccess() {
-        pasteboard.requestAccess()
+        askSystemForAccess()
         presentedAccess = pasteboard.access
         refresh()
+    }
+
+    /// Withdraws a request still waiting for the first copy.
+    func cancelClipboardAccessRequest() {
+        accessRequestPending = false
+    }
+
+    private func askSystemForAccess() {
+        // Settled before the read: the system's question is modal and the
+        // poll keeps ticking under it.
+        accessRequestPending = false
+        guard pasteboard.access == .requiresConsent else { return }
+        accessRequestPending = !pasteboard.requestAccess()
     }
 
     /// Suspends or resumes capture; everything else keeps working.

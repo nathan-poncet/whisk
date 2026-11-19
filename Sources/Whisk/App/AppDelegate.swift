@@ -29,7 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let store = openStore()
         let stateStore = HistoryViewStateStore()
         let clipboard = ClipboardController(
-            pasteboard: AppKitPasteboard(),
+            pasteboard: AppKitPasteboard(beforeAsking: { NSApp.activate(ignoringOtherApps: true) }),
             store: store,
             clock: SystemClock(),
             retention: generalSettings.policy,

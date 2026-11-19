@@ -35,6 +35,44 @@ import Testing
         #expect(AppKitPasteboard.access(for: .ask) == .requiresConsent)
     }
 
+    /// Stands for another application's copy: the data is handed over
+    /// only when a reader asks for it.
+    private final class LazyCopy: NSObject, NSPasteboardItemDataProvider {
+        var onRead: () -> Void = {}
+
+        func pasteboard(
+            _ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: NSPasteboard.PasteboardType
+        ) {
+            onRead()
+            item.setData(Data([0x89, 0x50, 0x4E, 0x47]), forType: type)
+        }
+    }
+
+    @Test func a_request_on_an_empty_pasteboard_finds_nothing_to_ask_about() {
+        let sandbox = PrivateBoard()
+        sandbox.board.clearContents()
+        var cameForward = 0
+        let gateway = AppKitPasteboard(board: sandbox.board, beforeAsking: { cameForward += 1 })
+
+        #expect(gateway.requestAccess() == false)
+        #expect(cameForward == 0)
+    }
+
+    @Test func a_request_reads_what_the_pasteboard_holds_text_or_not_once_the_app_came_forward() {
+        let sandbox = PrivateBoard()
+        var events: [String] = []
+        let copy = LazyCopy()
+        copy.onRead = { events.append("read") }
+        let item = NSPasteboardItem()
+        item.setDataProvider(copy, forTypes: [.png])
+        sandbox.board.clearContents()
+        sandbox.board.writeObjects([item])
+        let gateway = AppKitPasteboard(board: sandbox.board, beforeAsking: { events.append("forward") })
+
+        #expect(gateway.requestAccess())
+        #expect(events == ["forward", "read"])
+    }
+
     @Test func an_unchanged_pasteboard_yields_nothing() {
         let sandbox = PrivateBoard()
         let gateway = AppKitPasteboard(board: sandbox.board)

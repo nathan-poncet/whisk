@@ -89,7 +89,14 @@ final class ScriptedPasteboard: Pasteboard {
     var access: PasteboardAccess = .granted
     private(set) var written: [Payload] = []
     private(set) var writtenRTF: [Data?] = []
+    /// Whether the pasteboard holds something another application copied:
+    /// the system asks about nothing else.
+    var holdsForeignContent = true
     private(set) var accessRequests = 0
+    private(set) var questionsAsked = 0
+    /// Runs once while the system's question is on screen, where the poll
+    /// keeps ticking.
+    var whileAsking: () -> Void = {}
 
     init() {}
 
@@ -98,8 +105,14 @@ final class ScriptedPasteboard: Pasteboard {
         return pendingSnapshots.isEmpty ? nil : pendingSnapshots.removeFirst()
     }
 
-    func requestAccess() {
+    func requestAccess() -> Bool {
         accessRequests += 1
+        guard holdsForeignContent else { return false }
+        questionsAsked += 1
+        let underTheQuestion = whileAsking
+        whileAsking = {}
+        underTheQuestion()
+        return true
     }
 
     func write(_ payload: Payload, rtf: Data?) {

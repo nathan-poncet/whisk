@@ -34,6 +34,8 @@ protocol Pasteboard {
     func readIfChanged() -> PasteboardSnapshot?
     func write(_ payload: Payload, rtf: Data?)
     /// The one deliberate read that makes the system ask the user, after
-    /// which the app is listed in the pasteboard settings.
-    func requestAccess()
+    /// which the app is listed in the pasteboard settings. The system asks
+    /// only about what another application copied: false when the
+    /// pasteboard held nothing to ask about.
+    func requestAccess() -> Bool
 }

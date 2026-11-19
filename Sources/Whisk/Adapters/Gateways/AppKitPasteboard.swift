@@ -12,9 +12,14 @@ final class AppKitPasteboard: Whisk.Pasteboard {
 
     private let board: NSPasteboard
     private var lastChangeCount: Int
+    private let beforeAsking: () -> Void
 
-    init(board: NSPasteboard = .general) {
+    /// `beforeAsking` runs right before a read that makes the system ask
+    /// the user: the question belongs to the application and is only seen
+    /// once it is in front.
+    init(board: NSPasteboard = .general, beforeAsking: @escaping () -> Void = {}) {
         self.board = board
+        self.beforeAsking = beforeAsking
         lastChangeCount = board.changeCount
     }
 
@@ -39,9 +44,14 @@ final class AppKitPasteboard: Whisk.Pasteboard {
 
     /// One read on purpose. Where the system asks before a read, this is
     /// the read that makes it ask, and the app is listed in System
-    /// Settings from then on; elsewhere it is a no-op.
-    func requestAccess() {
-        _ = board.string(forType: .string)
+    /// Settings from then on. The system stays silent when the read finds
+    /// no data — an empty pasteboard, or a kind the pasteboard does not
+    /// hold — so the read goes for a kind that is there.
+    func requestAccess() -> Bool {
+        guard let type = board.types?.first else { return false }
+        beforeAsking()
+        _ = board.data(forType: type)
+        return true
     }
 
     /// A read the system would answer with an alert would stop the app

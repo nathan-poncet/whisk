@@ -8,6 +8,13 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Fixed
+- Where macOS asks before an app reads the clipboard, asking for access
+  now works whatever the clipboard holds: macOS stayed silent, and Whisk
+  was missing from Paste from Other Apps, when nothing had been copied yet
+  or when the clipboard held an image. With nothing copied yet, macOS asks
+  at the first copy.
+
 ## [1.0.6] - 2026-11-12
 
 ### Fixed
