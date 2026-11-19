@@ -70,9 +70,10 @@ them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
   highlighted (keywords, strings, comments, numbers), language-agnostic.
 - **Clipboard access under pasteboard privacy** — where macOS asks before
   an app reads the clipboard on its own (Privacy & Security → Paste from
-  Other Apps, which recent macOS versions enforce), Whisk asks once, from
-  the welcome window or the panel, and you allow it for good there. Until
-  then nothing is recorded, and the panel says so.
+  Other Apps, which recent macOS versions enforce), Whisk opens a Clipboard
+  Access window at every launch until it is allowed: macOS asks its
+  question, you set Whisk to Allow in System Settings, and the window
+  confirms. Until then nothing is recorded, and the panel says so.
 - **Privacy** — history stays on disk in
   `~/Library/Application Support/Whisk` (SQLite); password managers marking
   their content as concealed (`org.nspasteboard.ConcealedType`) are never

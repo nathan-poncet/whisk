@@ -3,6 +3,45 @@
 Messages sent in App Store Connect in answer to review rejections, kept
 so that a later submission can reuse the arguments. Newest first.
 
+## 2026-11-19 — 1.0.3 (7), Guideline 2.1(a)
+
+Rejection of 2026-10-29: "We were unable to use the core feature because
+there was no request to read the clipboard got activated upon launch"
+(MacBook Air 15-inch M3, macOS 27.0). To send with the resubmission of
+1.0.7.
+
+```text
+Hello,
+
+Thank you for the review, and for saying exactly what was missing. You were right: build 1.0.3 did not ask for the clipboard at launch. A new build, 1.0.7, is submitted; here is what was wrong and what changed.
+
+WHAT WAS WRONG
+
+In 1.0.3 the request sat behind an Allow Clipboard Access button, in the welcome window that only the very first launch shows and in the panel. On a Mac that had already run Whisk, nothing appeared at launch.
+
+We also found that the button could do nothing at all. macOS shows its alert only when the app reads something another app has copied; on a Mac whose clipboard is still empty, a Mac that was just started for instance, no alert appeared and Whisk was never listed under Paste from Other Apps.
+
+WHAT CHANGED IN 1.0.7
+
+- At every launch, until access is allowed, Whisk opens a Clipboard Access window that explains the permission and its two steps.
+- The macOS alert ("Whisk" is trying to access the pasteboard) appears over that window at launch. When nothing has been copied on the Mac yet, macOS has nothing to ask about: the alert then appears at the first copy, and the window says so ("Nothing asked yet? Copy any text.").
+- The window's Open System Settings button leads to Privacy & Security > Paste from Other Apps. Once Whisk is set to Allow there, the window confirms ("Whisk can read the clipboard") and capture starts, with no relaunch. If System Settings offers Quit & Reopen, Whisk shows the same confirmation when it reopens.
+
+HOW TO SEE IT
+
+1. Launch Whisk: the Clipboard Access window opens. If the macOS alert is not there yet, copy any text in another app.
+2. Choose Allow Paste in the alert.
+3. Click Open System Settings and set Whisk to Allow under Paste from Other Apps.
+4. The Whisk window confirms. Copy a few things, then press Shift-Command-V: they are in the panel.
+
+To start again from a clean state: tccutil reset Pasteboard com.nathanponcet.whisk
+
+We ran this flow on a Mac that enforces pasteboard privacy, from the never-asked state, with an empty clipboard and with a full one, on a first launch and on later ones.
+
+Thank you,
+Nathan Poncet
+```
+
 ## 2026-10-21 — 1.0.2 (6), Guidelines 2.1(a) and 1.5
 
 Rejection of 2026-10-13: "all buttons in the main dashboard were

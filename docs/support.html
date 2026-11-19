@@ -61,7 +61,8 @@
     <p>That is expected: Whisk lives in the menu bar, as a clipboard icon, and has no main window.
     Copy a few things, then press <kbd>⇧⌘V</kbd> or click the icon and choose
     <em>Show Panel</em>. The first launch shows a short welcome window; afterwards the icon is the
-    only sign that Whisk is running.</p>
+    only sign that Whisk is running, unless macOS guards the clipboard: Whisk then opens its
+    Clipboard Access window at every launch until it is allowed.</p>
 
     <h3>Why does Whisk ask for Accessibility access?</h3>
     <p>To paste the card you pick straight into the field you were typing in: Whisk sends a
@@ -81,12 +82,16 @@
     then click the shortcut and type a new one. Every shortcut in Whisk can be changed there.</p>
 
     <h3>Nothing I copy shows up, and Whisk asks for clipboard access.</h3>
-    <p>Recent macOS versions ask before an app reads the clipboard on its own, and Whisk never
-    triggers that question from the background. Click <em>Allow Clipboard Access</em> in the
-    welcome window or in the panel, answer <em>Allow Paste</em> in the system alert, then open
-    System Settings → Privacy &amp; Security → Paste from Other Apps and set Whisk to
-    <em>Allow</em>. From then on every copy appears in the panel, with no need to relaunch. To
-    start over, run <code>tccutil reset Pasteboard</code> in Terminal.</p>
+    <p>Recent macOS versions ask before an app reads the clipboard on its own. Whisk opens its
+    Clipboard Access window at every launch until it is allowed; <em>Allow Clipboard Access</em>
+    in the panel and in the menu bar menu opens it too. Two steps. Answer <em>Allow Paste</em>
+    when macOS asks: it asks as soon as the clipboard holds something copied from another
+    application, so copy any text if no question shows up. Then choose
+    <em>Open System Settings</em> and set Whisk to <em>Allow</em> under Privacy &amp; Security →
+    Paste from Other Apps. The window confirms and every copy appears in the panel from then on,
+    with no need to relaunch; if System Settings offers to quit and reopen Whisk, either answer
+    is fine. To start over, run <code>tccutil reset Pasteboard com.nathanponcet.whisk</code> in
+    Terminal.</p>
 
     <h3>Something I copied is not in the history.</h3>
     <p>Whisk skips a copy when capture is paused (menu bar menu), when the source application is

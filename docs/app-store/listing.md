@@ -128,25 +128,35 @@ developers to designers, support and office workers. No account, no
 sign-in, no in-app purchase, no ads, no analytics.
 
 HOW TO USE IT
-After launch there is no window, only the clipboard icon in the menu bar
-(the first launch shows a short welcome window). If macOS asks before
-apps read the clipboard (Paste from Other Apps under Privacy & Security,
-which recent macOS versions enforce), allow clipboard access first: the
-welcome window and the panel show an Allow Clipboard Access button. Click
-it, answer Allow Paste in the system alert, then set Whisk to Allow under
-System Settings > Privacy & Security > Paste from Other Apps. Until then
-the app records nothing and says so; Whisk never triggers that alert from
-the background. On a Mac that does not ask, that button never appears and
-capture starts right away. Copy a few things first
-so the history has cards: some text in TextEdit, a link in Safari, a
-file in Finder, a color code such as #4CAF50. Press Shift-Command-V to
-open the panel, or click the menu bar icon and choose Show Panel. Type
-to search (operators: type:link, app:safari), click a chip to filter by
-app or by kind, arrow keys move, Return pastes the selected card,
-Command-Y opens a large preview, Command-P pins, Shift-Return queues
-cards in the paste stack and Option-Command-V pops the next one wherever
-you are typing. Settings are in the menu bar menu. No sample files or
-credentials are needed.
+Whisk is a menu bar app: there is no main window, only the clipboard
+icon in the menu bar.
+
+CLIPBOARD ACCESS, AT LAUNCH
+If macOS asks before apps read the clipboard (Paste from Other Apps
+under Privacy & Security, which recent macOS versions enforce), Whisk
+opens its Clipboard Access window at every launch until it is allowed,
+and macOS shows its alert over it (Whisk is trying to access the
+pasteboard). 1. Choose Allow Paste. macOS shows that alert only once the
+clipboard holds something copied from another app: on a Mac where
+nothing has been copied yet, copy any text and it appears at once. 2.
+Click Open System Settings in the Whisk window and set Whisk to Allow
+under Paste from Other Apps. The window then confirms that Whisk can
+read the clipboard and capture starts, with no relaunch; if System
+Settings offers Quit & Reopen, either choice works. On a Mac that does
+not ask, this window never opens and capture starts right away. To start
+over: tccutil reset Pasteboard com.nathanponcet.whisk
+
+THE PANEL
+The first launch also shows a short welcome window (Get Started). Copy a
+few things so the history has cards: some text in TextEdit, a link in
+Safari, a file in Finder, a color code such as #4CAF50. Press Shift-
+Command-V to open the panel, or click the menu bar icon and choose Show
+Panel. Type to search (operators: type:link, app:safari), click a chip
+to filter by app or by kind, arrow keys move, Return pastes the selected
+card, Command-Y opens a large preview, Command-P pins, Shift-Return
+queues cards in the paste stack and Option-Command-V pops the next one
+wherever you are typing. Settings are in the menu bar menu. No sample
+files or credentials are needed.
 
 Pasting straight into the previous application needs Accessibility
 access (System Settings > Privacy & Security > Accessibility): macOS
