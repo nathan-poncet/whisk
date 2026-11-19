@@ -1,15 +1,17 @@
 name: App Store listing
 
 # Pushes docs/app-store to App Store Connect — texts, screenshots, the
-# build of the version, the questionnaire answers — or sends the version
-# to App Review. Run by hand once the build of the version is processed.
+# build of the version, the questionnaire answers — sends the version to
+# App Review, or reports where the version and its submission stand
+# without writing anything. Run by hand once the build of the version is
+# processed.
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: push the listing, or submit the version for review
+        description: push the listing, submit the version for review, or print the status
         type: choice
-        options: [push, submit]
+        options: [push, submit, status]
         default: push
 
 permissions:
