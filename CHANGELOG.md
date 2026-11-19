@@ -8,6 +8,8 @@ live in the commit history.
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-11-19
+
 ### Fixed
 - Where macOS asks before an app reads the clipboard, Whisk asks for
   access at every launch until it is allowed, in a window of its own: the
@@ -453,7 +455,8 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.6...HEAD
+[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/nathan-poncet/whisk/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/nathan-poncet/whisk/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/nathan-poncet/whisk/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/nathan-poncet/whisk/compare/v1.0.3...v1.0.4
