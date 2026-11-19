@@ -48,12 +48,14 @@ import Testing
             pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
         )
         controller.pollTick()
-        #expect(spy.last.accessPrompt?.buttonTitle == "Open Pasteboard Settings")
+        #expect(spy.last.accessPrompt?.buttonTitle == "Allow Clipboard Access")
+        #expect(spy.last.accessWindow.primaryAction == .openSettings)
 
         pasteboard.access = .granted
         controller.pollTick()
 
         #expect(spy.last.accessPrompt == nil)
+        #expect(spy.last.accessWindow == .allowed)
         #expect(spy.last.emptyMessage == "Copy something to get started")
     }
 

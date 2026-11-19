@@ -137,7 +137,8 @@ final class HistoryPresenter {
             filters: filterBar(from: filters),
             emptyMessage: items.isEmpty && accessPrompt == nil
                 ? Self.emptyMessage(query: query, filters: filters) : nil,
-            accessPrompt: accessPrompt
+            accessPrompt: accessPrompt,
+            accessWindow: Self.accessWindow(for: clipboardAccess)
         )
     }
 
@@ -155,7 +156,57 @@ final class HistoryPresenter {
         case .denied:
             AccessPromptViewState(
                 message: localized("Whisk is not allowed to read the clipboard."),
-                buttonTitle: localized("Open Pasteboard Settings"))
+                buttonTitle: localized("Allow Clipboard Access"))
+        }
+    }
+
+    /// The access window names what the system leaves to the user: its own
+    /// question, which it asks only once something has been copied, then
+    /// the setting that ends the asking.
+    private static func accessWindow(for access: PasteboardAccess) -> ClipboardAccessViewState {
+        switch access {
+        case .granted:
+            .allowed
+        case .requiresConsent:
+            ClipboardAccessViewState(
+                symbol: "hand.raised.fill",
+                title: localized("Let Whisk read what you copy"),
+                message: localized(
+                    "macOS asks before an app reads the clipboard. Whisk needs your permission to remember what you copy, and your history never leaves this Mac."
+                ),
+                steps: [
+                    ClipboardAccessViewState.Step(
+                        title: localized("Choose Allow Paste when macOS asks"),
+                        detail: localized(
+                            "macOS asks as soon as the clipboard holds something. Nothing asked yet? Copy any text.")
+                    ),
+                    ClipboardAccessViewState.Step(
+                        title: localized("Set Whisk to Allow in System Settings"),
+                        detail: localized(
+                            "Under Privacy & Security, in Paste from Other Apps. Until then macOS asks again at every copy and Whisk records nothing."
+                        )
+                    ),
+                ],
+                primaryButton: localized("Open System Settings"),
+                primaryAction: .openSettings,
+                dismissButton: localized("Not Now")
+            )
+        case .denied:
+            ClipboardAccessViewState(
+                symbol: "hand.raised.fill",
+                title: localized("Clipboard access is turned off"),
+                message: localized(
+                    "macOS keeps Whisk from reading the clipboard, so nothing you copy is recorded."),
+                steps: [
+                    ClipboardAccessViewState.Step(
+                        title: localized("Set Whisk to Allow in System Settings"),
+                        detail: localized("Under Privacy & Security, in Paste from Other Apps.")
+                    )
+                ],
+                primaryButton: localized("Open System Settings"),
+                primaryAction: .openSettings,
+                dismissButton: localized("Not Now")
+            )
         }
     }
 

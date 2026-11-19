@@ -15,8 +15,9 @@ enum PanelWiring {
         let excludeSource: (_ bundleID: String, _ name: String) -> Void
         /// Opens the in-panel editor on a card.
         let beginEditing: (CardViewState) -> Void
-        /// Shows the System Settings pane where pasteboard access is granted.
-        let openPasteboardSettings: () -> Void
+        /// Opens the window that asks for the pasteboard and walks through
+        /// allowing it.
+        let showClipboardAccess: () -> Void
     }
 
     static func actions<Board: Pasteboard, Time: Clock, Store: HistoryStore, Log: Logger>(
@@ -131,8 +132,8 @@ enum PanelWiring {
                 clipboard.panelWillShow()
             },
             requestClipboardAccess: {
-                clipboard.requestClipboardAccess()
-                system.openPasteboardSettings()
+                hidePanel()
+                system.showClipboardAccess()
             }
         )
     }

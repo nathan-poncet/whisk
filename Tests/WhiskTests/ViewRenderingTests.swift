@@ -509,10 +509,23 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         _ = NSApplication.shared
 
         #expect(render(OnboardingView(toggleShortcut: "⇧⌘V", onContinue: {}), 440, 420) != nil)
-        #expect(
-            render(
-                OnboardingView(toggleShortcut: "⇧⌘V", clipboardAccess: .requiresConsent, onContinue: {}), 440, 460)
-                != nil)
+    }
+
+    @Test func the_access_window_is_as_tall_as_the_steps_it_lists() throws {
+        _ = NSApplication.shared
+        let store = HistoryViewStateStore()
+        var heights: [CGFloat] = []
+        for access in [PasteboardAccess.requiresConsent, .denied, .granted] {
+            store.update(
+                HistoryPresenter().present(items: [], query: "", now: ViewFixtures.now, clipboardAccess: access))
+            let view = ClipboardAccessView(store: store, onOpenSettings: {}, onClose: {})
+            let image = try #require(render(view, 460, 600))
+            #expect(within(1, image.size.width, 460))
+            heights.append(image.size.height)
+        }
+
+        #expect(heights[0] > heights[1])
+        #expect(heights[1] > heights[2])
     }
 
     @Test func the_settings_render_with_vim_off_then_on_with_duplicates_recording_and_exclusions() throws {

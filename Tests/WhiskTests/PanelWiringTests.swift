@@ -33,7 +33,7 @@ import Testing
                     saveToDisk: { [unowned self] in system.append("save:\($0)") },
                     excludeSource: { [unowned self] bundleID, name in system.append("exclude:\(bundleID):\(name)") },
                     beginEditing: { [unowned self] _ in editorOpenings += 1 },
-                    openPasteboardSettings: {}
+                    showClipboardAccess: { [unowned self] in system.append("clipboard-access") }
                 ))
         }
 
@@ -44,6 +44,17 @@ import Testing
         var wired: PanelActions {
             get throws { try #require(actions) }
         }
+    }
+
+    @Test func the_access_prompt_closes_the_panel_and_hands_over_to_the_access_window() throws {
+        let fixture = Fixture([Payload]())
+        fixture.pasteboard.access = .requiresConsent
+
+        try fixture.wired.requestClipboardAccess()
+
+        #expect(fixture.hides == 1)
+        #expect(fixture.system == ["clipboard-access"])
+        #expect(fixture.pasteboard.accessRequests == 0)
     }
 
     @Test func search_keystrokes_coalesce_into_the_last_query() throws {

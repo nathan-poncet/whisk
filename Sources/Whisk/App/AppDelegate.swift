@@ -13,6 +13,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let loginItem = LoginItemManager()
     private let updateChecker = UpdateChecker()
     private var onboardingWindow: NSWindow?
+    private var accessWindow: NSWindow?
+    private var accessWindowObserver: AnyCancellable?
     private var settingsObserver: AnyCancellable?
     private var statusItem: NSStatusItem?
     private var panelController: PanelController?
@@ -60,7 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self.generalSettings.excludedApps.append(ExcludedApp(bundleID: bundleID, name: name))
                 },
                 beginEditing: { stateStore.beginEditing($0) },
-                openPasteboardSettings: { [weak self] in self?.openPasteboardSettings() }
+                showClipboardAccess: { [weak self] in self?.showClipboardAccess() }
             )
         )
         let panelController = PanelController(
@@ -104,10 +106,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if Distribution.current.checksForUpdates, generalSettings.checkForUpdates {
             updateChecker.checkNow()
         }
-        if !UserDefaults.standard.bool(forKey: "didShowOnboarding"),
-            !CommandLine.arguments.contains("--smoke-test")
-        {
-            showOnboarding()
+        if !CommandLine.arguments.contains("--smoke-test") {
+            present(
+                LaunchPrompt.atLaunch(
+                    access: clipboard.clipboardAccess, welcomeSeen: welcomeSeen,
+                    accessWasAsked: UserDefaults.standard.bool(forKey: Self.accessAskedKey)))
         }
 
         if CommandLine.arguments.contains("--show-panel") {
@@ -218,7 +221,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let clipboard, clipboard.clipboardAccess != .granted {
             menu.addItem(.separator())
             menu.addItem(
-                menuItem(title: localized("Allow Clipboard Access…"), action: #selector(allowClipboardAccess)))
+                menuItem(title: localized("Allow Clipboard Access…"), action: #selector(showClipboardAccess)))
         }
         if let version = updateChecker.availableVersion {
             menu.addItem(.separator())
@@ -245,9 +248,97 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController?.show()
     }
 
-    @objc private func allowClipboardAccess() {
-        clipboard?.requestClipboardAccess()
-        openPasteboardSettings()
+    private var welcomeSeen: Bool {
+        UserDefaults.standard.bool(forKey: "didShowOnboarding")
+    }
+
+    private static let accessAskedKey = "clipboardAccessAsked"
+
+    private func present(_ prompt: LaunchPrompt?) {
+        switch prompt {
+        case .clipboardAccess: showClipboardAccess()
+        case .welcome: showOnboarding()
+        case nil: break
+        }
+    }
+
+    /// Opens the window that asks for the pasteboard, then has the system
+    /// ask its own question over it. The window floats: it stays in sight
+    /// next to System Settings and confirms the moment Whisk is allowed.
+    @objc private func showClipboardAccess() {
+        guard let stateStore else { return }
+        if accessWindow == nil {
+            let hosting = NSHostingController(
+                rootView: ClipboardAccessView(
+                    store: stateStore,
+                    onOpenSettings: { [weak self] in self?.openPasteboardSettings() },
+                    onClose: { [weak self] in
+                        self?.userIsClosingAccessWindow()
+                        self?.accessWindow?.close()
+                    }
+                )
+            )
+            let window = NSWindow(contentViewController: hosting)
+            window.setContentSize(hosting.view.fittingSize)
+            window.styleMask.remove([.resizable, .miniaturizable])
+            window.title = localized("Clipboard Access")
+            window.isReleasedWhenClosed = false
+            window.level = .floating
+            window.delegate = self
+            window.center()
+            accessWindow = window
+            // @Published emits on willSet: the content is measured on the
+            // next cycle, once the new steps are laid out.
+            accessWindowObserver = stateStore.$state
+                .map(\.accessWindow)
+                .removeDuplicates()
+                .dropFirst()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in self?.fitAccessWindowToItsContent() }
+        }
+        if clipboard?.clipboardAccess != .granted {
+            UserDefaults.standard.set(true, forKey: Self.accessAskedKey)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        accessWindow?.makeKeyAndOrderFront(nil)
+        // The system's question is modal: the window is on screen first so
+        // the question appears over its explanation.
+        DispatchQueue.main.async { [weak self] in
+            self?.clipboard?.requestClipboardAccess()
+        }
+    }
+
+    /// The steps come and go with the system's stance; the title bar stays
+    /// where it is while the window follows them.
+    private func fitAccessWindowToItsContent() {
+        guard let window = accessWindow, let content = window.contentView else { return }
+        var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: content.fittingSize))
+        frame.origin = NSPoint(x: window.frame.minX, y: window.frame.maxY - frame.height)
+        window.setFrame(frame, display: true, animate: true)
+    }
+
+    /// The user closing the window on its confirmation has seen it. A quit
+    /// closes the window as well and proves nothing — System Settings
+    /// offers one the moment Whisk is allowed — so only the user's own
+    /// gesture counts.
+    private func userIsClosingAccessWindow() {
+        if clipboard?.clipboardAccess == .granted {
+            UserDefaults.standard.removeObject(forKey: Self.accessAskedKey)
+        }
+    }
+
+    /// Closing the window before access is allowed declines for now: a
+    /// request still waiting for the first copy is withdrawn, so no
+    /// question comes out of nowhere.
+    private func clipboardAccessWindowDidClose() {
+        accessWindowObserver = nil
+        accessWindow = nil
+        clipboard?.cancelClipboardAccessRequest()
+        // The window is still closing: what follows it opens on the next cycle.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.onboardingWindow == nil else { return }
+            self.present(LaunchPrompt.afterClipboardAccess(welcomeSeen: self.welcomeSeen))
+        }
     }
 
     /// The pane where the user allows Whisk to read the pasteboard for good.
@@ -267,14 +358,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showOnboarding() {
         let hosting = NSHostingController(
-            rootView: OnboardingView(
-                toggleShortcut: keyBindings.label(for: .togglePanel),
-                clipboardAccess: clipboard?.clipboardAccess ?? .granted,
-                onAllowClipboard: { [weak self] in
-                    self?.clipboard?.requestClipboardAccess()
-                    self?.openPasteboardSettings()
-                }
-            ) { [weak self] in
+            rootView: OnboardingView(toggleShortcut: keyBindings.label(for: .togglePanel)) { [weak self] in
                 UserDefaults.standard.set(true, forKey: "didShowOnboarding")
                 self?.onboardingWindow?.close()
                 self?.onboardingWindow = nil
@@ -327,5 +411,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit() {
         NSApp.terminate(nil)
+    }
+}
+
+extension AppDelegate: NSWindowDelegate {
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        if sender === accessWindow {
+            userIsClosingAccessWindow()
+        }
+        return true
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === accessWindow else { return }
+        clipboardAccessWindowDidClose()
     }
 }

@@ -164,9 +164,43 @@ import Testing
         #expect(asking.accessPrompt?.message == "Whisk needs your permission to read what you copy.")
         #expect(asking.accessPrompt?.buttonTitle == "Allow Clipboard Access")
         #expect(refused.accessPrompt?.message == "Whisk is not allowed to read the clipboard.")
-        #expect(refused.accessPrompt?.buttonTitle == "Open Pasteboard Settings")
+        #expect(refused.accessPrompt?.buttonTitle == "Allow Clipboard Access")
         #expect(populated.cards.count == 1)
         #expect(populated.accessPrompt != nil)
+    }
+
+    @Test func the_access_window_walks_through_the_two_steps_the_system_leaves_to_the_user() {
+        let window = presenter.present(items: [], query: "", now: now, clipboardAccess: .requiresConsent).accessWindow
+
+        #expect(window.title == "Let Whisk read what you copy")
+        #expect(
+            window.steps.map(\.title) == [
+                "Choose Allow Paste when macOS asks", "Set Whisk to Allow in System Settings",
+            ])
+        #expect(window.steps.first?.detail.contains("Copy any text") == true)
+        #expect(window.primaryButton == "Open System Settings")
+        #expect(window.primaryAction == .openSettings)
+        #expect(window.dismissButton == "Not Now")
+    }
+
+    @Test func a_refused_pasteboard_leaves_the_access_window_one_step_the_setting() {
+        let window = presenter.present(items: [], query: "", now: now, clipboardAccess: .denied).accessWindow
+
+        #expect(window.title == "Clipboard access is turned off")
+        #expect(window.steps.map(\.title) == ["Set Whisk to Allow in System Settings"])
+        #expect(window.primaryAction == .openSettings)
+        #expect(window.dismissButton == "Not Now")
+    }
+
+    @Test func an_open_pasteboard_turns_the_access_window_into_a_confirmation_that_can_only_close() {
+        let window = presenter.present(items: [], query: "", now: now).accessWindow
+
+        #expect(window == .allowed)
+        #expect(window.title == "Whisk can read the clipboard")
+        #expect(window.steps.isEmpty)
+        #expect(window.primaryButton == "Done")
+        #expect(window.primaryAction == .close)
+        #expect(window.dismissButton == nil)
     }
 
     @Test func the_selected_card_is_the_one_the_preview_follows() {

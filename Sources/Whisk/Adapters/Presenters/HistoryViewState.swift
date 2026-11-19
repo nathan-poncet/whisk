@@ -14,6 +14,8 @@ struct HistoryViewState: Equatable {
     /// What to tell the user while the system keeps Whisk from reading the
     /// pasteboard, and the button that leads to the fix; nil once allowed.
     let accessPrompt: AccessPromptViewState?
+    /// What the window that asks for the pasteboard shows.
+    let accessWindow: ClipboardAccessViewState
 
     init(
         cards: [CardViewState],
@@ -23,7 +25,8 @@ struct HistoryViewState: Equatable {
         stackCount: Int = 0,
         filters: FilterBarViewState,
         emptyMessage: String? = nil,
-        accessPrompt: AccessPromptViewState? = nil
+        accessPrompt: AccessPromptViewState? = nil,
+        accessWindow: ClipboardAccessViewState = .allowed
     ) {
         self.cards = cards
         self.countLabel = countLabel
@@ -33,6 +36,7 @@ struct HistoryViewState: Equatable {
         self.filters = filters
         self.emptyMessage = emptyMessage
         self.accessPrompt = accessPrompt
+        self.accessWindow = accessWindow
     }
 
     /// The card the preview overlay follows.
@@ -55,6 +59,39 @@ struct HistoryViewState: Equatable {
 struct AccessPromptViewState: Equatable {
     let message: String
     let buttonTitle: String
+}
+
+/// The window that asks for the pasteboard: where Whisk stands with the
+/// system, the steps left to the user, and what its buttons do.
+struct ClipboardAccessViewState: Equatable {
+    struct Step: Equatable {
+        let title: String
+        let detail: String
+    }
+
+    enum Action: Equatable {
+        case openSettings
+        case close
+    }
+
+    let symbol: String
+    let title: String
+    let message: String
+    let steps: [Step]
+    let primaryButton: String
+    let primaryAction: Action
+    /// Leaves the request unanswered; nil once there is nothing to answer.
+    let dismissButton: String?
+
+    static let allowed = ClipboardAccessViewState(
+        symbol: "checkmark.circle.fill",
+        title: localized("Whisk can read the clipboard"),
+        message: localized("Everything you copy from now on is kept in your history."),
+        steps: [],
+        primaryButton: localized("Done"),
+        primaryAction: .close,
+        dismissButton: nil
+    )
 }
 
 /// The chip bar, three groups in display order: the pinned toggle, one

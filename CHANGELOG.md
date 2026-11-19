@@ -9,6 +9,12 @@ live in the commit history.
 ## [Unreleased]
 
 ### Fixed
+- Where macOS asks before an app reads the clipboard, Whisk asks for
+  access at every launch until it is allowed, in a window of its own: the
+  two steps macOS leaves to you, its question over them, and a
+  confirmation the moment Whisk is set to Allow — or at the next launch,
+  when System Settings reopens the app. The request used to sit behind a
+  button of the welcome window, on the very first launch only.
 - Where macOS asks before an app reads the clipboard, asking for access
   now works whatever the clipboard holds: macOS stayed silent, and Whisk
   was missing from Paste from Other Apps, when nothing had been copied yet
